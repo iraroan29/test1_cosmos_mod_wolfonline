@@ -16951,6 +16951,7 @@ std_string_c_str (StdString * self)
     }
     async init() {
       const rawData = await this.loadAndDecrypt();
+      Logger("[+] Init Raw Data >> " + rawData);
       if (rawData) {
         this.config.honorScore = rawData.honorScore;
         this.config.aidScore = rawData.aidScore;
@@ -17100,10 +17101,15 @@ std_string_c_str (StdString * self)
         if (currentApplication === null) return null;
         const context = currentApplication.getApplicationContext();
         this.configPath = context.getFilesDir().getAbsolutePath() + "/.app_data.bin";
+        Logger("[+] Config Path >> " + this.configPath.toString());
         if (!ConfigHelper.exists(this.configPath)) return null;
+        Logger("[+] Config Path Exists");
         const encrypted = ConfigHelper.readAllText(this.configPath);
+        Logger("[+] Config Encrypted >> " + encrypted.toString());
         const decrypted = ConfigHelper.crypt(ConfigHelper.atob(encrypted));
+        Logger("[+] Config Decrypted >> " + decrypted.toString());
         const parsed = JSON.parse(decrypted);
+        Logger("[+] Parsed >> " + parsed);
         return {
           honorScore: parsed.honorScore ?? 0,
           aidScore: parsed.aidScore ?? 0,
@@ -17113,6 +17119,7 @@ std_string_c_str (StdString * self)
           travelDistance: parsed.travelDistance ?? 0
         };
       } catch (e) {
+        Logger("[-] Exception Caught >> " + e.toString());
         return null;
       }
     }

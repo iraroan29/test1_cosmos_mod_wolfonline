@@ -1,0 +1,12 @@
+# 1. Ignore everything in the root
+/*
+
+# 2. Allow the path to your file
+!src/
+src/*
+
+# 3. Finally, allow the specific file
+!src/RemoteScript.js
+
+# Also keep the .gitignore itself tracked
+!.gitignore

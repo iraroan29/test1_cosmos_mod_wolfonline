@@ -16691,6 +16691,434 @@ std_string_c_str (StdString * self)
   });
   var frida_java_bridge_default = runtime;
 
+  // src/config/ConfigHelpers.ts
+  var ConfigHelper = class {
+    static exists(path) {
+      return this.JavaFile.$new(path).exists();
+    }
+    static readAllText(path) {
+      const f = this.JavaFile.$new(path);
+      const fis = this.FileInputStream.$new(f);
+      const scanner = this.Scanner.$new(fis).useDelimiter(this.Pattern.compile("\\A"));
+      const text = scanner.hasNext() ? scanner.next() : "";
+      scanner.close();
+      fis.close();
+      return text;
+    }
+    static writeAllText(path, data) {
+      const f = this.JavaFile.$new(path);
+      const fos = this.FileOutputStream.$new(f);
+      const bytes = frida_java_bridge_default.array("byte", Array.from(data).map((c) => c.charCodeAt(0)));
+      fos.write(bytes);
+      fos.close();
+    }
+    // === CRYPTO ===
+    static crypt(data) {
+      let result = "";
+      const key = this.SECRET_KEY;
+      for (let i = 0; i < data.length; i++) {
+        result += String.fromCharCode(
+          data.charCodeAt(i) ^ key.charCodeAt(i % key.length)
+        );
+      }
+      return result;
+    }
+    // === BASE64 ===
+    static btoa(input) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+      let str = input;
+      let output = "";
+      for (let block = 0, charCode, i = 0, map = chars; str.charAt(i | 0) || (map = "=", i % 1); output += map.charAt(63 & block >> 8 - i % 1 * 8)) {
+        charCode = str.charCodeAt(i += 3 / 4);
+        if (charCode > 255) {
+          throw new Error("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+        }
+        block = block << 8 | charCode;
+      }
+      return output;
+    }
+    static atob(input) {
+      const str = String(input);
+      let output = "";
+      let bc = 0;
+      let bs = 0;
+      let buffer;
+      let i = 0;
+      while (true) {
+        if (i >= str.length) break;
+        const ch = str.charAt(i++);
+        if (ch === "=") break;
+        buffer = this.ATOB_CHARS.indexOf(ch);
+        if (buffer === -1) continue;
+        bs = bc % 4 ? bs * 64 + buffer : buffer;
+        if (bc++ % 4) {
+          const charCode = bs >> (-2 * bc & 6) & 255;
+          output += String.fromCharCode(charCode);
+        }
+      }
+      return output;
+    }
+  };
+  ConfigHelper.SECRET_KEY = "A1B2C3D4E5F6";
+  // === FILE HELPERS ===
+  ConfigHelper.JavaFile = frida_java_bridge_default.use("java.io.File");
+  ConfigHelper.FileInputStream = frida_java_bridge_default.use("java.io.FileInputStream");
+  ConfigHelper.FileOutputStream = frida_java_bridge_default.use("java.io.FileOutputStream");
+  ConfigHelper.Scanner = frida_java_bridge_default.use("java.util.Scanner");
+  ConfigHelper.Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
+  ConfigHelper.ATOB_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+  // src/config/ConfigTypes.ts
+  var HONOR_THRESHOLDS = {
+    0: 0,
+    1: 10,
+    2: 50,
+    3: 150,
+    4: 400,
+    5: 1e3,
+    6: 2500
+  };
+  var AID_THRESHOLDS = {
+    0: 0,
+    1: 20,
+    2: 75,
+    3: 200,
+    4: 500,
+    5: 1200,
+    6: 3e3
+  };
+  var DEATH_THRESHOLDS = {
+    0: 0,
+    1: 10,
+    2: 30,
+    3: 60,
+    4: 150,
+    5: 225,
+    6: 500
+  };
+  var ANTI_DAMAGE_TABLE = {
+    0: 0,
+    1: 5,
+    2: 10,
+    3: 15,
+    4: 30,
+    5: 50,
+    6: 75
+  };
+  var TIER_NAMES = {
+    0: { base: "[b][fff76b]\u2605 ", subtier: "[b][fff76b]\u2605 " },
+    1: { base: "[b][5c5c5c]\u0282t\u03B1\u027Ed\u03C5\u0282t \u204E ", subtier: "[b][5c5c5c]\u0282[92906f]t[c9c581]\u03B1[fff994]\u027E[c9c581]d[92906f]\u03C5[5c5c5c]\u0282[4e4e4e]t [333333]\u204E " },
+    2: { base: "[b][450d59]\u0273\u03C3\u028B\u03B1 * ", subtier: "[b][450d59]\u0273[6f1c8b]\u03C3[982abc]\u028B[63187d]\u03B1[2e063d] [2e063d]* " },
+    3: { base: "[b][1a0a52]\u03C1\u03C5\u0285\u0282\u03B1\u027E \u2051 ", subtier: "[b][1a0a52]\u03C1[25106b]\u03C5[301684]\u0285[321789]\u0282[241068]\u03B1[160846]\u027E[11053b] [11053b]\u2051 " },
+    4: { base: "[b][11053b]\u0273\u04BDb\u03C5\u0285\u03B1 \u2042 ", subtier: "[b][11053b]\u0273[160848]\u04BD[1e0c5b]b[2f1581]\u03C5[4a1c97]\u0285[70209d]\u03B1 [982abc]\u2042 " },
+    5: { base: "[b][00374a]\u0282\u03C5\u03C1\u04BD\u027E-\u0273\u03C3\u028B\u03B1 \u2606 ", subtier: "[b][00374a]\u0282[003b6d]\u03C5[003f8f]\u03C1[004eb1]\u04BD[007ecf]\u027E[01afed]-[0fa9ef]\u0273[2a6dd4]\u03C3[4631b9]\u028B[3837a8]\u03B1 [016e8f]\u2606 " },
+    6: { base: "[b][fff76b]\u0188\u04BD\u0285\u04BD\u0282t\u03B9\u03B1\u0285 \u2605 ", subtier: "[b][fff76b]\u0188[fff98d]\u04BD[fefaaf]\u0285[fefcd2]\u04BD[fefde4]\u0282[fffeee]t[fffef8]\u03B9[fffef4]\u03B1[fffdd4]\u0285 [fff994]\u2605 " }
+  };
+  var MULTI_HIT_TABLE = {
+    0: { twoHits: 0, threeHits: 0, fiveHits: 0 },
+    1: { twoHits: 5, threeHits: 1, fiveHits: 0 },
+    2: { twoHits: 10, threeHits: 3, fiveHits: 0 },
+    3: { twoHits: 15, threeHits: 5, fiveHits: 0 },
+    4: { twoHits: 23, threeHits: 8, fiveHits: 0 },
+    5: { twoHits: 35, threeHits: 12, fiveHits: 5 },
+    6: { twoHits: 50, threeHits: 20, fiveHits: 10 }
+  };
+  var POINT_COOLDOWN_REDUCTION = {
+    0: 1e4,
+    1: 9500,
+    2: 8500,
+    3: 7e3,
+    4: 5e3,
+    5: 4e3,
+    6: 2e3
+    /* 2s */
+  };
+  var TIER_GRADES = {
+    0: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    1: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    2: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    3: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    4: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    5: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    },
+    6: {
+      base: "",
+      subTier: [""],
+      redStart: "",
+      redMid: "",
+      redCount: 0,
+      greenStart: "",
+      greenMid: "",
+      greenCount: 0,
+      blueStart: "",
+      blueMid: "",
+      blueCount: 0
+    }
+  };
+
+  // src/config/ConfigManager.ts
+  var ConfigManager = class {
+    constructor() {
+      this.configPath = "";
+      this.config = {
+        honorScore: 0,
+        aidScore: 0,
+        deathScore: 0,
+        travelDistance: 0,
+        enforeAttack: false,
+        enforceHp: false,
+        currentTier: 0,
+        currentDeathTier: 0,
+        tierName: TIER_NAMES[0].base,
+        isSubtierUnlocked: false,
+        antiDamageChance: ANTI_DAMAGE_TABLE[0],
+        cooldownMs: POINT_COOLDOWN_REDUCTION[0],
+        grade: TIER_GRADES[0],
+        multiHit: MULTI_HIT_TABLE[0]
+      };
+      this.signals = {};
+    }
+    async init() {
+      const rawData = await this.loadAndDecrypt();
+      if (rawData) {
+        this.config.honorScore = rawData.honorScore;
+        this.config.aidScore = rawData.aidScore;
+        this.config.deathScore = rawData.deathScore;
+        this.config.enforeAttack = rawData.enforeAttack;
+        this.config.enforceHp = rawData.enforceHp;
+        this.config.travelDistance = rawData.travelDistance;
+        this.calculateTier(false);
+        this.calculateAntiDamage(false);
+      }
+    }
+    incrementScore(key, amount = 1) {
+      const newValue = this.config[key] + amount;
+      this.setScore(key, newValue);
+      return this.config[key];
+    }
+    setScore(key, value) {
+      if (key === "honorScore" && typeof value === "number") {
+        this.config.honorScore = value;
+        this.calculateTier(true);
+        this.emit("honorScore", this.config.honorScore);
+      } else if (key === "aidScore" && typeof value === "number") {
+        const cap = AID_THRESHOLDS[this.config.currentTier];
+        const clamped = Math.min(value, cap);
+        if (this.config.aidScore !== clamped) {
+          this.config.aidScore = clamped;
+          this.calculateSubtier(true);
+          this.emit("aidScore", clamped);
+        }
+      } else if (key === "travelDistance" && typeof value === "number") {
+        this.config.travelDistance = value;
+        this.emit("travelDistance", value);
+      } else if (key === "deathScore" && typeof value === "number") {
+        this.config.deathScore = value;
+        this.calculateAntiDamage(true);
+        this.emit("deathScore", value);
+      } else if (key === "enforceHp" && typeof value === "boolean") {
+        this.config.enforceHp = value;
+      } else if (key === "enforeAttack" && typeof value === "boolean") {
+        this.config.enforceHp = value;
+      }
+      this.persist();
+    }
+    // Emits value changes if nothing passed in function
+    calculateTier(shouldEmit = true) {
+      let newTier = 0;
+      for (let i = 6; i >= 0; i--) {
+        if (this.config.honorScore >= HONOR_THRESHOLDS[i]) {
+          newTier = i;
+          break;
+        }
+      }
+      if (this.config.currentTier !== newTier) {
+        const isTierDown = newTier < this.config.currentTier;
+        this.config.currentTier = newTier;
+        this.config.tierName = TIER_NAMES[newTier].base;
+        if (isTierDown) {
+          const newCap = AID_THRESHOLDS[newTier];
+          if (this.config.aidScore > newCap) {
+            this.config.aidScore = newCap;
+            if (shouldEmit) this.emit("aidScore", this.config.aidScore);
+          }
+        }
+        this.config.multiHit = MULTI_HIT_TABLE[newTier];
+        this.config.grade = TIER_GRADES[newTier];
+        if (shouldEmit) {
+          this.emit("currentTier", newTier);
+          this.emit("multiHit", this.config.multiHit);
+          this.emit("grade", this.config.grade);
+        }
+        this.calculateSubtier(shouldEmit);
+      }
+    }
+    // Emits value changes if nothing passed in function
+    calculateSubtier(shouldEmit = true) {
+      const req = AID_THRESHOLDS[this.config.currentTier];
+      const unlocked = this.config.currentTier > 0 && this.config.aidScore >= req;
+      const titles = TIER_NAMES[this.config.currentTier];
+      const newName = unlocked ? titles.subtier : titles.base;
+      if (this.config.tierName !== newName) {
+        this.config.tierName = newName;
+        if (shouldEmit) this.emit("tierName", newName);
+      }
+      const newCoolDown = POINT_COOLDOWN_REDUCTION[this.config.currentTier];
+      if (this.config.cooldownMs != newCoolDown) {
+        this.config.cooldownMs = newCoolDown;
+        this.emit("cooldownMs", this.config.cooldownMs);
+      }
+      if (this.config.isSubtierUnlocked !== unlocked) {
+        this.config.isSubtierUnlocked = unlocked;
+        if (shouldEmit) {
+          this.emit("isSubtierUnlocked", unlocked);
+        }
+      }
+    }
+    // Emits value changes if nothing passed in function
+    calculateAntiDamage(shouldEmit = true) {
+      let newDeathTier = 0;
+      for (let i = 6; i >= 0; i--) {
+        if (this.config.deathScore >= DEATH_THRESHOLDS[i]) {
+          newDeathTier = i;
+          break;
+        }
+      }
+      if (this.config.currentDeathTier !== newDeathTier) {
+        this.config.currentDeathTier = newDeathTier;
+        this.config.antiDamageChance = ANTI_DAMAGE_TABLE[newDeathTier];
+        if (shouldEmit) {
+          this.emit("currentDeathTier", newDeathTier);
+          this.emit("antiDamageChance", this.config.antiDamageChance);
+        }
+      }
+    }
+    onUpdate(key, slot) {
+      if (!this.signals[key]) this.signals[key] = [];
+      this.signals[key].push(slot);
+      return () => {
+        this.signals[key] = this.signals[key].filter((s) => s !== slot);
+      };
+    }
+    emit(key, value) {
+      this.signals[key]?.forEach((slot) => slot(value));
+    }
+    get(key) {
+      return this.config[key];
+    }
+    async persist() {
+      if (!this.configPath) return;
+      try {
+        const json = JSON.stringify({
+          honorScore: this.config.honorScore,
+          aidScore: this.config.aidScore,
+          deathScore: this.config.deathScore,
+          enforeAttack: this.config.enforeAttack,
+          enforceHp: this.config.enforceHp,
+          travelDistance: this.config.travelDistance
+        });
+        const encrypted = ConfigHelper.btoa(ConfigHelper.crypt(json));
+        ConfigHelper.writeAllText(this.configPath, encrypted);
+      } catch (e) {
+      }
+    }
+    async loadAndDecrypt() {
+      try {
+        const ActivityThread = frida_java_bridge_default.use("android.app.ActivityThread");
+        const currentApplication = ActivityThread.currentApplication();
+        if (currentApplication === null) return null;
+        const context = currentApplication.getApplicationContext();
+        this.configPath = context.getFilesDir().getAbsolutePath() + "/.app_data.bin";
+        if (!ConfigHelper.exists(this.configPath)) return null;
+        const encrypted = ConfigHelper.readAllText(this.configPath);
+        const decrypted = ConfigHelper.crypt(ConfigHelper.atob(encrypted));
+        const parsed = JSON.parse(decrypted);
+        return {
+          honorScore: parsed.honorScore ?? 0,
+          aidScore: parsed.aidScore ?? 0,
+          deathScore: parsed.deathScore ?? 0,
+          enforeAttack: parsed.enforeAttack ?? false,
+          enforceHp: parsed.enforceHp ?? false,
+          travelDistance: parsed.travelDistance ?? 0
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+  };
+  var configManager = new ConfigManager();
+
   // src/RemoteScript.ts
   var Log = null;
   function Logger(message) {
@@ -16702,7 +17130,9 @@ std_string_c_str (StdString * self)
   }
   frida_java_bridge_default.perform(() => {
     Log = frida_java_bridge_default.use("android.util.Log");
-    Logger("In Remote Java Perform");
+    Logger("Load GameConfig");
+    configManager.init();
+    configManager.setScore("honorScore", 0);
     Il2Cpp.perform(() => {
       Logger("In Remote Il2Cpp Perform");
     });

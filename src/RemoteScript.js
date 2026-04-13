@@ -17133,7 +17133,7 @@ std_string_c_str (StdString * self)
     Logger("Load GameConfig");
     configManager.init();
     configManager.incrementScore("honorScore");
-    Logger("New honor score: " + configManager.get("honorScore"));
+    Logger("New honor score: " + configManager.get("honorScore").toString());
     Il2Cpp.perform(() => {
       Logger("In Remote Il2Cpp Perform");
     });

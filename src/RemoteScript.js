@@ -17135,10 +17135,10 @@ std_string_c_str (StdString * self)
       console.log(`[${"FRIDA_SCRIPT"}] ${message}`);
     }
   }
-  frida_java_bridge_default.perform(() => {
+  frida_java_bridge_default.perform(async () => {
     Log = frida_java_bridge_default.use("android.util.Log");
     Logger("Load GameConfig");
-    configManager.init();
+    await configManager.init();
     configManager.incrementScore("honorScore");
     Logger("New honor score: " + configManager.get("honorScore").toString());
     Il2Cpp.perform(() => {

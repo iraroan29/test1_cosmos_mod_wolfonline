@@ -17132,7 +17132,8 @@ std_string_c_str (StdString * self)
     Log = frida_java_bridge_default.use("android.util.Log");
     Logger("Load GameConfig");
     configManager.init();
-    configManager.setScore("honorScore", 0);
+    configManager.incrementScore("honorScore");
+    Logger("New honor score: " + configManager.get("honorScore"));
     Il2Cpp.perform(() => {
       Logger("In Remote Il2Cpp Perform");
     });

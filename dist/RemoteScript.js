@@ -17564,6 +17564,29 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/tmpHooks/honorAttack.ts
+  function honorAttackTesting() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] Assembly-CSharp not ready for honorAttackTesting, retrying...");
+      setTimeout(honorAttackTesting, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("AttackON").implementation = function() {
+      configManager.incrementScore("honorScore", 10);
+      this.method("AttackON").invoke();
+    };
+    Logger("[+] honorAttackTesting successfully initialized!");
+  }
+  var init_honorAttack = __esm({
+    "src/tmpHooks/honorAttack.ts"() {
+      init_ConfigManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17573,6 +17596,7 @@ std_string_c_str (StdString * self)
       init_immortality();
       init_configDisplay();
       init_givePoints();
+      init_honorAttack();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17586,11 +17610,14 @@ std_string_c_str (StdString * self)
         Logger("Load GameConfig");
         await configManager.init();
         Il2Cpp.perform(() => {
-          Logger("[+] Remote Il2cpp Perform");
+          Logger("[+] Remote Il2cpp Perform\n");
           configDisplay();
+          Logger("   ------------");
           givePoints();
+          Logger("   ------------");
+          honorAttackTesting();
           immortalTesting();
-          Logger("[+] Successfully Completed All Hooks");
+          Logger("\n[+] Successfully Completed All Hooks");
         });
       });
     }

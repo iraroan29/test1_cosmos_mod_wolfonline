@@ -17471,6 +17471,99 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/helpers/playerWolfStore.ts
+  var SharedState;
+  var init_playerWolfStore = __esm({
+    "src/helpers/playerWolfStore.ts"() {
+      SharedState = {
+        spawningClone: false,
+        pendingOldBody: null,
+        realBody: null,
+        wolfType: ""
+      };
+    }
+  });
+
+  // src/hooks/givePoints.ts
+  function makeObjectArray(items) {
+    return Il2Cpp.array(SystemObject, items);
+  }
+  function newSingle(value) {
+    const s = SingleClass.new();
+    s.field("m_value").value = value;
+    return s;
+  }
+  function isMe(theAttacked) {
+    const attackedGO = theAttacked.method("get_gameObject").invoke();
+    if (SharedState.realBody && !attackedGO.equals(SharedState.realBody)) {
+      return false;
+    }
+    const hasPlayerWolf = attackedGO.method("GetComponent").inflate(PlayerWolf).invoke();
+    if (!hasPlayerWolf) return false;
+    const attackedTransform = attackedGO.method("get_transform").invoke();
+    const attackedTransformRoot = attackedTransform.method("get_root").invoke();
+    const attackedView = attackedTransformRoot.method("GetComponent").inflate(PhotonView).invoke();
+    return attackedView.method("get_isMine").invoke();
+  }
+  function isOnCooldown() {
+    if (!cooldownActive) return false;
+    const now = Date.now();
+    if (now >= cooldownEndTime) {
+      cooldownActive = false;
+      return false;
+    }
+    return true;
+  }
+  function givePoints() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] Assembly-CSharp not ready for givePoints, retrying...");
+      setTimeout(givePoints, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    PhotonView = AssemblyC.class("PhotonView");
+    PlayerWolf = AssemblyC.class("Player_Wolf");
+    GameObject = UnityCore.class("UnityEngine.GameObject");
+    SystemObject = Il2Cpp.corlib.class("System.Object");
+    SingleClass = Il2Cpp.corlib.class("System.Single");
+    RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
+      hunter = hunter;
+      if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
+        return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
+      }
+      cooldownActive = true;
+      const COOLDOWN_MS = configManager.get("cooldownMs");
+      cooldownEndTime = Date.now() + COOLDOWN_MS;
+      const exp = newSingle(mod_points);
+      const point = newSingle(mod_points);
+      const LastDmgArray = makeObjectArray([
+        exp,
+        point,
+        Il2Cpp.string("Eating")
+      ]);
+      const receiverView = PhotonView.method("Find").invoke(hunter_id);
+      const receiver = receiverView.method("get_owner").invoke();
+      receiverView.method("RPC").overload("System.String", "PhotonPlayer", "System.Object[]").invoke(Il2Cpp.string("Net_Last_Damage_Hunter"), receiver, LastDmgArray);
+      const raw = mod_points / 1e4 * Math.max(2, configManager.get("currentTier"));
+      configManager.incrementScore("aidScore", Math.round(raw * 10) / 10);
+    };
+    Logger("[+] givePoints successfully initialized!");
+  }
+  var mod_points, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
+  var init_givePoints = __esm({
+    "src/hooks/givePoints.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      mod_points = 1e4;
+      cooldownActive = false;
+      cooldownEndTime = 0;
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17479,6 +17572,7 @@ std_string_c_str (StdString * self)
       init_ConfigManager();
       init_immortality();
       init_configDisplay();
+      init_givePoints();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17494,6 +17588,7 @@ std_string_c_str (StdString * self)
         Il2Cpp.perform(() => {
           Logger("[+] Remote Il2cpp Perform");
           configDisplay();
+          givePoints();
           immortalTesting();
           Logger("[+] Successfully Completed All Hooks");
         });

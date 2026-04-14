@@ -17587,6 +17587,43 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/hudName.ts
+  function hudName() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] hudName Assemblies not ready, retrying in 500ms...");
+      setTimeout(hudName, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const ChatParticipant = AssemblyC.class("ChatParticipant");
+    ChatParticipant.method("Set_hudText_ADD").implementation = function(ID) {
+      const mText = this.field("mText").value;
+      const removeCE = "[/u][/i][/sup][/sub][/s][/b]";
+      const ColorClass = UnityCore.class("UnityEngine.Color");
+      const color = ColorClass.new().unbox();
+      color.field("r").value = 1;
+      color.field("g").value = 1;
+      color.field("b").value = 1;
+      color.field("a").value = 1;
+      let userID = ID.toString().trim().replaceAll('"', "");
+      const displayName = removeCE + configManager.get("tierName") + " [b]" + userID + removeCE;
+      mText.method("Add").invoke(
+        Il2Cpp.string(`${displayName}`),
+        color,
+        86400
+      );
+    };
+    Logger("[+] hudName successfully initialized!");
+  }
+  var init_hudName = __esm({
+    "src/hooks/hudName.ts"() {
+      init_ConfigManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17597,6 +17634,7 @@ std_string_c_str (StdString * self)
       init_configDisplay();
       init_givePoints();
       init_honorAttack();
+      init_hudName();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17611,12 +17649,15 @@ std_string_c_str (StdString * self)
         await configManager.init();
         Il2Cpp.perform(() => {
           Logger("[+] Remote Il2cpp Perform\n");
+          Logger("   ------------");
           configDisplay();
           Logger("   ------------");
+          hudName();
           givePoints();
           Logger("   ------------");
           honorAttackTesting();
           immortalTesting();
+          Logger("   ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });
       });

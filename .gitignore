@@ -2,11 +2,11 @@
 /*
 
 # 2. Allow the path to your file
-!src/
-src/*
+!dist/
+dist/*
 
 # 3. Finally, allow the specific file
-!src/RemoteScript.js
+!dist/RemoteScript.js
 
 # Also keep the .gitignore itself tracked
 !.gitignore

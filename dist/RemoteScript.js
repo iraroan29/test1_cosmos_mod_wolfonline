@@ -17609,7 +17609,7 @@ std_string_c_str (StdString * self)
       color.field("b").value = 1;
       color.field("a").value = 1;
       let userID = ID.toString().trim().replaceAll('"', "");
-      const displayName = removeCE + configManager.get("tierName") + " [b]" + userID + removeCE;
+      const displayName = removeCE + configManager.get("tierName") + "[b][ffffff]" + userID + removeCE;
       mText.method("Add").invoke(
         Il2Cpp.string(`${displayName}`),
         color,
@@ -17649,15 +17649,15 @@ std_string_c_str (StdString * self)
         await configManager.init();
         Il2Cpp.perform(() => {
           Logger("[+] Remote Il2cpp Perform\n");
-          Logger("   ------------");
+          Logger("    ------------");
           configDisplay();
-          Logger("   ------------");
+          Logger("    ------------");
           hudName();
           givePoints();
-          Logger("   ------------");
+          Logger("    ------------");
           honorAttackTesting();
           immortalTesting();
-          Logger("   ------------");
+          Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });
       });

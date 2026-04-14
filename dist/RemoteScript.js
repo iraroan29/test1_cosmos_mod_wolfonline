@@ -17246,6 +17246,231 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/gui/gui.ts
+  var UnityGUI;
+  var init_gui = __esm({
+    "src/gui/gui.ts"() {
+      init_dist();
+      UnityGUI = class {
+        // ---------------------------------------------------------
+        // 1. Safe initializer — mirrors ModMenuHooks pattern
+        // ---------------------------------------------------------
+        static init() {
+          if (this.initialized) return true;
+          const coreAsm = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          const imguiAsm = Il2Cpp.domain.assembly("UnityEngine.IMGUIModule");
+          if (!coreAsm || !imguiAsm) {
+            console.log("[UnityGUI] Modules not ready, retrying...");
+            setTimeout(() => this.init(), 500);
+            return false;
+          }
+          this.UnityCore = coreAsm.image;
+          this.IMGUIModule = imguiAsm.image;
+          this.GUI = this.IMGUIModule.class("UnityEngine.GUI");
+          this.RectClass = this.UnityCore.class("UnityEngine.Rect");
+          this.ColorClass = this.UnityCore.class("UnityEngine.Color");
+          this.ScreenClass = this.UnityCore.class("UnityEngine.Screen");
+          if (!this.GUI || !this.RectClass || !this.ColorClass) {
+            console.log("[UnityGUI] Classes not ready, retrying...");
+            setTimeout(() => this.init(), 500);
+            return false;
+          }
+          this.initialized = true;
+          console.log("[UnityGUI] Successfully initialized!");
+          return true;
+        }
+        // ---------------------------------------------------------
+        // 2. Safe Rect creation
+        // ---------------------------------------------------------
+        static createRect(x, y, w, h) {
+          if (!this.init()) return null;
+          try {
+            const rect = this.RectClass.new().unbox();
+            rect.method("set_x").invoke(x);
+            rect.method("set_y").invoke(y);
+            rect.method("set_width").invoke(w);
+            rect.method("set_height").invoke(h);
+            return rect;
+          } catch (e) {
+            console.log("[UnityGUI] Rect creation failed:", e);
+            return null;
+          }
+        }
+        // ---------------------------------------------------------
+        // 3. Safe Color creation
+        // ---------------------------------------------------------
+        static createColor(r, g, b, a = 1) {
+          if (!this.init()) return null;
+          try {
+            const color = this.ColorClass.new().unbox();
+            color.field("r").value = r;
+            color.field("g").value = g;
+            color.field("b").value = b;
+            color.field("a").value = a;
+            return color;
+          } catch (e) {
+            console.log("[UnityGUI] Color creation failed:", e);
+            return null;
+          }
+        }
+        // ---------------------------------------------------------
+        // 4. UI Controls — wrapped in safety checks
+        // ---------------------------------------------------------
+        static label(x, y, w, h, text) {
+          if (!this.init()) return;
+          try {
+            this.GUI.method("Label").overload("UnityEngine.Rect", "System.String").invoke(this.createRect(x, y, w, h), Il2Cpp.string(text));
+          } catch (e) {
+            console.log("[UnityGUI] label() failed:", e);
+          }
+        }
+        static button(x, y, w, h, text) {
+          if (!this.init()) return false;
+          try {
+            return this.GUI.method("Button").overload("UnityEngine.Rect", "System.String").invoke(this.createRect(x, y, w, h), Il2Cpp.string(text));
+          } catch (e) {
+            console.log("[UnityGUI] button() failed:", e);
+            return false;
+          }
+        }
+        static toggle(x, y, w, h, state, text) {
+          if (!this.init()) return state;
+          try {
+            return this.GUI.method("Toggle").overload("UnityEngine.Rect", "System.Boolean", "System.String").invoke(this.createRect(x, y, w, h), state, Il2Cpp.string(text));
+          } catch (e) {
+            console.log("[UnityGUI] toggle() failed:", e);
+            return state;
+          }
+        }
+        static slider(x, y, w, h, val, min, max) {
+          if (!this.init()) return val;
+          try {
+            return this.GUI.method("HorizontalSlider").overload("UnityEngine.Rect", "System.Single", "System.Single", "System.Single").invoke(this.createRect(x, y, w, h), val, min, max);
+          } catch (e) {
+            console.log("[UnityGUI] slider() failed:", e);
+            return val;
+          }
+        }
+        static textField(x, y, w, h, text) {
+          if (!this.init()) return text;
+          try {
+            const result = this.GUI.method("TextField").overload("UnityEngine.Rect", "System.String").invoke(this.createRect(x, y, w, h), Il2Cpp.string(text));
+            return result?.content || "";
+          } catch (e) {
+            console.log("[UnityGUI] textField() failed:", e);
+            return text;
+          }
+        }
+        static box(x, y, w, h, title = "") {
+          if (!this.init()) return;
+          try {
+            this.GUI.method("Box").overload("UnityEngine.Rect", "System.String").invoke(this.createRect(x, y, w, h), Il2Cpp.string(title));
+          } catch (e) {
+            console.log("[UnityGUI] box() failed:", e);
+          }
+        }
+        static setBackgroundColor(r, g, b, a = 1) {
+          if (!this.init()) return;
+          try {
+            this.GUI.method("set_backgroundColor").invoke(this.createColor(r, g, b, a));
+          } catch (e) {
+            console.log("[UnityGUI] setBackgroundColor() failed:", e);
+          }
+        }
+        /**
+         * Returns the current screen width in pixels
+         */
+        static get width() {
+          if (!this.init()) return -1;
+          return this.ScreenClass.method("get_width").invoke();
+        }
+        /**
+         * Returns the current screen height in pixels
+         */
+        static get height() {
+          if (!this.init()) return -1;
+          return this.ScreenClass.method("get_height").invoke();
+        }
+        static convertHexToUnityRich(str) {
+          str = str.replace(/\[-\]/g, "");
+          str = str.replace(/\[b\]/gi, "<b>");
+          str = str.replace(/\[i\]/gi, "<i>");
+          str = str.replace(/\[u\]/gi, "<u>");
+          str = str.replace(/\[\/b\]/gi, "</b>");
+          str = str.replace(/\[\/i\]/gi, "</i>");
+          str = str.replace(/\[\/u\]/gi, "</u>");
+          let output = "";
+          let currentColor = null;
+          const regex = /\[([0-9A-Fa-f]{6})\]/g;
+          let lastIndex = 0;
+          let match;
+          while ((match = regex.exec(str)) !== null) {
+            const hex = match[1];
+            const index = match.index;
+            output += str.substring(lastIndex, index);
+            if (currentColor !== null) {
+              output += "</color>";
+            }
+            output += `<color=#${hex}>`;
+            currentColor = hex;
+            lastIndex = regex.lastIndex;
+          }
+          output += str.substring(lastIndex);
+          if (currentColor !== null) {
+            output += "</color>";
+          }
+          return output;
+        }
+      };
+      UnityGUI.initialized = false;
+    }
+  });
+
+  // src/gui/configDisplay.ts
+  function configDisplay() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const imgui = Il2Cpp.domain.assembly("UnityEngine.IMGUIModule");
+    const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !imgui || !core) {
+      Logger("[!] Modules not ready for configDisplay, retrying...");
+      setTimeout(configDisplay, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCoreImage = core.image;
+    const MasterJoinClass = AssemblyC.class("Master_Join");
+    GUIMatrixClass = imgui.image.class("UnityEngine.GUI");
+    Matrix4x4Class = UnityCoreImage.class("UnityEngine.Matrix4x4");
+    Vector3Class = UnityCoreImage.class("UnityEngine.Vector3");
+    const screenWidth = UnityGUI.width;
+    const finalScale = 1.7 * (screenWidth / 2560);
+    const scaledWidth = screenWidth / finalScale;
+    const bigMult = 2;
+    const vecBig = Vector3Class.alloc().unbox();
+    vecBig.field("x").value = finalScale * bigMult;
+    vecBig.field("y").value = finalScale * bigMult;
+    vecBig.field("z").value = 1;
+    const matrixBig = Matrix4x4Class.method("Scale").invoke(vecBig);
+    const xModName = scaledWidth / bigMult / 2 - 220 / 2;
+    const yModName = 4;
+    const modNameGradient = UnityGUI.convertHexToUnityRich("[b][3798e5]C[4198dc]o[4c97d4]s[5697cb]m[5a90cd]o[5d89d0]s [647cd2]M[6676d2]o[6970d2]d [6a61d1]b[6a59d1]y [6e4ace]A[7245cb]p[773fc9]r[8445d0]i[914cd6]c[9e52dd]i[aa57de]t[b65bdf]y [ce64e1][[be66d1]9[ad68c0].[9d6ab0]0[91709e].[86768d]4[7a7c7b]]");
+    MasterJoinClass.method("OnGUI").implementation = function() {
+      this.method("OnGUI").invoke();
+      GUIMatrixClass.method("set_matrix").invoke(matrixBig);
+      UnityGUI.label(xModName, yModName, 220, 60, modNameGradient);
+      UnityGUI.label(xModName, 20, 100, 50, "HONOR: " + configManager.get("honorScore").toFixed(0));
+      UnityGUI.label(xModName + 220 - 100, 20, 100, 50, "AID: " + configManager.get("aidScore").toFixed(1));
+    };
+    Logger("[+] configDisplay successfully initialized!");
+  }
+  var GUIMatrixClass, Matrix4x4Class, Vector3Class;
+  var init_configDisplay = __esm({
+    "src/gui/configDisplay.ts"() {
+      init_ConfigManager();
+      init_gui();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17253,6 +17478,7 @@ std_string_c_str (StdString * self)
       init_frida_java_bridge();
       init_ConfigManager();
       init_immortality();
+      init_configDisplay();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17266,9 +17492,10 @@ std_string_c_str (StdString * self)
         Logger("Load GameConfig");
         await configManager.init();
         Il2Cpp.perform(() => {
-          Logger("[*] Remote Il2cpp Perform");
+          Logger("[+] Remote Il2cpp Perform");
+          configDisplay();
           immortalTesting();
-          Logger("[*] Successfully Completed All Hooks");
+          Logger("[+] Successfully Completed All Hooks");
         });
       });
     }

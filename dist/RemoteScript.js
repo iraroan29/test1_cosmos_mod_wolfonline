@@ -17226,12 +17226,33 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/tmpHooks/immortality.ts
+  function immortalTesting() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for immortalTesting, retrying...");
+      setTimeout(immortalTesting, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("Damage").implementation = function(damageAmount) {
+      return;
+    };
+    Logger("[+] immortalTesting successfully initialized!");
+  }
+  var init_immortality = __esm({
+    "src/tmpHooks/immortality.ts"() {
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
       init_dist();
       init_frida_java_bridge();
       init_ConfigManager();
+      init_immortality();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17246,6 +17267,7 @@ std_string_c_str (StdString * self)
         await configManager.init();
         Il2Cpp.perform(() => {
           Logger("[*] Remote Il2cpp Perform");
+          immortalTesting();
           Logger("[*] Successfully Completed All Hooks");
         });
       });

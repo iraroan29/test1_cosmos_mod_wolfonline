@@ -17746,7 +17746,7 @@ std_string_c_str (StdString * self)
     const Player_Wolf = AssemblyC.class("Player_Wolf");
     Player_Wolf.method("Update").implementation = function() {
       this.field("body_size").value = configManager.get("size");
-      this.field("eat_spped").value = 50;
+      this.field("eat_spped").value = 100;
       return this.method("Update").invoke();
     };
     Logger("[+] playerUpdate successfully initialized!");

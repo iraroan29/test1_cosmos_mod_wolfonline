@@ -16862,7 +16862,10 @@ std_string_c_str (StdString * self)
   });
 
   // src/config/ConfigTypes.ts
-  var HONOR_THRESHOLDS, AID_THRESHOLDS, DEATH_THRESHOLDS, ANTI_DAMAGE_TABLE, TIER_NAMES, MULTI_HIT_TABLE, POINT_COOLDOWN_REDUCTION, TIER_GRADES;
+  function createTierSize({ base = 0.2, subTier = 0.2, applyRotation = false } = {}) {
+    return { base, subTier, applyRotation };
+  }
+  var HONOR_THRESHOLDS, AID_THRESHOLDS, DEATH_THRESHOLDS, ANTI_DAMAGE_TABLE, TIER_NAMES, TIER_SIZE_TABLE, MULTI_HIT_TABLE, POINT_COOLDOWN_REDUCTION, TIER_GRADES;
   var init_ConfigTypes = __esm({
     "src/config/ConfigTypes.ts"() {
       HONOR_THRESHOLDS = {
@@ -16909,6 +16912,15 @@ std_string_c_str (StdString * self)
         4: { base: "[b][11053b]\u0273\u04BDb\u03C5\u0285\u03B1 \u2042 ", subtier: "[b][11053b]\u0273[160848]\u04BD[1e0c5b]b[2f1581]\u03C5[4a1c97]\u0285[70209d]\u03B1 [982abc]\u2042 " },
         5: { base: "[b][00374a]\u0282\u03C5\u03C1\u04BD\u027E-\u0273\u03C3\u028B\u03B1 \u2606 ", subtier: "[b][00374a]\u0282[003b6d]\u03C5[003f8f]\u03C1[004eb1]\u04BD[007ecf]\u027E[01afed]-[0fa9ef]\u0273[2a6dd4]\u03C3[4631b9]\u028B[3837a8]\u03B1 [016e8f]\u2606 " },
         6: { base: "[b][fff76b]\u0188\u04BD\u0285\u04BD\u0282t\u03B9\u03B1\u0285 \u2605 ", subtier: "[b][fff76b]\u0188[fff98d]\u04BD[fefaaf]\u0285[fefcd2]\u04BD[fefde4]\u0282[fffeee]t[fffef8]\u03B9[fffef4]\u03B1[fffdd4]\u0285 [fff994]\u2605 " }
+      };
+      TIER_SIZE_TABLE = {
+        0: createTierSize({ base: 0.2, subTier: 0.2 }),
+        1: createTierSize({ base: 0.4, subTier: 0.6 }),
+        2: createTierSize({ base: 0.8, subTier: 1 }),
+        3: createTierSize({ base: 1.2, subTier: 1.4 }),
+        4: createTierSize({ base: 1.6, subTier: 1.8 }),
+        5: createTierSize({ base: 2, subTier: 2.2 }),
+        6: createTierSize({ base: 2.3, subTier: 2.3, applyRotation: true })
       };
       MULTI_HIT_TABLE = {
         0: { twoHits: 0, threeHits: 0, fiveHits: 0 },
@@ -17059,6 +17071,7 @@ std_string_c_str (StdString * self)
             antiDamageChance: ANTI_DAMAGE_TABLE[0],
             cooldownMs: POINT_COOLDOWN_REDUCTION[0],
             grade: TIER_GRADES[0],
+            size: TIER_SIZE_TABLE[0].base,
             multiHit: MULTI_HIT_TABLE[0]
           };
           this.signals = {};
@@ -17124,6 +17137,7 @@ std_string_c_str (StdString * self)
             const isTierDown = newTier < this.config.currentTier;
             this.config.currentTier = newTier;
             this.config.tierName = TIER_NAMES[newTier].base;
+            this.config.size = TIER_SIZE_TABLE[newTier].base;
             if (isTierDown) {
               const newCap = AID_THRESHOLDS[newTier];
               if (this.config.aidScore > newCap) {
@@ -17155,6 +17169,11 @@ std_string_c_str (StdString * self)
           if (this.config.cooldownMs != newCoolDown) {
             this.config.cooldownMs = newCoolDown;
             this.emit("cooldownMs", this.config.cooldownMs);
+          }
+          const sizes = TIER_SIZE_TABLE[this.config.currentTier];
+          const newSize = unlocked ? sizes.subTier : sizes.base;
+          if (this.config.size != newSize) {
+            this.config.size = newSize;
           }
           if (this.config.isSubtierUnlocked !== unlocked) {
             this.config.isSubtierUnlocked = unlocked;

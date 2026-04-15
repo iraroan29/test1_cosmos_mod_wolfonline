@@ -17736,6 +17736,7 @@ std_string_c_str (StdString * self)
 
   // src/hooks/playerUpdate.ts
   function playerUpdate() {
+    Logger("[+] Start of player update");
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
     if (!assemblyC) {
       Logger("[!] Assembly-CSharp not ready for playerUpdate, retrying...");
@@ -17744,7 +17745,6 @@ std_string_c_str (StdString * self)
     }
     const AssemblyC = assemblyC.image;
     const Player_Wolf = AssemblyC.class("Player_Wolf");
-    Logger("[+] Before intialize");
     Player_Wolf.method("Update").implementation = function() {
       this.field("body_size").value = configManager.get("size");
       this.field("eat_spped").value = 100;

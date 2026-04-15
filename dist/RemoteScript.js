@@ -17026,6 +17026,9 @@ std_string_c_str (StdString * self)
   });
 
   // src/config/ConfigManager.ts
+  function isChatFilter(obj) {
+    return obj && typeof obj.maxMessages === "number" && typeof obj.maxCharacters === "number" && typeof obj.timeFrame === "number" && typeof obj.timeout === "number";
+  }
   var ConfigManager, configManager;
   var init_ConfigManager = __esm({
     "src/config/ConfigManager.ts"() {
@@ -17042,6 +17045,13 @@ std_string_c_str (StdString * self)
             travelDistance: 0,
             enforeAttack: false,
             enforceHp: false,
+            chatFilter: {
+              maxMessages: 2,
+              maxCharacters: 150,
+              timeFrame: 3e3,
+              timeout: 5e3
+              /* 5s */
+            },
             currentTier: 0,
             currentDeathTier: 0,
             tierName: TIER_NAMES[0].base,
@@ -17062,6 +17072,7 @@ std_string_c_str (StdString * self)
             this.config.enforeAttack = rawData.enforeAttack;
             this.config.enforceHp = rawData.enforceHp;
             this.config.travelDistance = rawData.travelDistance;
+            this.config.chatFilter = rawData.chatFilter;
             this.calculateTier(false);
             this.calculateAntiDamage(false);
           }
@@ -17095,6 +17106,8 @@ std_string_c_str (StdString * self)
             this.config.enforceHp = value;
           } else if (key === "enforeAttack" && typeof value === "boolean") {
             this.config.enforceHp = value;
+          } else if (key === "chatFilter" && isChatFilter(value)) {
+            this.config.chatFilter = value;
           }
           this.persist();
         }
@@ -17214,7 +17227,8 @@ std_string_c_str (StdString * self)
               deathScore: parsed.deathScore ?? 0,
               enforeAttack: parsed.enforeAttack ?? false,
               enforceHp: parsed.enforceHp ?? false,
-              travelDistance: parsed.travelDistance ?? 0
+              travelDistance: parsed.travelDistance ?? 0,
+              chatFilter: parsed.chatFilter ?? null
             };
           } catch (e) {
             Logger("[-] Exception Caught >> " + e.toString());
@@ -17624,6 +17638,83 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/helpers/respawn.ts
+  function respawn() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] Assembly-CSharp || Unity not ready for respawn, retrying...");
+      setTimeout(respawn, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    const gameObject = UnityCore.class("UnityEngine.GameObject");
+    const player = gameObject.method("FindWithTag").invoke(Il2Cpp.string("Player"));
+    if (!player) return;
+    const transform = player.method("get_transform").invoke();
+    const playerPosition = transform.method("get_position").invoke();
+    const playerRotation = transform.method("get_rotation").invoke();
+    SharedState.spawningClone = true;
+    PhotonNetwork.method("Instantiate").invoke(Il2Cpp.string(SharedState.wolfType), playerPosition, playerRotation, 0);
+  }
+  function initRespawnUpdates() {
+    configManager.onUpdate("currentTier", (tier) => respawn());
+    configManager.onUpdate("isSubtierUnlocked", (unlocked) => {
+      if (unlocked) respawn();
+    });
+  }
+  var init_respawn = __esm({
+    "src/helpers/respawn.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+    }
+  });
+
+  // src/hooks/playerRespawnAwake.ts
+  function playerRespawnAwake() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for playerRespawnAwake, retrying...");
+      setTimeout(playerRespawnAwake, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    Player_Wolf.method("Awake").implementation = function() {
+      const pv = this.field("_PhotonView").value;
+      const isMine = pv.method("get_isMine").invoke();
+      if (!isMine) {
+        return this.method("Awake").invoke();
+      }
+      const go = this.method("get_gameObject").invoke();
+      if (SharedState.spawningClone) {
+        Logger("Destroy Older Body");
+        SharedState.spawningClone = false;
+        SharedState.pendingOldBody = SharedState.realBody;
+        SharedState.realBody = go;
+        if (SharedState.pendingOldBody) {
+          PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState.pendingOldBody);
+          SharedState.pendingOldBody = null;
+        }
+        return this.method("Awake").invoke();
+      }
+      Logger("Store New Body");
+      const pvString = this.field("_PhotonView").value.toString();
+      SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
+      SharedState.realBody = go;
+      return this.method("Awake").invoke();
+    };
+    Logger("[+] playerRespawnAwake successfully initialized!");
+  }
+  var init_playerRespawnAwake = __esm({
+    "src/hooks/playerRespawnAwake.ts"() {
+      init_playerWolfStore();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17635,6 +17726,8 @@ std_string_c_str (StdString * self)
       init_givePoints();
       init_honorAttack();
       init_hudName();
+      init_respawn();
+      init_playerRespawnAwake();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17654,9 +17747,11 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           hudName();
           givePoints();
+          playerRespawnAwake();
           Logger("    ------------");
           honorAttackTesting();
           immortalTesting();
+          initRespawnUpdates();
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });

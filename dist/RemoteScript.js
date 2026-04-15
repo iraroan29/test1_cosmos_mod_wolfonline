@@ -17791,8 +17791,8 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           hudName();
           givePoints();
-          playerRespawnAwake();
           playerUpdate();
+          playerRespawnAwake();
           Logger("    ------------");
           honorAttackTesting();
           immortalTesting();

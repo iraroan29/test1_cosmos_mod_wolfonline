@@ -17734,6 +17734,29 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/playerUpdate.ts
+  function playerUpdate() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for playerUpdate, retrying...");
+      setTimeout(playerUpdate, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("Update").implementation = function() {
+      this.field("body_size").value = configManager.get("size");
+      this.field("eat_spped").value = 50;
+      return this.method("Update").invoke();
+    };
+    Logger("[+] playerUpdate successfully initialized!");
+  }
+  var init_playerUpdate = __esm({
+    "src/hooks/playerUpdate.ts"() {
+      init_ConfigManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17747,6 +17770,7 @@ std_string_c_str (StdString * self)
       init_hudName();
       init_respawn();
       init_playerRespawnAwake();
+      init_playerUpdate();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17767,6 +17791,7 @@ std_string_c_str (StdString * self)
           hudName();
           givePoints();
           playerRespawnAwake();
+          playerUpdate();
           Logger("    ------------");
           honorAttackTesting();
           immortalTesting();

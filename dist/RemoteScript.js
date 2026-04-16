@@ -17882,6 +17882,222 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/OverlayManager.ts
+  var OverlayManager;
+  var init_OverlayManager = __esm({
+    "src/overlay/OverlayManager.ts"() {
+      init_frida_java_bridge();
+      OverlayManager = class _OverlayManager {
+        constructor() {
+          this.overlays = {};
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _OverlayManager();
+          return this.instance;
+        }
+        initialize(context) {
+          this.context = context;
+        }
+        createOverlay(name, url, touchPassthrough = true) {
+          if (!this.context) throw new Error("OverlayManager not initialized");
+          const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+          const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+          const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+          const webview = WebView.$new(this.context);
+          webview.getSettings().setJavaScriptEnabled(true);
+          webview.getSettings().setDomStorageEnabled(true);
+          webview.setBackgroundColor(0);
+          webview.setAlpha(1);
+          if (!touchPassthrough) {
+            webview.setOnTouchListener(null);
+          }
+          const JSBridge = frida_java_bridge_default.registerClass({
+            name: "com.overlay.JSBridge_" + name,
+            implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
+            methods: {
+              sendToMod: (value) => {
+                try {
+                  const overlay = this.overlays[name];
+                  if (overlay && overlay.onHtmlMessage) {
+                    overlay.onHtmlMessage(value);
+                  }
+                } catch (e) {
+                  console.log("sendToMod error:", e);
+                }
+              }
+            }
+          });
+          webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+          webview.loadUrl(url);
+          const layout = FrameLayout.$new(this.context);
+          const params = LayoutParams.$new(-1, -1);
+          layout.addView(webview, params);
+          this.overlays[name] = {
+            name,
+            webview,
+            layout,
+            url,
+            scenes: [],
+            condition: null
+          };
+          return this.overlays[name];
+        }
+        getOverlay(name) {
+          return this.overlays[name];
+        }
+        sendToHtml(name, js) {
+          const overlay = this.overlays[name];
+          if (!overlay) return;
+          overlay.webview.evaluateJavascript(js, null);
+        }
+      };
+    }
+  });
+
+  // src/overlay/SceneOverlayManager.ts
+  var SceneOverlayManager;
+  var init_SceneOverlayManager = __esm({
+    "src/overlay/SceneOverlayManager.ts"() {
+      init_OverlayManager();
+      SceneOverlayManager = class _SceneOverlayManager {
+        constructor() {
+          this.initialized = false;
+          this.lastScene = "";
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _SceneOverlayManager();
+          return this.instance;
+        }
+        initialize() {
+          if (this.initialized) return;
+          this.initialized = true;
+          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          if (!core) {
+            Logger("[!] Unity not ready for SceneOverlayManager");
+            return;
+          }
+          const UnityCoreImage = core.image;
+          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
+          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
+            const sceneName = scene.method("get_name").invoke().toString();
+            Logger("[***]Scene Name >> " + sceneName);
+            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
+            return this.method("Internal_SceneLoaded").invoke(scene, mode);
+          };
+          Logger("[*] SceneOverlayManager - Scene hooks installed");
+        }
+        registerOverlayScenes(overlayName, scenes, condition) {
+          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          if (overlay) {
+            overlay.scenes = scenes;
+            overlay.condition = condition || null;
+          }
+        }
+        onSceneChanged(sceneName) {
+          this.lastScene = sceneName;
+          const overlayManager = OverlayManager.getInstance();
+          Object.values(overlayManager["overlays"]).forEach((overlay) => {
+            if (!overlay.scenes) return;
+            const sceneMatch = overlay.scenes.includes(sceneName);
+            const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+            const shouldShow = sceneMatch && conditionMatch;
+            overlay.layout.setVisibility(shouldShow ? 0 : 4);
+          });
+        }
+      };
+    }
+  });
+
+  // src/helpers/bossRegistry.ts
+  var boss, bossHp, bossMaxHp, BossRegistry;
+  var init_bossRegistry = __esm({
+    "src/helpers/bossRegistry.ts"() {
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      boss = null;
+      bossHp = 0;
+      bossMaxHp = 0;
+      BossRegistry = {
+        // Maps that have bosses
+        bossScenes: {
+          "SnowMap": true,
+          "LavaMap": true,
+          "ForestMap": true,
+          "Dungeon3": true,
+          "IceCaves": true
+        },
+        /** Called when boss spawns */
+        setBoss(obj, sceneName) {
+          boss = obj;
+          bossMaxHp = obj.field("maxhp").value;
+          bossHp = obj.field("hp").value;
+          OverlayManager.getInstance().sendToHtml(
+            "bossOverlay",
+            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
+          );
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.getInstance().lastScene
+          );
+        },
+        /** Called when boss dies */
+        clearBoss() {
+          boss = null;
+          bossHp = 0;
+          bossMaxHp = 0;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.getInstance().lastScene
+          );
+        },
+        /** HTML calls this when damage is dealt */
+        dealDamage(amount, critHit) {
+          if (!boss) return;
+          bossHp -= amount;
+          if (bossHp < 0) bossHp = 0;
+          OverlayManager.getInstance().sendToHtml(
+            "bossOverlay",
+            `dealDamage(${amount}, ${critHit});`
+          );
+        },
+        /** Returns true if this scene has a boss */
+        hasBossForScene(scene) {
+          return this.bossScenes.hasOwnProperty(scene);
+        },
+        /** Returns true if boss exists AND scene has a boss */
+        isBossActive(scene) {
+          return this.hasBossForScene(scene) && boss !== null;
+        }
+      };
+    }
+  });
+
+  // src/overlay/BossBattleOverlay.ts
+  var BossBattleOverlay;
+  var init_BossBattleOverlay = __esm({
+    "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      BossBattleOverlay = class {
+        constructor(url) {
+          this.name = "bossOverlay";
+          OverlayManager.getInstance().createOverlay(this.name, url, true);
+          SceneOverlayManager.getInstance().registerOverlayScenes(
+            this.name,
+            // All maps that can have bosses
+            Object.keys(BossRegistry.bossScenes),
+            // Condition: boss exists AND this scene has a boss
+            (sceneName) => BossRegistry.isBossActive(sceneName)
+          );
+        }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        updateHealth(current, max) {
+          const js = `updateHealth(${current}, ${max});`;
+          OverlayManager.getInstance().sendToHtml(this.name, js);
+        }
+      };
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17899,6 +18115,9 @@ std_string_c_str (StdString * self)
       init_ensureDamageTaken();
       init_death();
       init_multi_attack();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      init_BossBattleOverlay();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17911,8 +18130,12 @@ std_string_c_str (StdString * self)
         Log = frida_java_bridge_default.use("android.util.Log");
         Logger("Load GameConfig");
         await configManager.init();
+        const context = frida_java_bridge_default.use("android.app.ActivityThread").currentApplication().getApplicationContext();
         Il2Cpp.perform(() => {
-          Logger("[+] Remote Il2cpp Perform\n");
+          Logger("    ------------");
+          OverlayManager.getInstance().initialize(context);
+          SceneOverlayManager.getInstance().initialize();
+          new BossBattleOverlay("file:///data/local/tmp/boss/index.html");
           Logger("    ------------");
           configDisplay();
           Logger("    ------------");

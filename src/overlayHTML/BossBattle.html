@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BossBattle</title>
+
+<style>
+:root {
+  --theme-main: #ef4444;
+  --theme-accent: #f87171;
+  --theme-damage: #ff4d4d;
+  --theme-main-dark: #000000;
+  --theme-accent-dark: #000000;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: white;
+}
+
+/* =========================
+   BOSS UI
+========================= */
+#boss-ui {
+  position: absolute;
+  top: 4vmin;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50vmin;
+  max-width: 80vw;
+  text-align: center;
+}
+
+#boss-name {
+  font-size: clamp(1.4rem, 3vmin, 2.2rem);
+  font-weight: 800;
+  margin-bottom: 1vmin;
+  background: linear-gradient(
+    90deg,
+    var(--theme-main),
+    var(--theme-accent)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================
+   HP WRAPPER
+========================= */
+#hp-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* =========================
+   HP BAR
+========================= */
+
+#hp-bar {
+  width: 100%;
+  height: 2vmin;
+  min-height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+
+  /* Darkened version of the SAME gradient */
+  background: linear-gradient(
+    to right,
+    var(--theme-main-dark),
+    var(--theme-accent-dark)
+  );
+
+  box-shadow:
+    inset 0 0 4px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+#hp-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+
+  background: linear-gradient(
+    to right,
+    var(--theme-main),
+    var(--theme-accent)
+  );
+
+  transition: width 0.25s ease;
+}
+
+/* =========================
+   HP TEXT (DUAL MODE)
+========================= */
+/* =========================
+   HP TEXT (SOLID THEME COLOR)
+========================= */
+#hp-text {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+
+  font-size: clamp(0.9rem, 1.8vmin, 1.1rem);
+  font-weight: 800;
+
+  /* ✅ Always solid, readable */
+  color: var(--theme-main);
+
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.85),
+    0 0 6px rgba(0,0,0,0.6);
+
+  pointer-events: none;
+  transition: left 0.18s ease-out;
+}
+
+/* inside bar = gradient */
+#hp-text.inside {
+  background: linear-gradient(
+    90deg,
+    var(--theme-main),
+    var(--theme-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.85),
+    0 0 6px rgba(0,0,0,0.6);
+}
+
+
+
+/* =========================
+   DAMAGE POPUPS
+========================= */
+#damage-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+
+.damage-text {
+  position: absolute;
+  font-size: clamp(1.2rem, 3vmin, 2rem);
+  font-weight: 700;
+  color: var(--theme-damage);
+  animation: damageFloat 1.1s ease forwards;
+  text-shadow: 0 0 8px rgba(0,0,0,0.6);
+}
+
+/* Critical hits */
+.damage-text.crit {
+  color: #ffd700;
+  font-size: clamp(1.6rem, 4vmin, 2.6rem);
+  text-shadow:
+    0 0 10px rgba(255,215,0,0.9),
+    0 0 20px rgba(255,140,0,0.8);
+  animation: critFloat 1.2s ease forwards;
+}
+
+@keyframes damageFloat {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6vmin); }
+}
+
+@keyframes critFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1.2); }
+  40% { transform: translateY(-2vmin) scale(1.35); }
+  100% { opacity: 0; transform: translateY(-7vmin) scale(1.1); }
+}
+
+
+/* TEMP DEBUG BUTTON */
+#debug-damage-btn {
+  position: fixed;
+  bottom: 2vmin;
+  right: 2vmin;
+
+  padding: 1vmin 2vmin;
+  font-size: 1rem;
+  font-weight: 600;
+
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 0.8vmin;
+
+  cursor: pointer;
+  z-index: 9999;
+}
+
+#debug-damage-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="boss-ui">
+  <div id="boss-name">---</div>
+  <div id="hp-wrap">
+  <div id="hp-bar">
+    <div id="hp-fill"></div>
+  </div>
+  <div id="hp-text">1000</div>
+</div>
+</div>
+
+<div id="damage-layer"></div>
+
+
+
+<!-- TEMP DEBUG BUTTON -->
+<button id="debug-damage-btn">Deal Damage</button>
+
+<script>
+/* =========================
+   MAP THEMES + BOSS NAMES
+========================= */
+const maps = {
+  DragonLava: {
+    boss: "Dragon High",
+    main: "#dc2626",
+    accent: "#fb7185",
+    damage: "#ff4d4d"
+  },
+  Snow: {
+    boss: "Snow Queen",
+    main: "#22d3ee",
+    accent: "#86efac",
+    damage: "#5eead4"
+  },
+  Wild: {
+    boss: "Wild Guardian",
+    main: "#a855f7",
+    accent: "#fb7185",
+    damage: "#e879f9"
+  },
+  Mountain: {
+    boss: "Mountain King",
+    main: "#e5e7eb",
+    accent: "#93c5fd",
+    damage: "#c7d2fe"
+  }
+};
+
+/* =========================
+   STATE
+========================= */
+let currentHp = 1000;
+let maxHp = 1000;
+let hpTextDelayTimer = null;
+
+const maxDamageTexts = 3;
+const damageLayer = document.getElementById("damage-layer");
+const activeDamageTexts = [];
+
+/* =========================
+   PUBLIC API
+========================= */
+function setMap(mapName) {
+  const m = maps[mapName];
+  if (!m) return;
+
+  document.getElementById("boss-name").textContent = m.boss;
+
+  document.documentElement.style.setProperty("--theme-main", m.main);
+  document.documentElement.style.setProperty("--theme-accent", m.accent);
+  document.documentElement.style.setProperty("--theme-damage", m.damage);
+  document.documentElement.style.setProperty("--theme-main-dark", darkenHex(m.main));
+  document.documentElement.style.setProperty("--theme-accent-dark", darkenHex(m.accent));
+}
+
+function setHp(hp, max) {
+  maxHp = Math.max(1, max);
+  currentHp = Math.max(0, Math.min(hp, maxHp));
+  updateHpBar();
+}
+
+function initBoss(mapName, hp, hpmax){
+  setMap(mapName);
+  setHp(hp, hpmax);
+}
+
+/**
+ * @param {number} damage
+ * @param {boolean} isCritHit
+ */
+function dealDamage(damage, critHit = false) {
+  currentHp = Math.max(0, currentHp - damage);
+  updateHpBar();
+  spawnDamageText(damage, critHit);
+}
+
+/* =========================
+   INTERNALS
+========================= */
+function updateHpBar() {
+  const bar = document.getElementById("hp-bar");
+  const fill = document.getElementById("hp-fill");
+  const text = document.getElementById("hp-text");
+
+  const percent = currentHp / maxHp;
+  fill.style.width = percent * 100 + "%";
+
+  // HP number only
+  text.textContent = currentHp.toString();
+
+  // Compute exact logical fill edge (not animated width)
+  const barWidth = bar.clientWidth;
+  const fillWidthExact = barWidth * percent;
+  const textWidth = text.clientWidth;
+
+  const padding = 8; // consistent spacing
+
+  if (fillWidthExact + textWidth + padding <= barWidth) {
+    // ✅ Follow fill
+    text.style.left = (fillWidthExact + padding) + "px";
+  } else {
+    // ❌ Stick outside bar
+    text.style.left = (barWidth + padding) + "px";
+  }
+}
+
+
+function spawnDamageText(amount, critHit) {
+  if (activeDamageTexts.length >= maxDamageTexts) {
+    activeDamageTexts.shift().remove();
+  }
+
+  const el = document.createElement("div");
+  el.className = "damage-text";
+  if (critHit) el.classList.add("crit");
+  el.textContent = `-${amount}`;
+
+  const cx = innerWidth / 2;
+  const cy = innerHeight / 2;
+  const ox = (Math.random() - 0.5) * vmin(20);
+  const oy = (Math.random() - 0.5) * vmin(10);
+
+  el.style.left = cx + ox + "px";
+  el.style.top = cy + oy + "px";
+
+  damageLayer.appendChild(el);
+  activeDamageTexts.push(el);
+
+  el.addEventListener("animationend", () => {
+    activeDamageTexts.splice(activeDamageTexts.indexOf(el), 1);
+    el.remove();
+  });
+}
+
+const vmin = v => v * Math.min(innerWidth, innerHeight) / 100;
+
+function darkenHex(hex, factor = 0.45) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.floor(((num >> 16) & 255) * factor);
+  const g = Math.floor(((num >> 8) & 255) * factor);
+  const b = Math.floor((num & 255) * factor);
+
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b)
+    .toString(16)
+    .slice(1)}`;
+}
+
+/* =========================
+   DEMO (REMOVE IN PROD)
+========================= */
+initBoss("DragonLava", 2500, 2500);
+// setMap("Wild");
+// setHp(2500, 2500);
+// dealDamage(200);
+// dealDamage(540, true);
+
+// TEMP DEBUG BUTTON LOGIC
+document.getElementById("debug-damage-btn").addEventListener("click", () => {
+  const damage = Math.floor(Math.random() * 300 + 100); // 100–400
+  const isCrit = Math.random() < 0.25; // 25% crit chance
+
+  dealDamage(damage, isCrit);
+});
+</script>
+
+
+</body>
+</html>

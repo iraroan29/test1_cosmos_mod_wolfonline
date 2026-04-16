@@ -18007,96 +18007,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/helpers/bossRegistry.ts
-  var boss, bossHp, bossMaxHp, BossRegistry;
-  var init_bossRegistry = __esm({
-    "src/helpers/bossRegistry.ts"() {
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      boss = null;
-      bossHp = 0;
-      bossMaxHp = 0;
-      BossRegistry = {
-        // Maps that have bosses
-        bossScenes: {
-          "WolfOnline_Map_Lava": true,
-          "WolfOnline_Map_Wild_Guardian": true,
-          "WolfOnline_Map_Mountain_Guardian": true,
-          "WolfOnline_Map_Snow_Guardian": true,
-          "WolfOnline_Map_BlackTiger": true
-        },
-        /** Called when boss spawns */
-        setBoss(obj, sceneName) {
-          boss = obj;
-          bossMaxHp = obj.field("maxhp").value;
-          bossHp = obj.field("hp").value;
-          OverlayManager.getInstance().sendToHtml(
-            "bossOverlay",
-            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
-          );
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
-          );
-        },
-        /** Called when boss dies */
-        clearBoss() {
-          boss = null;
-          bossHp = 0;
-          bossMaxHp = 0;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
-          );
-        },
-        /** HTML calls this when damage is dealt */
-        dealDamage(amount, critHit) {
-          if (!boss) return;
-          bossHp -= amount;
-          if (bossHp < 0) bossHp = 0;
-          OverlayManager.getInstance().sendToHtml(
-            "bossOverlay",
-            `dealDamage(${amount}, ${critHit});`
-          );
-        },
-        /** Returns true if this scene has a boss */
-        hasBossForScene(scene) {
-          return this.bossScenes.hasOwnProperty(scene);
-        },
-        /** Returns true if boss exists AND scene has a boss */
-        isBossActive(scene) {
-          return this.hasBossForScene(scene) && boss !== null;
-        }
-      };
-    }
-  });
-
-  // src/overlay/BossBattleOverlay.ts
-  var BossBattleOverlay;
-  var init_BossBattleOverlay = __esm({
-    "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      BossBattleOverlay = class {
-        constructor(url) {
-          this.name = "bossOverlay";
-          OverlayManager.getInstance().createOverlay(this.name, url, true);
-          SceneOverlayManager.getInstance().registerOverlayScenes(
-            this.name,
-            // All maps that can have bosses
-            Object.keys(BossRegistry.bossScenes),
-            // Condition: boss exists AND this scene has a boss
-            (sceneName) => BossRegistry.isBossActive(sceneName)
-          );
-        }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        updateHealth(current, max) {
-          const js = `updateHealth(${current}, ${max});`;
-          OverlayManager.getInstance().sendToHtml(this.name, js);
-        }
-      };
-    }
-  });
-
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18116,7 +18026,6 @@ std_string_c_str (StdString * self)
       init_multi_attack();
       init_OverlayManager();
       init_SceneOverlayManager();
-      init_BossBattleOverlay();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18134,7 +18043,6 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           OverlayManager.getInstance().initialize(context);
           SceneOverlayManager.getInstance().initialize();
-          new BossBattleOverlay("file:///data/local/tmp/boss/index.html");
           Logger("    ------------");
           configDisplay();
           Logger("    ------------");

@@ -17971,61 +17971,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/overlay/SceneOverlayManager.ts
-  var SceneOverlayManager;
-  var init_SceneOverlayManager = __esm({
-    "src/overlay/SceneOverlayManager.ts"() {
-      init_OverlayManager();
-      SceneOverlayManager = class _SceneOverlayManager {
-        constructor() {
-          this.initialized = false;
-          this.lastScene = "";
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _SceneOverlayManager();
-          return this.instance;
-        }
-        initialize() {
-          if (this.initialized) return;
-          this.initialized = true;
-          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-          if (!core) {
-            Logger("[!] Unity not ready for SceneOverlayManager");
-            return;
-          }
-          const UnityCoreImage = core.image;
-          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
-          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
-            const sceneName = scene.method("get_name").invoke().toString();
-            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            return this.method("Internal_SceneLoaded").invoke(scene, mode);
-          };
-          Logger("[*] SceneOverlayManager - Scene hooks installed");
-        }
-        registerOverlayScenes(overlayName, scenes, condition) {
-          Logger("Register Overlay Sceenes Begin");
-          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
-          if (overlay) {
-            overlay.scenes = scenes;
-            overlay.condition = condition || null;
-          }
-          Logger("Register Overlay Sceenes End");
-        }
-        onSceneChanged(sceneName) {
-          this.lastScene = sceneName;
-          const overlayManager = OverlayManager.getInstance();
-          Object.values(overlayManager["overlays"]).forEach((overlay) => {
-            if (!overlay.scenes) return;
-            const sceneMatch = overlay.scenes.includes(sceneName);
-            const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-            const shouldShow = sceneMatch && conditionMatch;
-            overlay.layout.setVisibility(shouldShow ? 0 : 4);
-          });
-        }
-      };
-    }
-  });
-
   // src/helpers/bossRegistry.ts
   var boss, bossHp, bossMaxHp, BossRegistry;
   var init_bossRegistry = __esm({
@@ -18088,6 +18033,67 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/SceneOverlayManager.ts
+  var SceneOverlayManager;
+  var init_SceneOverlayManager = __esm({
+    "src/overlay/SceneOverlayManager.ts"() {
+      init_bossRegistry();
+      init_OverlayManager();
+      SceneOverlayManager = class _SceneOverlayManager {
+        constructor() {
+          this.initialized = false;
+          this.lastScene = "";
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _SceneOverlayManager();
+          return this.instance;
+        }
+        initialize() {
+          if (this.initialized) return;
+          this.initialized = true;
+          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          if (!core) {
+            Logger("[!] Unity not ready for SceneOverlayManager");
+            return;
+          }
+          const UnityCoreImage = core.image;
+          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
+          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
+            const sceneName = scene.method("get_name").invoke().toString();
+            _SceneOverlayManager.currentScene = sceneName;
+            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
+            return this.method("Internal_SceneLoaded").invoke(scene, mode);
+          };
+          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
+            BossRegistry.clearBoss();
+            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
+          };
+          Logger("[*] SceneOverlayManager - Scene hooks installed");
+        }
+        registerOverlayScenes(overlayName, scenes, condition) {
+          Logger("Register Overlay Sceenes Begin");
+          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          if (overlay) {
+            overlay.scenes = scenes;
+            overlay.condition = condition || null;
+          }
+          Logger("Register Overlay Sceenes End");
+        }
+        onSceneChanged(sceneName) {
+          this.lastScene = sceneName;
+          const overlayManager = OverlayManager.getInstance();
+          Object.values(overlayManager["overlays"]).forEach((overlay) => {
+            if (!overlay.scenes) return;
+            const sceneMatch = overlay.scenes.includes(sceneName);
+            const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+            const shouldShow = sceneMatch && conditionMatch;
+            overlay.layout.setVisibility(shouldShow ? 0 : 4);
+          });
+        }
+      };
+    }
+  });
+
   // src/overlay/BossBattleOverlay.ts
   var BossBattleOverlay;
   var init_BossBattleOverlay = __esm({
@@ -18118,6 +18124,47 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/bossHooks/mountainHooks.ts
+  function MountainBossHooks() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for MountainBossHooks, retrying...");
+      setTimeout(MountainBossHooks, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const MountainBoss = AssemblyC.class("Attack_Animals_Mountain_Wolf_Guardian");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    MountainBoss.method("Update").implementation = function() {
+      const scene = SceneOverlayManager.currentScene;
+      const bossGO = this.method("get_gameObject").invoke();
+      if (!BossRegistry.hasBossForScene(scene)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      if (boss === null) {
+        BossRegistry.setBoss(this, scene);
+        return this.method("Update").invoke();
+      }
+      if (!boss.equals(this)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      return this.method("Update").invoke();
+    };
+    MountainBoss.method("Death").implementation = function() {
+      BossRegistry.clearBoss();
+      return this.method("Death").invoke();
+    };
+    Logger("[+] MountainBossHooks successfully initialized!");
+  }
+  var init_mountainHooks = __esm({
+    "src/bossHooks/mountainHooks.ts"() {
+      init_bossRegistry();
+      init_SceneOverlayManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18138,6 +18185,7 @@ std_string_c_str (StdString * self)
       init_OverlayManager();
       init_SceneOverlayManager();
       init_BossBattleOverlay();
+      init_mountainHooks();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18169,6 +18217,7 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           immortalTesting();
           initRespawnUpdates();
+          MountainBossHooks();
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

@@ -17771,7 +17771,7 @@ std_string_c_str (StdString * self)
       if (tagString.includes("Player")) {
         configManager.incrementScore("honorScore", 3);
       }
-      if (tagString.includes("Eating")) {
+      if (tagString.includes("Eat")) {
         configManager.incrementScore("honorScore", 0.05);
       }
       return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);

@@ -17702,7 +17702,6 @@ std_string_c_str (StdString * self)
         }
         return this.method("Awake").invoke();
       }
-      Logger("Store New Body");
       const pvString = this.field("_PhotonView").value.toString();
       SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
       SharedState.realBody = go;
@@ -17899,26 +17898,21 @@ std_string_c_str (StdString * self)
           this.context = context;
         }
         createOverlay(name, url, touchPassthrough = true) {
-          Logger("in create overlay");
           if (!this.context) throw new Error("OverlayManager not initialized");
-          Logger("passed context check");
           let overlayRef = null;
           frida_java_bridge_default.scheduleOnMainThread(() => {
             try {
               const WebView = frida_java_bridge_default.use("android.webkit.WebView");
               const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
               const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-              Logger("new webview");
               const webview = WebView.$new(this.context);
               webview.getSettings().setJavaScriptEnabled(true);
               webview.getSettings().setDomStorageEnabled(true);
               webview.setBackgroundColor(0);
               webview.setAlpha(1);
-              Logger("before touchpassthrough check");
               if (!touchPassthrough) {
                 webview.setOnTouchListener(null);
               }
-              Logger("Before JSBridge");
               const JSBridge = frida_java_bridge_default.registerClass({
                 name: "com.overlay.JSBridge_" + name,
                 implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
@@ -17935,14 +17929,11 @@ std_string_c_str (StdString * self)
                   }
                 }
               });
-              Logger("before js interface");
               webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
               webview.loadUrl(url);
-              Logger("before layout & params");
               const layout = FrameLayout.$new(this.context);
               const params = LayoutParams.$new(-1, -1);
               layout.addView(webview, params);
-              Logger("after layout add view");
               overlayRef = {
                 name,
                 webview,
@@ -17952,7 +17943,6 @@ std_string_c_str (StdString * self)
                 condition: null
               };
               this.overlays[name] = overlayRef;
-              Logger("overlay created successfully");
             } catch (e) {
               console.log("Overlay creation error:", e);
             }
@@ -18139,14 +18129,17 @@ std_string_c_str (StdString * self)
       const scene = SceneOverlayManager.currentScene;
       const bossGO = this.method("get_gameObject").invoke();
       if (!BossRegistry.hasBossForScene(scene)) {
+        Logger("Destroy bc not correct map for boss >> " + scene);
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
       if (boss === null) {
+        Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
+        Logger("Different boss spawned, destroy");
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }

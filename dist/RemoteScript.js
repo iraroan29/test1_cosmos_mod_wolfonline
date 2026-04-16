@@ -17853,6 +17853,35 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/multi_attack.ts
+  function multiAttack() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for multiAttack, retrying...");
+      setTimeout(multiAttack, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Send_Damage").implementation = function(hunted) {
+      let hits = 1;
+      const multiHit = configManager.get("multiHit");
+      let roll = Math.floor(Math.random() * 101);
+      if (roll <= multiHit.twoHits) hits = 2;
+      if (roll <= multiHit.threeHits) hits = 3;
+      if (roll <= multiHit.fiveHits) hits = 5;
+      for (let i = 0; i < hits; i++) {
+        this.method("Send_Damage").invoke(hunted);
+      }
+    };
+    Logger("[+] multiAttack successfully initialized!");
+  }
+  var init_multi_attack = __esm({
+    "src/hooks/multi_attack.ts"() {
+      init_ConfigManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17869,6 +17898,7 @@ std_string_c_str (StdString * self)
       init_honor_pointLimiter();
       init_ensureDamageTaken();
       init_death();
+      init_multi_attack();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17893,6 +17923,7 @@ std_string_c_str (StdString * self)
           honorAndPointLimiter();
           ensureDamageTaken();
           deathCounter();
+          multiAttack();
           Logger("    ------------");
           immortalTesting();
           initRespawnUpdates();

@@ -16865,7 +16865,7 @@ std_string_c_str (StdString * self)
   function createTierSize({ base = 0.2, subTier = 0.2, applyRotation = false } = {}) {
     return { base, subTier, applyRotation };
   }
-  var HONOR_THRESHOLDS, AID_THRESHOLDS, DEATH_THRESHOLDS, ANTI_DAMAGE_TABLE, TIER_NAMES, TIER_SIZE_TABLE, MULTI_HIT_TABLE, POINT_COOLDOWN_REDUCTION, TIER_GRADES;
+  var HONOR_THRESHOLDS, AID_THRESHOLDS, DEATH_THRESHOLDS, DEATH_TABLE, TIER_NAMES, TIER_SIZE_TABLE, MULTI_HIT_TABLE, POINT_COOLDOWN_REDUCTION, TIER_GRADES;
   var init_ConfigTypes = __esm({
     "src/config/ConfigTypes.ts"() {
       HONOR_THRESHOLDS = {
@@ -16889,20 +16889,20 @@ std_string_c_str (StdString * self)
       DEATH_THRESHOLDS = {
         0: 0,
         1: 10,
-        2: 30,
-        3: 60,
-        4: 150,
-        5: 225,
-        6: 500
+        2: 20,
+        3: 40,
+        4: 60,
+        5: 100,
+        6: 200
       };
-      ANTI_DAMAGE_TABLE = {
-        0: 0,
-        1: 5,
-        2: 10,
-        3: 15,
-        4: 30,
-        5: 50,
-        6: 75
+      DEATH_TABLE = {
+        0: { resurrection: 0, deathAura: 0, honorReduction: -0.25 },
+        1: { resurrection: 5, deathAura: 0, honorReduction: -0.5 },
+        2: { resurrection: 10, deathAura: 0, honorReduction: -1 },
+        3: { resurrection: 15, deathAura: 0, honorReduction: -2 },
+        4: { resurrection: 25, deathAura: 0, honorReduction: -3 },
+        5: { resurrection: 40, deathAura: 0, honorReduction: -5 },
+        6: { resurrection: 60, deathAura: 0, honorReduction: -10 }
       };
       TIER_NAMES = {
         0: { base: "[b][fff76b]\u2605 ", subtier: "[b][fff76b]\u2605 " },
@@ -17068,7 +17068,7 @@ std_string_c_str (StdString * self)
             currentDeathTier: 0,
             tierName: TIER_NAMES[0].base,
             isSubtierUnlocked: false,
-            antiDamageChance: ANTI_DAMAGE_TABLE[0],
+            deathTierInfo: DEATH_TABLE[0],
             cooldownMs: POINT_COOLDOWN_REDUCTION[0],
             grade: TIER_GRADES[0],
             size: TIER_SIZE_TABLE[0].base,
@@ -17092,6 +17092,12 @@ std_string_c_str (StdString * self)
         }
         incrementScore(key, amount = 1) {
           const newValue = this.config[key] + amount;
+          this.setScore(key, newValue);
+          return this.config[key];
+        }
+        decrementScore(key, amount = 1) {
+          const current = this.config[key];
+          const newValue = Math.max(0, current - amount);
           this.setScore(key, newValue);
           return this.config[key];
         }
@@ -17193,10 +17199,9 @@ std_string_c_str (StdString * self)
           }
           if (this.config.currentDeathTier !== newDeathTier) {
             this.config.currentDeathTier = newDeathTier;
-            this.config.antiDamageChance = ANTI_DAMAGE_TABLE[newDeathTier];
+            this.config.deathTierInfo = DEATH_TABLE[newDeathTier];
             if (shouldEmit) {
               this.emit("currentDeathTier", newDeathTier);
-              this.emit("antiDamageChance", this.config.antiDamageChance);
             }
           }
         }
@@ -17788,6 +17793,66 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/ensureDamageTaken.ts
+  function ensureDamageTaken() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for ensureDamageTaken, retrying...");
+      setTimeout(ensureDamageTaken, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("Damage").implementation = function(damageAmount) {
+      const hp = this.field("hp").value;
+      if (hp < 0) {
+        this.field("hp").value = 1;
+        return this.method("Damage").invoke(damageAmount);
+      }
+      const dmgHp = hp - damageAmount;
+      const maxHp = this.field("hpmax").value;
+      if (dmgHp <= 0) {
+        let roll = Math.floor(Math.random() * 101);
+        Logger("[*] Resurrection Roll >> " + roll.toString());
+        if (roll <= configManager.get("deathTierInfo").resurrection) {
+          configManager.incrementScore("deathScore");
+          this.field("hp").value = maxHp;
+          return;
+        }
+      }
+      return this.method("Damage").invoke(damageAmount);
+    };
+    Logger("[+] ensureDamageTaken successfully initialized!");
+  }
+  var init_ensureDamageTaken = __esm({
+    "src/hooks/ensureDamageTaken.ts"() {
+      init_ConfigManager();
+    }
+  });
+
+  // src/hooks/death.ts
+  function deathCounter() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for deathCounter, retrying...");
+      setTimeout(deathCounter, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Last_Damage").implementation = function() {
+      configManager.incrementScore("deathScore");
+      configManager.decrementScore("honorScore", configManager.get("deathTierInfo").honorReduction);
+      return this.method("Last_Damage").invoke();
+    };
+    Logger("[+] deathCounter successfully initialized!");
+  }
+  var init_death = __esm({
+    "src/hooks/death.ts"() {
+      init_ConfigManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17802,6 +17867,8 @@ std_string_c_str (StdString * self)
       init_playerRespawnAwake();
       init_playerUpdate();
       init_honor_pointLimiter();
+      init_ensureDamageTaken();
+      init_death();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17824,6 +17891,8 @@ std_string_c_str (StdString * self)
           playerUpdate();
           playerRespawnAwake();
           honorAndPointLimiter();
+          ensureDamageTaken();
+          deathCounter();
           Logger("    ------------");
           immortalTesting();
           initRespawnUpdates();

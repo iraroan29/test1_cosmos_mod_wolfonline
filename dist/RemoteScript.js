@@ -18057,7 +18057,7 @@ std_string_c_str (StdString * self)
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
             const sceneName = scene.method("get_name").invoke().toString();
-            _SceneOverlayManager.currentScene = sceneName;
+            _SceneOverlayManager.currentScene = sceneName.replaceAll('"', "");
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
           };

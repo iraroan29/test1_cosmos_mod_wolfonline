@@ -17491,7 +17491,7 @@ std_string_c_str (StdString * self)
       this.method("OnGUI").invoke();
       GUIMatrixClass.method("set_matrix").invoke(matrixBig);
       UnityGUI.label(xModName, yModName, 220, 60, modNameGradient);
-      UnityGUI.label(xModName, 20, 100, 50, "HONOR: " + configManager.get("honorScore").toFixed(1));
+      UnityGUI.label(xModName, 20, 100, 50, "HONOR: " + configManager.get("honorScore").toFixed(2));
       UnityGUI.label(xModName + 220 - 100, 20, 100, 50, "AID: " + configManager.get("aidScore").toFixed(1));
     };
     Logger("[+] configDisplay successfully initialized!");
@@ -17794,6 +17794,9 @@ std_string_c_str (StdString * self)
       }
       if (tagString.includes("Player")) {
         configManager.incrementScore("honorScore", 3);
+      }
+      if (tagString.includes("Eating")) {
+        configManager.incrementScore("honorScore", 0.05);
       }
       return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
     };

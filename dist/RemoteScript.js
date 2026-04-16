@@ -17979,6 +17979,13 @@ std_string_c_str (StdString * self)
           "WolfOnline_Map_Snow_Guardian": true,
           "WolfOnline_Map_BlackTiger": true
         },
+        bossCorrectMap: {
+          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
+          "Attack_Animals_Lava_Guardian": "WolfOnline_Map_Lava",
+          "Attack_Animals_Wild_Guardian": "WolfOnline_Map_Wild_Guardian",
+          "Attack_Animals_Snow_Guardian": "WolfOnline_Map_Snow_Guardian",
+          "Attack_Animals_BlackTiger": "WolfOnline_Map_BlackTiger"
+        },
         /** Called when boss spawns */
         setBoss(obj, sceneName) {
           boss = obj;
@@ -18128,18 +18135,20 @@ std_string_c_str (StdString * self)
     MountainBoss.method("Update").implementation = function() {
       const scene = SceneOverlayManager.currentScene;
       const bossGO = this.method("get_gameObject").invoke();
-      if (!BossRegistry.hasBossForScene(scene)) {
-        Logger("Destroy bc not correct map for boss >> " + scene);
+      const bossType = "Mountain_Wolf_Guardian";
+      const correctMap = BossRegistry.bossCorrectMap[bossType];
+      if (scene !== correctMap) {
+        Logger("Destroy bc not correct map for Mountain boss >> " + scene);
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
       if (boss === null) {
-        Logger("Set boss");
+        Logger("Set Mountain boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
-        Logger("Different boss spawned, destroy");
+        Logger("Different Mountain boss spawned, destroy");
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }

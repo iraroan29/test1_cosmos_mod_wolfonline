@@ -17783,6 +17783,16 @@ std_string_c_str (StdString * self)
         cooldownActive2 = true;
         cooldownEndTime2 = Date.now() + COOLDOWN_DURATION;
       }
+      const tagString = tag.toString().trim();
+      if (tagString.includes("Escape")) {
+        configManager.incrementScore("honorScore", 0.5);
+      }
+      if (tagString.includes("Attack")) {
+        configManager.incrementScore("honorScore", 3.5);
+      }
+      if (tagString.includes("Player")) {
+        configManager.incrementScore("honorScore", 5);
+      }
       return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
     };
     Logger("[+] honorAndPointLimiter successfully initialized!");
@@ -17790,6 +17800,7 @@ std_string_c_str (StdString * self)
   var cooldownActive2, cooldownEndTime2, COOLDOWN_DURATION;
   var init_honor_pointLimiter = __esm({
     "src/hooks/honor_pointLimiter.ts"() {
+      init_ConfigManager();
       cooldownActive2 = false;
       cooldownEndTime2 = 0;
       COOLDOWN_DURATION = 3e4;

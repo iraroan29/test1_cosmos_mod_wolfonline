@@ -17758,6 +17758,43 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/honor_pointLimiter.ts
+  function honorAndPointLimiter() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for honorAndPointLimiter, retrying...");
+      setTimeout(honorAndPointLimiter, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Net_Last_Damage_Hunter").implementation = function(points, exp, tag) {
+      Logger("[*] LAST DMG TAG >> " + tag.toString());
+      if (cooldownActive2 && Date.now() >= cooldownEndTime2) {
+        cooldownActive2 = false;
+      }
+      const incoming = points;
+      const clamped = Math.min(incoming, 1e4);
+      if (cooldownActive2 && clamped == 1e4) {
+        return;
+      }
+      if (!cooldownActive2 && clamped == 1e4) {
+        cooldownActive2 = true;
+        cooldownEndTime2 = Date.now() + COOLDOWN_DURATION;
+      }
+      return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
+    };
+    Logger("[+] honorAndPointLimiter successfully initialized!");
+  }
+  var cooldownActive2, cooldownEndTime2, COOLDOWN_DURATION;
+  var init_honor_pointLimiter = __esm({
+    "src/hooks/honor_pointLimiter.ts"() {
+      cooldownActive2 = false;
+      cooldownEndTime2 = 0;
+      COOLDOWN_DURATION = 3e4;
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -17772,6 +17809,7 @@ std_string_c_str (StdString * self)
       init_respawn();
       init_playerRespawnAwake();
       init_playerUpdate();
+      init_honor_pointLimiter();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -17793,6 +17831,7 @@ std_string_c_str (StdString * self)
           givePoints();
           playerUpdate();
           playerRespawnAwake();
+          honorAndPointLimiter();
           Logger("    ------------");
           honorAttackTesting();
           immortalTesting();

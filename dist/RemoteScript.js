@@ -18134,7 +18134,6 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           OverlayManager.getInstance().initialize(context);
           SceneOverlayManager.getInstance().initialize();
-          new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           configDisplay();
           Logger("    ------------");
@@ -18149,6 +18148,7 @@ std_string_c_str (StdString * self)
           Logger("    ------------");
           immortalTesting();
           initRespawnUpdates();
+          new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });

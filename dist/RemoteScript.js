@@ -17902,54 +17902,62 @@ std_string_c_str (StdString * self)
           Logger("in create overlay");
           if (!this.context) throw new Error("OverlayManager not initialized");
           Logger("passed context check");
-          const WebView = frida_java_bridge_default.use("android.webkit.WebView");
-          const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
-          const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-          const webview = WebView.$new(this.context);
-          Logger("new webview");
-          webview.getSettings().setJavaScriptEnabled(true);
-          webview.getSettings().setDomStorageEnabled(true);
-          webview.setBackgroundColor(0);
-          webview.setAlpha(1);
-          Logger("before touchpassthrough check");
-          if (!touchPassthrough) {
-            webview.setOnTouchListener(null);
-          }
-          Logger("Before JSBridge");
-          const JSBridge = frida_java_bridge_default.registerClass({
-            name: "com.overlay.JSBridge_" + name,
-            implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
-            methods: {
-              sendToMod: (value) => {
-                try {
-                  const overlay = this.overlays[name];
-                  if (overlay && overlay.onHtmlMessage) {
-                    overlay.onHtmlMessage(value);
-                  }
-                } catch (e) {
-                  console.log("sendToMod error:", e);
-                }
+          let overlayRef = null;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+              const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+              const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+              Logger("new webview");
+              const webview = WebView.$new(this.context);
+              webview.getSettings().setJavaScriptEnabled(true);
+              webview.getSettings().setDomStorageEnabled(true);
+              webview.setBackgroundColor(0);
+              webview.setAlpha(1);
+              Logger("before touchpassthrough check");
+              if (!touchPassthrough) {
+                webview.setOnTouchListener(null);
               }
+              Logger("Before JSBridge");
+              const JSBridge = frida_java_bridge_default.registerClass({
+                name: "com.overlay.JSBridge_" + name,
+                implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
+                methods: {
+                  sendToMod: (value) => {
+                    try {
+                      const overlay = this.overlays[name];
+                      if (overlay && overlay.onHtmlMessage) {
+                        overlay.onHtmlMessage(value);
+                      }
+                    } catch (e) {
+                      console.log("sendToMod error:", e);
+                    }
+                  }
+                }
+              });
+              Logger("before js interface");
+              webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+              webview.loadUrl(url);
+              Logger("before layout & params");
+              const layout = FrameLayout.$new(this.context);
+              const params = LayoutParams.$new(-1, -1);
+              layout.addView(webview, params);
+              Logger("after layout add view");
+              overlayRef = {
+                name,
+                webview,
+                layout,
+                url,
+                scenes: [],
+                condition: null
+              };
+              this.overlays[name] = overlayRef;
+              Logger("overlay created successfully");
+            } catch (e) {
+              console.log("Overlay creation error:", e);
             }
           });
-          Logger("before js interface");
-          webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-          webview.loadUrl(url);
-          Logger("before layout & params");
-          const layout = FrameLayout.$new(this.context);
-          const params = LayoutParams.$new(-1, -1);
-          layout.addView(webview, params);
-          Logger("after layout add view");
-          this.overlays[name] = {
-            name,
-            webview,
-            layout,
-            url,
-            scenes: [],
-            condition: null
-          };
-          Logger("return overlays name");
-          return this.overlays[name];
+          return overlayRef;
         }
         getOverlay(name) {
           return this.overlays[name];

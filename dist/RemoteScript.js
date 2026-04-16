@@ -17786,11 +17786,14 @@ std_string_c_str (StdString * self)
       if (tagString.includes("Escape")) {
         configManager.incrementScore("honorScore", 0.5);
       }
+      if (tagString.includes("Defense")) {
+        configManager.incrementScore("honorScore", 1);
+      }
       if (tagString.includes("Attack")) {
-        configManager.incrementScore("honorScore", 3.5);
+        configManager.incrementScore("honorScore", 1.5);
       }
       if (tagString.includes("Player")) {
-        configManager.incrementScore("honorScore", 5);
+        configManager.incrementScore("honorScore", 3);
       }
       return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
     };

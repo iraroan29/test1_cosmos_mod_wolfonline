@@ -17597,29 +17597,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/tmpHooks/honorAttack.ts
-  function honorAttackTesting() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-    if (!assemblyC || !coreAssembly) {
-      Logger("[!] Assembly-CSharp not ready for honorAttackTesting, retrying...");
-      setTimeout(honorAttackTesting, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const Player_Wolf = AssemblyC.class("Player_Wolf");
-    Player_Wolf.method("AttackON").implementation = function() {
-      configManager.incrementScore("honorScore", 10);
-      this.method("AttackON").invoke();
-    };
-    Logger("[+] honorAttackTesting successfully initialized!");
-  }
-  var init_honorAttack = __esm({
-    "src/tmpHooks/honorAttack.ts"() {
-      init_ConfigManager();
-    }
-  });
-
   // src/hooks/hudName.ts
   function hudName() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -17769,7 +17746,6 @@ std_string_c_str (StdString * self)
     const AssemblyC = assemblyC.image;
     const RPC_Damage = AssemblyC.class("RPC_Damage");
     RPC_Damage.method("Net_Last_Damage_Hunter").implementation = function(points, exp, tag) {
-      Logger("[*] LAST DMG TAG >> " + tag.toString());
       if (cooldownActive2 && Date.now() >= cooldownEndTime2) {
         cooldownActive2 = false;
       }
@@ -17821,7 +17797,6 @@ std_string_c_str (StdString * self)
       init_immortality();
       init_configDisplay();
       init_givePoints();
-      init_honorAttack();
       init_hudName();
       init_respawn();
       init_playerRespawnAwake();
@@ -17850,7 +17825,6 @@ std_string_c_str (StdString * self)
           playerRespawnAwake();
           honorAndPointLimiter();
           Logger("    ------------");
-          honorAttackTesting();
           immortalTesting();
           initRespawnUpdates();
           Logger("    ------------");

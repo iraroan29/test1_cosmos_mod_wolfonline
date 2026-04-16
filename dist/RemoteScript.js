@@ -17899,18 +17899,23 @@ std_string_c_str (StdString * self)
           this.context = context;
         }
         createOverlay(name, url, touchPassthrough = true) {
+          Logger("in create overlay");
           if (!this.context) throw new Error("OverlayManager not initialized");
+          Logger("passed context check");
           const WebView = frida_java_bridge_default.use("android.webkit.WebView");
           const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
           const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
           const webview = WebView.$new(this.context);
+          Logger("new webview");
           webview.getSettings().setJavaScriptEnabled(true);
           webview.getSettings().setDomStorageEnabled(true);
           webview.setBackgroundColor(0);
           webview.setAlpha(1);
+          Logger("before touchpassthrough check");
           if (!touchPassthrough) {
             webview.setOnTouchListener(null);
           }
+          Logger("Before JSBridge");
           const JSBridge = frida_java_bridge_default.registerClass({
             name: "com.overlay.JSBridge_" + name,
             implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
@@ -17927,11 +17932,14 @@ std_string_c_str (StdString * self)
               }
             }
           });
+          Logger("before js interface");
           webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
           webview.loadUrl(url);
+          Logger("before layout & params");
           const layout = FrameLayout.$new(this.context);
           const params = LayoutParams.$new(-1, -1);
           layout.addView(webview, params);
+          Logger("after layout add view");
           this.overlays[name] = {
             name,
             webview,
@@ -17940,6 +17948,7 @@ std_string_c_str (StdString * self)
             scenes: [],
             condition: null
           };
+          Logger("return overlays name");
           return this.overlays[name];
         }
         getOverlay(name) {
@@ -17986,11 +17995,13 @@ std_string_c_str (StdString * self)
           Logger("[*] SceneOverlayManager - Scene hooks installed");
         }
         registerOverlayScenes(overlayName, scenes, condition) {
+          Logger("Register Overlay Sceenes Begin");
           const overlay = OverlayManager.getInstance().getOverlay(overlayName);
           if (overlay) {
             overlay.scenes = scenes;
             overlay.condition = condition || null;
           }
+          Logger("Register Overlay Sceenes End");
         }
         onSceneChanged(sceneName) {
           this.lastScene = sceneName;
@@ -18080,6 +18091,7 @@ std_string_c_str (StdString * self)
         constructor(url) {
           this.name = "bossOverlay";
           OverlayManager.getInstance().createOverlay(this.name, url, true);
+          Logger("[+] Created overlay overlay manager");
           SceneOverlayManager.getInstance().registerOverlayScenes(
             this.name,
             // All maps that can have bosses
@@ -18087,6 +18099,7 @@ std_string_c_str (StdString * self)
             // Condition: boss exists AND this scene has a boss
             (sceneName) => BossRegistry.isBossActive(sceneName)
           );
+          Logger("[+] Register overlay manager, all boss names");
         }
         // Optional: TS → HTML health update (HTML handles visuals)
         updateHealth(current, max) {

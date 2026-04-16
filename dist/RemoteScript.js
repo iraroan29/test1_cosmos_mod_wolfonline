@@ -17980,7 +17980,6 @@ std_string_c_str (StdString * self)
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
             const sceneName = scene.method("get_name").invoke().toString();
-            Logger("[***]Scene Name >> " + sceneName);
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
           };
@@ -18020,11 +18019,11 @@ std_string_c_str (StdString * self)
       BossRegistry = {
         // Maps that have bosses
         bossScenes: {
-          "SnowMap": true,
-          "LavaMap": true,
-          "ForestMap": true,
-          "Dungeon3": true,
-          "IceCaves": true
+          "WolfOnline_Map_Lava": true,
+          "WolfOnline_Map_Wild_Guardian": true,
+          "WolfOnline_Map_Mountain_Guardian": true,
+          "WolfOnline_Map_Snow_Guardian": true,
+          "WolfOnline_Map_BlackTiger": true
         },
         /** Called when boss spawns */
         setBoss(obj, sceneName) {

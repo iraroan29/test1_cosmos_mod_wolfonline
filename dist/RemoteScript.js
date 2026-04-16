@@ -18138,7 +18138,7 @@ std_string_c_str (StdString * self)
       const bossType = "Mountain_Wolf_Guardian";
       const correctMap = BossRegistry.bossCorrectMap[bossType];
       if (scene !== correctMap) {
-        Logger("Destroy bc not correct map for Mountain boss >> " + scene);
+        Logger("Destroy bc not correct map for Mountain boss >> " + scene + " correctMap >> " + correctMap);
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }

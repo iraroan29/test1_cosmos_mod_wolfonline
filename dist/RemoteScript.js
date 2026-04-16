@@ -17491,7 +17491,7 @@ std_string_c_str (StdString * self)
       this.method("OnGUI").invoke();
       GUIMatrixClass.method("set_matrix").invoke(matrixBig);
       UnityGUI.label(xModName, yModName, 220, 60, modNameGradient);
-      UnityGUI.label(xModName, 20, 100, 50, "HONOR: " + configManager.get("honorScore").toFixed(0));
+      UnityGUI.label(xModName, 20, 100, 50, "HONOR: " + configManager.get("honorScore").toFixed(1));
       UnityGUI.label(xModName + 220 - 100, 20, 100, 50, "AID: " + configManager.get("aidScore").toFixed(1));
     };
     Logger("[+] configDisplay successfully initialized!");
@@ -17760,7 +17760,6 @@ std_string_c_str (StdString * self)
 
   // src/hooks/honor_pointLimiter.ts
   function honorAndPointLimiter() {
-    Logger("[*] Start");
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
     if (!assemblyC) {
       Logger("[!] Assembly-CSharp not ready for honorAndPointLimiter, retrying...");

@@ -17760,6 +17760,7 @@ std_string_c_str (StdString * self)
 
   // src/hooks/honor_pointLimiter.ts
   function honorAndPointLimiter() {
+    Logger("[*] Start");
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
     if (!assemblyC) {
       Logger("[!] Assembly-CSharp not ready for honorAndPointLimiter, retrying...");

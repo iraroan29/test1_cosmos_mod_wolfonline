@@ -18318,6 +18318,138 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/bossHooks/dragonHooks.ts
+  function DragonBossHooks() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for DragonBossHooks, retrying...");
+      setTimeout(DragonBossHooks, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const DragonBoss = AssemblyC.class("Attack_Animals_Dragon");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    DragonBoss.method("Update").implementation = function() {
+      const scene = SceneOverlayManager.currentScene;
+      const bossGO = this.method("get_gameObject").invoke();
+      const bossType = "Dragon_High";
+      const correctMap = BossRegistry.bossCorrectMap[bossType];
+      if (!scene.includes(correctMap)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      if (boss === null) {
+        Logger("Set boss");
+        BossRegistry.setBoss(this, scene);
+        return this.method("Update").invoke();
+      }
+      if (!boss.equals(this)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      return this.method("Update").invoke();
+    };
+    DragonBoss.method("Death").implementation = function() {
+      BossRegistry.clearBoss();
+      return this.method("Death").invoke();
+    };
+    Logger("[+] DragonBossHooks successfully initialized!");
+  }
+  var init_dragonHooks = __esm({
+    "src/bossHooks/dragonHooks.ts"() {
+      init_bossRegistry();
+      init_SceneOverlayManager();
+    }
+  });
+
+  // src/bossHooks/snowHooks.ts
+  function SnowBossHooks() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for SnowBossHooks, retrying...");
+      setTimeout(SnowBossHooks, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const SnowBoss = AssemblyC.class("Attack_Animals_Snow_Wolf_Guardian");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    SnowBoss.method("Update").implementation = function() {
+      const scene = SceneOverlayManager.currentScene;
+      const bossGO = this.method("get_gameObject").invoke();
+      const bossType = "Snow_Wolf_Guardian";
+      const correctMap = BossRegistry.bossCorrectMap[bossType];
+      if (!scene.includes(correctMap)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      if (boss === null) {
+        Logger("Set boss");
+        BossRegistry.setBoss(this, scene);
+        return this.method("Update").invoke();
+      }
+      if (!boss.equals(this)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      return this.method("Update").invoke();
+    };
+    SnowBoss.method("Death").implementation = function() {
+      BossRegistry.clearBoss();
+      return this.method("Death").invoke();
+    };
+    Logger("[+] SnowBossHooks successfully initialized!");
+  }
+  var init_snowHooks = __esm({
+    "src/bossHooks/snowHooks.ts"() {
+      init_bossRegistry();
+      init_SceneOverlayManager();
+    }
+  });
+
+  // src/bossHooks/wildHooks.ts
+  function WildBossHooks() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for WildBossHooks, retrying...");
+      setTimeout(WildBossHooks, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const WildBoss = AssemblyC.class("Attack_Animals_Wild_Wolf_Guardian");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    WildBoss.method("Update").implementation = function() {
+      const scene = SceneOverlayManager.currentScene;
+      const bossGO = this.method("get_gameObject").invoke();
+      const bossType = "Wild_Wolf_Guardian";
+      const correctMap = BossRegistry.bossCorrectMap[bossType];
+      if (!scene.includes(correctMap)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      if (boss === null) {
+        Logger("Set boss");
+        BossRegistry.setBoss(this, scene);
+        return this.method("Update").invoke();
+      }
+      if (!boss.equals(this)) {
+        PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
+        return;
+      }
+      return this.method("Update").invoke();
+    };
+    WildBoss.method("Death").implementation = function() {
+      BossRegistry.clearBoss();
+      return this.method("Death").invoke();
+    };
+    Logger("[+] WildBossHooks successfully initialized!");
+  }
+  var init_wildHooks = __esm({
+    "src/bossHooks/wildHooks.ts"() {
+      init_bossRegistry();
+      init_SceneOverlayManager();
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18340,6 +18472,9 @@ std_string_c_str (StdString * self)
       init_BossBattleOverlay();
       init_mountainHooks();
       init_masterclient();
+      init_dragonHooks();
+      init_snowHooks();
+      init_wildHooks();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18373,6 +18508,9 @@ std_string_c_str (StdString * self)
           stealMasterClient();
           initRespawnUpdates();
           MountainBossHooks();
+          DragonBossHooks();
+          SnowBossHooks();
+          WildBossHooks();
           Logger("LOAD THE DAMN SCRIPT!!");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");

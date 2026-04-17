@@ -18343,7 +18343,7 @@ std_string_c_str (StdString * self)
           stealMasterClient();
           initRespawnUpdates();
           MountainBossHooks();
-          Logger("LOAD THE DAMN COTRRECT SCRIPT!!");
+          Logger("LOAD THE DAMN COTRRECT  PLZZZZ SCRIPT!!");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

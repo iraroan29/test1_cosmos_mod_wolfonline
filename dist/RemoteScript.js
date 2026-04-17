@@ -18174,6 +18174,28 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/masterclient.ts
+  function stealMasterClient() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for stealMasterClient, retrying...");
+      setTimeout(stealMasterClient, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    PhotonNetwork.method("SetMasterClient").implementation = function(otherPlayer) {
+      const player = this.method("get_player").invoke();
+      Logger("Steal Master Client from >> " + otherPlayer.toString() + " by replacing with " + player.toString());
+      return this.method("SetMasterClient").invoke(player);
+    };
+    Logger("[+] stealMasterClient successfully initialized!");
+  }
+  var init_masterclient = __esm({
+    "src/hooks/masterclient.ts"() {
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18195,6 +18217,7 @@ std_string_c_str (StdString * self)
       init_SceneOverlayManager();
       init_BossBattleOverlay();
       init_mountainHooks();
+      init_masterclient();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18225,6 +18248,7 @@ std_string_c_str (StdString * self)
           multiAttack();
           Logger("    ------------");
           immortalTesting();
+          stealMasterClient();
           initRespawnUpdates();
           MountainBossHooks();
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");

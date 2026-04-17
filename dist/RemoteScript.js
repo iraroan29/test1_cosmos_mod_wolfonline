@@ -18000,7 +18000,7 @@ std_string_c_str (StdString * self)
           );
           Logger("Made it past sendToHtml");
           SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
+            SceneOverlayManager.currentScene
           );
           Logger("Made it past overly visibility update");
         },
@@ -18085,6 +18085,7 @@ std_string_c_str (StdString * self)
           Logger("Register Overlay Sceenes End");
         }
         onSceneChanged(sceneName) {
+          Logger("onSceneChanged ENTER: [" + sceneName + "]");
           this.lastScene = sceneName;
           const overlayManager = OverlayManager.getInstance();
           Object.values(overlayManager["overlays"]).forEach((overlay) => {

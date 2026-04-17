@@ -18024,6 +18024,9 @@ std_string_c_str (StdString * self)
         },
         /** Returns true if boss exists AND scene has a boss */
         isBossActive(scene) {
+          Logger("Boss active? " + BossRegistry.isBossActive(scene));
+          Logger("boss value: " + boss);
+          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
           return this.hasBossForScene(scene) && boss !== null;
         }
       };
@@ -18056,7 +18059,7 @@ std_string_c_str (StdString * self)
           const UnityCoreImage = core.image;
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
-            const sceneName = scene.method("get_name").invoke().toString().replaceAll('"', "");
+            const sceneName = scene.method("get_name").invoke().content;
             _SceneOverlayManager.currentScene = sceneName;
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
@@ -18081,9 +18084,13 @@ std_string_c_str (StdString * self)
           const overlayManager = OverlayManager.getInstance();
           Object.values(overlayManager["overlays"]).forEach((overlay) => {
             if (!overlay.scenes) return;
+            Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
+            Logger("Scene match? " + overlay.scenes.includes(sceneName));
             const sceneMatch = overlay.scenes.includes(sceneName);
             const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+            Logger("Condition match? " + (overlay.condition ? overlay.condition(sceneName) : "no condition"));
             const shouldShow = sceneMatch && conditionMatch;
+            Logger("Setting visibility to: " + shouldShow);
             overlay.layout.setVisibility(shouldShow ? 0 : 4);
           });
         }
@@ -18138,17 +18145,14 @@ std_string_c_str (StdString * self)
       const bossType = "Mountain_Wolf_Guardian";
       const correctMap = BossRegistry.bossCorrectMap[bossType];
       if (!scene.includes(correctMap)) {
-        Logger("Destroy bc not correct map for Mountain boss >> " + scene + " correctMap >> " + correctMap);
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
       if (boss === null) {
-        Logger("Set Mountain boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
-        Logger("Different Mountain boss spawned, destroy");
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }

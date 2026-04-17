@@ -17995,9 +17995,11 @@ std_string_c_str (StdString * self)
             "bossOverlay",
             `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
           );
+          Logger("Made it past sendToHtml");
           SceneOverlayManager.getInstance().onSceneChanged(
             SceneOverlayManager.getInstance().lastScene
           );
+          Logger("Made it past overly visibility update");
         },
         /** Called when boss dies */
         clearBoss() {
@@ -18149,6 +18151,7 @@ std_string_c_str (StdString * self)
         return;
       }
       if (boss === null) {
+        Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

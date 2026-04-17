@@ -17905,9 +17905,8 @@ std_string_c_str (StdString * self)
               Logger(`[Overlay] ENTER main thread for "${name}"`);
               try {
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
-                const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-                const Activity = frida_java_bridge_default.use("android.app.Activity");
+                const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
@@ -17915,18 +17914,11 @@ std_string_c_str (StdString * self)
                 webview.setLongClickable(false);
                 webview.setFocusable(false);
                 webview.setFocusableInTouchMode(false);
-                webview.setOnTouchListener(frida_java_bridge_default.registerClass({
-                  name: "com.overlay.TouchPassthrough_" + name,
-                  implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
-                  methods: {
-                    onTouch: function(v, event) {
-                      return false;
-                    }
-                  }
-                }).$new());
                 webview.setVerticalScrollBarEnabled(false);
                 webview.setHorizontalScrollBarEnabled(false);
                 webview.setOverScrollMode(2);
+                webview.setBackgroundColor(0);
+                webview.setAlpha(1);
                 const settings = webview.getSettings();
                 settings.setUseWideViewPort(true);
                 settings.setLoadWithOverviewMode(true);
@@ -17935,14 +17927,6 @@ std_string_c_str (StdString * self)
                 settings.setDisplayZoomControls(false);
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
-                webview.setBackgroundColor(0);
-                webview.setAlpha(1);
-                if (!touchPassthrough) {
-                  Logger("[Overlay] Touch passthrough DISABLED");
-                  webview.setOnTouchListener(null);
-                } else {
-                  Logger("[Overlay] Touch passthrough ENABLED");
-                }
                 Logger("[Overlay] Registering JSBridge");
                 const JSBridge = frida_java_bridge_default.registerClass({
                   name: "com.overlay.JSBridge_" + name,
@@ -17967,7 +17951,7 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] JSBridge registered");
                 webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
                 Logger("[Overlay] JS interface added");
-                Logger("[Overlay] Loading URL: " + url);
+                Logger("[Overlay] Loading URL via manual fetch: " + url);
                 const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
                 const URL = frida_java_bridge_default.use("java.net.URL");
                 const Scanner = frida_java_bridge_default.use("java.util.Scanner");
@@ -18005,33 +17989,31 @@ std_string_c_str (StdString * self)
                 Thread2.$new(RunnableImpl.$new()).start();
                 Logger("[Overlay] Creating layout container");
                 const layout = FrameLayout.$new(self.context);
-                const params = LayoutParams.$new(-1, -1);
-                layout.addView(webview, params);
+                const flParams = FrameLayoutParams.$new(-1, -1);
+                layout.addView(webview, flParams);
                 Logger("[Overlay] Layout + WebView added");
-                layout.setClickable(false);
-                layout.setLongClickable(false);
-                layout.setFocusable(false);
-                layout.setFocusableInTouchMode(false);
-                layout.setOnTouchListener(frida_java_bridge_default.registerClass({
-                  name: "com.overlay.LayoutPassthrough_" + name,
-                  implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
-                  methods: {
-                    onTouch: function(v, event) {
-                      return false;
-                    }
-                  }
-                }).$new());
                 try {
                   const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                   const activity = UnityPlayer.currentActivity.value;
-                  activity.addContentView(layout, params);
-                  Logger("[Overlay] Layout attached to UnityPlayer.currentActivity");
-                  layout.bringToFront();
-                  layout.setZ(9999);
-                  webview.bringToFront();
-                  webview.setZ(9999);
+                  const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
+                  const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
+                  const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
+                  const wm = frida_java_bridge_default.cast(
+                    activity.getSystemService("window"),
+                    WindowManager
+                  );
+                  const lp = WMLayoutParams.$new(
+                    WMLayoutParams.MATCH_PARENT,
+                    WMLayoutParams.MATCH_PARENT,
+                    WMLayoutParams.TYPE_APPLICATION_PANEL,
+                    WMLayoutParams.FLAG_NOT_FOCUSABLE.value | WMLayoutParams.FLAG_NOT_TOUCHABLE.value | WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value | WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value,
+                    PixelFormat.TRANSLUCENT.value
+                  );
+                  lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                  wm.addView(layout, lp);
+                  Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
                 } catch (e) {
-                  Logger("[Overlay] ERROR attaching layout to Activity: " + e);
+                  Logger("[Overlay] ERROR attaching layout via WindowManager: " + e);
                 }
                 const overlayRef = {
                   name,

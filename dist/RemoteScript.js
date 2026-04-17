@@ -17959,8 +17959,6 @@ std_string_c_str (StdString * self)
                   }
                 });
                 Logger("[Overlay] JSBridge registered");
-                webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-                Logger("[Overlay] JS interface added");
                 const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
                 const URL = frida_java_bridge_default.use("java.net.URL");
                 const Scanner = frida_java_bridge_default.use("java.util.Scanner");
@@ -18029,6 +18027,8 @@ std_string_c_str (StdString * self)
                   const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
                   ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
                   Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
+                  webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+                  Logger("[Overlay] JS interface added");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout via WindowManager: " + e);
                 }

@@ -17899,54 +17899,47 @@ std_string_c_str (StdString * self)
         }
         createOverlay(name, url, touchPassthrough = true) {
           if (!this.context) throw new Error("OverlayManager not initialized");
-          let overlayRef = null;
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            try {
-              const WebView = frida_java_bridge_default.use("android.webkit.WebView");
-              const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
-              const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-              const webview = WebView.$new(this.context);
-              webview.getSettings().setJavaScriptEnabled(true);
-              webview.getSettings().setDomStorageEnabled(true);
-              webview.setBackgroundColor(0);
-              webview.setAlpha(1);
-              if (!touchPassthrough) {
-                webview.setOnTouchListener(null);
-              }
-              const JSBridge = frida_java_bridge_default.registerClass({
-                name: "com.overlay.JSBridge_" + name,
-                implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
-                methods: {
-                  sendToMod: (value) => {
-                    try {
-                      const overlay = this.overlays[name];
-                      if (overlay && overlay.onHtmlMessage) {
-                        overlay.onHtmlMessage(value);
-                      }
-                    } catch (e) {
-                      console.log("sendToMod error:", e);
-                    }
+          const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+          const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+          const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+          const webview = WebView.$new(this.context);
+          webview.getSettings().setJavaScriptEnabled(true);
+          webview.getSettings().setDomStorageEnabled(true);
+          webview.setBackgroundColor(0);
+          webview.setAlpha(1);
+          if (!touchPassthrough) {
+            webview.setOnTouchListener(null);
+          }
+          const JSBridge = frida_java_bridge_default.registerClass({
+            name: "com.overlay.JSBridge_" + name,
+            implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
+            methods: {
+              sendToMod: (value) => {
+                try {
+                  const overlay = this.overlays[name];
+                  if (overlay && overlay.onHtmlMessage) {
+                    overlay.onHtmlMessage(value);
                   }
+                } catch (e) {
+                  console.log("sendToMod error:", e);
                 }
-              });
-              webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-              webview.loadUrl(url);
-              const layout = FrameLayout.$new(this.context);
-              const params = LayoutParams.$new(-1, -1);
-              layout.addView(webview, params);
-              overlayRef = {
-                name,
-                webview,
-                layout,
-                url,
-                scenes: [],
-                condition: null
-              };
-              this.overlays[name] = overlayRef;
-            } catch (e) {
-              console.log("Overlay creation error:", e);
+              }
             }
           });
+          webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+          webview.loadUrl(url);
+          const layout = FrameLayout.$new(this.context);
+          const params = LayoutParams.$new(-1, -1);
+          layout.addView(webview, params);
+          const overlayRef = {
+            name,
+            webview,
+            layout,
+            url,
+            scenes: [],
+            condition: null
+          };
+          this.overlays[name] = overlayRef;
           Logger("[***] HAVE OVERLAY REF CREATED !!! " + overlayRef);
           return overlayRef;
         }

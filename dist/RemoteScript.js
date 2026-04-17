@@ -17948,6 +17948,39 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] JS interface added");
                 Logger("[Overlay] Loading URL: " + url);
                 webview.loadUrl(url);
+                webview.setWebViewClient(frida_java_bridge_default.registerClass({
+                  name: "com.overlay.WebClient_" + name,
+                  superClass: frida_java_bridge_default.use("android.webkit.WebViewClient"),
+                  methods: {
+                    onPageFinished: [{
+                      returnType: "void",
+                      argumentTypes: ["android.webkit.WebView", "java.lang.String"],
+                      implementation: function(view, url2) {
+                        try {
+                          Logger("[Overlay] Intercepting GitHub Raw content");
+                          const URL = frida_java_bridge_default.use("java.net.URL");
+                          const Scanner = frida_java_bridge_default.use("java.util.Scanner");
+                          const u = URL.$new(url2);
+                          const stream = u.openStream();
+                          const scanner = Scanner.$new(stream, "UTF-8");
+                          scanner.useDelimiter(frida_java_bridge_default.use("java.util.regex.Pattern").quote("\\A"));
+                          const html = scanner.hasNext() ? scanner.next() : "";
+                          scanner.close();
+                          view.loadDataWithBaseURL(
+                            url2,
+                            html,
+                            "text/html",
+                            "UTF-8",
+                            null
+                          );
+                          Logger("[Overlay] HTML loaded as proper HTML");
+                        } catch (e) {
+                          Logger("[Overlay] Error forcing HTML mode: " + e);
+                        }
+                      }
+                    }]
+                  }
+                }).$new());
                 Logger("[Overlay] Creating layout container");
                 const layout = FrameLayout.$new(self.context);
                 const params = LayoutParams.$new(-1, -1);
@@ -18295,8 +18328,8 @@ std_string_c_str (StdString * self)
           stealMasterClient();
           initRespawnUpdates();
           MountainBossHooks();
-          new BossBattleOverlay("https://wolfonline.tiiny.site/");
           Logger("LOAD THE DAMN COTRRECT SCI  PRASG");
+          new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });

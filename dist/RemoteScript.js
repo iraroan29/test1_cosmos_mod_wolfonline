@@ -18111,11 +18111,21 @@ std_string_c_str (StdString * self)
           const overlayManager = OverlayManager.getInstance();
           Object.values(overlayManager["overlays"]).forEach((overlay) => {
             if (!overlay.scenes) return;
-            Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
-            Logger("Scene match? " + overlay.scenes.includes(sceneName));
+            Logger("Overlay12 " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
             const sceneMatch = overlay.scenes.includes(sceneName);
-            const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-            Logger("Condition match? " + (overlay.condition ? overlay.condition(sceneName) : "no condition"));
+            Logger("Scene match? " + sceneMatch);
+            let conditionMatch = true;
+            if (sceneMatch && overlay.condition) {
+              try {
+                conditionMatch = overlay.condition(sceneName);
+              } catch (e) {
+                Logger("Condition threw error for " + overlay.name + ": " + e);
+                conditionMatch = false;
+              }
+            }
+            Logger(
+              "Condition match? " + (overlay.condition ? conditionMatch : "no condition")
+            );
             const shouldShow = sceneMatch && conditionMatch;
             Logger("Setting visibility to: " + shouldShow);
             overlay.layout.setVisibility(shouldShow ? 0 : 4);

@@ -17990,8 +17990,8 @@ std_string_c_str (StdString * self)
         setBoss(obj, sceneName) {
           Logger("got into setBoss");
           boss = obj;
-          bossMaxHp = obj.field("maxhp").value;
-          bossHp = obj.field("hp").value;
+          bossMaxHp = obj.field("health_Max").value;
+          bossHp = obj.field("health").value;
           Logger("After setting boss stats");
           OverlayManager.getInstance().sendToHtml(
             "bossOverlay",

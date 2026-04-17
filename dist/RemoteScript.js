@@ -17988,6 +17988,7 @@ std_string_c_str (StdString * self)
         },
         /** Called when boss spawns */
         setBoss(obj, sceneName) {
+          Logger("got into setBoss");
           boss = obj;
           bossMaxHp = obj.field("maxhp").value;
           bossHp = obj.field("hp").value;

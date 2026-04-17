@@ -17881,6 +17881,108 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/OverlayManager.ts
+  var OverlayManager;
+  var init_OverlayManager = __esm({
+    "src/overlay/OverlayManager.ts"() {
+      init_frida_java_bridge();
+      OverlayManager = class _OverlayManager {
+        constructor() {
+          this.overlays = {};
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _OverlayManager();
+          return this.instance;
+        }
+        initialize(context) {
+          this.context = context;
+        }
+        createOverlay(name, url, touchPassthrough = true) {
+          Logger(`[Overlay] createOverlay START for "${name}"`);
+          const self = this;
+          return new Promise((resolve, reject) => {
+            frida_java_bridge_default.scheduleOnMainThread(() => {
+              Logger(`[Overlay] ENTER main thread for "${name}"`);
+              try {
+                const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+                const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+                const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+                Logger("[Overlay] Creating WebView instance");
+                const webview = WebView.$new(self.context);
+                Logger("[Overlay] WebView created");
+                const settings = webview.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                webview.setBackgroundColor(0);
+                webview.setAlpha(1);
+                if (!touchPassthrough) {
+                  Logger("[Overlay] Touch passthrough DISABLED");
+                  webview.setOnTouchListener(null);
+                } else {
+                  Logger("[Overlay] Touch passthrough ENABLED");
+                }
+                Logger("[Overlay] Registering JSBridge");
+                const JSBridge = frida_java_bridge_default.registerClass({
+                  name: "com.overlay.JSBridge_" + name,
+                  methods: {
+                    sendToMod: {
+                      returnType: "void",
+                      argumentTypes: ["java.lang.String"],
+                      implementation: function(value) {
+                        try {
+                          Logger(`[Overlay] JSBridge sendToMod fired (${name}): ${value}`);
+                          const overlay = self.overlays[name];
+                          if (overlay && overlay.onHtmlMessage) {
+                            overlay.onHtmlMessage(value);
+                          }
+                        } catch (e) {
+                          Logger("[Overlay] sendToMod error: " + e);
+                        }
+                      }
+                    }
+                  }
+                });
+                Logger("[Overlay] JSBridge registered");
+                webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+                Logger("[Overlay] JS interface added");
+                Logger("[Overlay] Loading URL: " + url);
+                webview.loadUrl(url);
+                Logger("[Overlay] Creating layout container");
+                const layout = FrameLayout.$new(self.context);
+                const params = LayoutParams.$new(-1, -1);
+                layout.addView(webview, params);
+                Logger("[Overlay] Layout + WebView added");
+                const overlayRef = {
+                  name,
+                  webview,
+                  layout,
+                  url,
+                  scenes: [],
+                  condition: null
+                };
+                self.overlays[name] = overlayRef;
+                Logger(`[Overlay] overlayRef stored for "${name}"`);
+                Logger("[Overlay] Current overlays: " + Object.keys(self.overlays).join(", "));
+                resolve();
+              } catch (e) {
+                Logger(`[Overlay] ERROR in main thread for "${name}": ${e}`);
+                reject(e);
+              }
+            });
+          });
+        }
+        getOverlay(name) {
+          return this.overlays[name];
+        }
+        sendToHtml(name, js) {
+          const overlay = this.overlays[name];
+          if (!overlay) return;
+          overlay.webview.evaluateJavascript(js, null);
+        }
+      };
+    }
+  });
+
   // src/helpers/bossRegistry.ts
   var boss, bossHp, bossMaxHp, BossRegistry;
   var init_bossRegistry = __esm({
@@ -18024,92 +18126,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/overlay/OverlayManager.ts
-  var OverlayManager;
-  var init_OverlayManager = __esm({
-    "src/overlay/OverlayManager.ts"() {
-      init_frida_java_bridge();
-      init_SceneOverlayManager();
-      OverlayManager = class _OverlayManager {
-        constructor() {
-          this.overlays = {};
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _OverlayManager();
-          return this.instance;
-        }
-        initialize(context) {
-          this.context = context;
-        }
-        createOverlay(name, url, touchPassthrough = true) {
-          Logger(`[Overlay] createOverlay START for "${name}"`);
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            Logger(`[Overlay] ENTER main thread for "${name}"`);
-            try {
-              const WebView = frida_java_bridge_default.use("android.webkit.WebView");
-              const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
-              const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-              const webview = WebView.$new(this.context);
-              Logger("[Overlay] WebView created");
-              webview.getSettings().setJavaScriptEnabled(true);
-              webview.getSettings().setDomStorageEnabled(true);
-              const self = this;
-              const JSBridge = frida_java_bridge_default.registerClass({
-                name: "com.overlay.JSBridge_" + name,
-                methods: {
-                  sendToMod: {
-                    returnType: "void",
-                    argumentTypes: ["java.lang.String"],
-                    implementation: function(value) {
-                      try {
-                        Logger(`[Overlay] JSBridge sendToMod fired (${name}): ${value}`);
-                        const overlay = self.overlays[name];
-                        if (overlay && overlay.onHtmlMessage) {
-                          overlay.onHtmlMessage(value);
-                        }
-                      } catch (e) {
-                        Logger("[Overlay] sendToMod error: " + e);
-                      }
-                    }
-                  }
-                }
-              });
-              webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-              webview.loadUrl(url);
-              const layout = FrameLayout.$new(this.context);
-              const params = LayoutParams.$new(-1, -1);
-              layout.addView(webview, params);
-              const overlayRef = {
-                name,
-                webview,
-                layout,
-                url,
-                scenes: [],
-                condition: null
-              };
-              this.overlays[name] = overlayRef;
-              Logger(`[Overlay] overlayRef stored for "${name}"`);
-              SceneOverlayManager.getInstance().onSceneChanged(
-                SceneOverlayManager.currentScene
-              );
-            } catch (e) {
-              Logger(`[Overlay] ERROR in main thread for "${name}": ${e}`);
-            }
-          });
-          Logger(`[Overlay] createOverlay END for "${name}" (async)`);
-        }
-        getOverlay(name) {
-          return this.overlays[name];
-        }
-        sendToHtml(name, js) {
-          const overlay = this.overlays[name];
-          if (!overlay) return;
-          overlay.webview.evaluateJavascript(js, null);
-        }
-      };
-    }
-  });
-
   // src/overlay/BossBattleOverlay.ts
   var BossBattleOverlay;
   var init_BossBattleOverlay = __esm({
@@ -18120,16 +18136,18 @@ std_string_c_str (StdString * self)
       BossBattleOverlay = class {
         constructor(url) {
           this.name = "bossOverlay";
-          OverlayManager.getInstance().createOverlay(this.name, url, true);
-          Logger("[+] Created overlay overlay manager");
-          SceneOverlayManager.getInstance().registerOverlayScenes(
-            this.name,
-            // All maps that can have bosses
-            Object.keys(BossRegistry.bossScenes),
-            // Condition: boss exists AND this scene has a boss
-            (sceneName) => BossRegistry.isBossActive(sceneName)
-          );
-          Logger("[+] Register overlay manager, all boss names");
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(this.name, url, true);
+            Logger("[BossOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              this.name,
+              Object.keys(BossRegistry.bossScenes),
+              (sceneName) => BossRegistry.isBossActive(sceneName)
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
         }
         // Optional: TS → HTML health update (HTML handles visuals)
         updateHealth(current, max) {

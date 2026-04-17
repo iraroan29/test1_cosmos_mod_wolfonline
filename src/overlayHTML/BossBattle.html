@@ -239,10 +239,25 @@ html, body {
 <!-- <button id="debug-damage-btn">Deal Damage</button> -->
 
 <script>
+(function () {
+  // 🔍 Boot probe: does JS even run?
+  console.log("BossOverlay JS BOOT");
 
-window.onload = () => {
-    AndroidBridge.sendToMod("htmlReady");
-};
+  try {
+    AndroidBridge.sendToMod("boot");
+  } catch (e) {
+    console.log("AndroidBridge error in boot:", e);
+  }
+
+  window.onload = () => {
+    console.log("BossOverlay window.onload fired");
+    try {
+      AndroidBridge.sendToMod("htmlReady");
+    } catch (e) {
+      console.log("AndroidBridge error in onload:", e);
+    }
+  };
+})();
 
 /* =========================
    MAP THEMES + BOSS NAMES

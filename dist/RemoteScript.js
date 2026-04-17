@@ -17991,7 +17991,7 @@ std_string_c_str (StdString * self)
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
-                Logger("[Overlay]34 Layout + WebView added");
+                Logger("[Overlay]UPATED!!! Layout + WebView added");
                 try {
                   const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                   const activity = UnityPlayer.currentActivity.value;

@@ -17912,6 +17912,10 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
+                const WebChromeClient = frida_java_bridge_default.use("android.webkit.WebChromeClient");
+                webview.setWebChromeClient(WebChromeClient.$new());
+                const WebViewClient = frida_java_bridge_default.use("android.webkit.WebViewClient");
+                webview.setWebViewClient(WebViewClient.$new());
                 webview.setClickable(false);
                 webview.setLongClickable(false);
                 webview.setFocusable(false);

@@ -18096,7 +18096,7 @@ std_string_c_str (StdString * self)
           Logger("set the boss");
           bossMaxHp = obj.field("health_Max").value;
           bossHp = obj.field("health").value;
-          Logger("After setting boss stats 12");
+          Logger("After setting boss stats 32523");
           OverlayManager.getInstance().sendToHtml(
             "bossOverlay",
             `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`

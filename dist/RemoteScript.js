@@ -18098,14 +18098,10 @@ std_string_c_str (StdString * self)
           Logger("[*] SceneOverlayManager - Scene hooks installed");
         }
         registerOverlayScenes(overlayName, scenes, condition) {
-          Logger("Register Overlay Sceenes Begin See if diff 12");
           const overlay = OverlayManager.getInstance().getOverlay(overlayName);
-          Logger("Got overlay >> " + overlay);
           if (overlay) {
             overlay.scenes = scenes;
-            Logger("scenes >> " + scenes);
             overlay.condition = condition || null;
-            Logger("condition wtf >> " + condition);
           }
           Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
         }

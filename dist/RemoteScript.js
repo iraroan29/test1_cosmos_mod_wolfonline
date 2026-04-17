@@ -17911,6 +17911,10 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
+                webview.setClickable(false);
+                webview.setLongClickable(false);
+                webview.setFocusable(false);
+                webview.setFocusableInTouchMode(false);
                 webview.setOnTouchListener(frida_java_bridge_default.registerClass({
                   name: "com.overlay.TouchPassthrough_" + name,
                   implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
@@ -17920,7 +17924,15 @@ std_string_c_str (StdString * self)
                     }
                   }
                 }).$new());
+                webview.setVerticalScrollBarEnabled(false);
+                webview.setHorizontalScrollBarEnabled(false);
+                webview.setOverScrollMode(2);
                 const settings = webview.getSettings();
+                settings.setUseWideViewPort(true);
+                settings.setLoadWithOverviewMode(true);
+                settings.setSupportZoom(false);
+                settings.setBuiltInZoomControls(false);
+                settings.setDisplayZoomControls(false);
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
                 webview.setBackgroundColor(0);
@@ -17997,9 +18009,9 @@ std_string_c_str (StdString * self)
                 layout.addView(webview, params);
                 Logger("[Overlay] Layout + WebView added");
                 layout.setClickable(false);
+                layout.setLongClickable(false);
                 layout.setFocusable(false);
                 layout.setFocusableInTouchMode(false);
-                layout.setLongClickable(false);
                 layout.setOnTouchListener(frida_java_bridge_default.registerClass({
                   name: "com.overlay.LayoutPassthrough_" + name,
                   implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],

@@ -26,7 +26,16 @@ html, body {
   background: transparent;
   font-family: "Segoe UI", system-ui, sans-serif;
   color: white;
+
+  /* 🔥 Make entire overlay non-interactive */
+  pointer-events: none;
 }
+
+#debug-damage-btn {
+  pointer-events: auto;
+}
+
+
 
 /* =========================
    BOSS UI

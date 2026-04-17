@@ -17956,6 +17956,10 @@ std_string_c_str (StdString * self)
                 try {
                   const activity = frida_java_bridge_default.cast(self.context, Activity);
                   activity.addContentView(layout, params);
+                  layout.bringToFront();
+                  layout.setZ(9999);
+                  webview.bringToFront();
+                  webview.setZ(9999);
                   Logger("[Overlay] Layout attached to Activity");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout to Activity: " + e);

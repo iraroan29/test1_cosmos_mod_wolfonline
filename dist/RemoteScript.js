@@ -18026,7 +18026,7 @@ std_string_c_str (StdString * self)
                   Logger("Got here 7");
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   Logger("Got here 8");
-                  wm.addView(layout, lp);
+                  wm.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
                   Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout via WindowManager: " + e);
@@ -18106,6 +18106,7 @@ std_string_c_str (StdString * self)
         },
         /** Called when boss dies */
         clearBoss() {
+          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
           boss = null;
           bossHp = 0;
           bossMaxHp = 0;

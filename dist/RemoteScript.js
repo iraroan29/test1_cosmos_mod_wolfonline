@@ -18002,21 +18002,18 @@ std_string_c_str (StdString * self)
             overlay.scenes = scenes;
             overlay.condition = condition || null;
           }
-          Logger("Register Overlay Sceenes End");
+          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
         }
         onSceneChanged(sceneName) {
-          Logger("onSceneChanged ENTER: [" + sceneName + "]");
+          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
           this.lastScene = sceneName;
           const overlayManager = OverlayManager.getInstance();
           Object.values(overlayManager["overlays"]).forEach((overlay) => {
             if (!overlay.scenes) return;
             Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
-            Logger("Scene match? " + overlay.scenes.includes(sceneName));
             const sceneMatch = overlay.scenes.includes(sceneName);
             const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-            Logger("Condition match? " + (overlay.condition ? overlay.condition(sceneName) : "no condition"));
             const shouldShow = sceneMatch && conditionMatch;
-            Logger("Setting visibility to: " + shouldShow);
             overlay.layout.setVisibility(shouldShow ? 0 : 4);
           });
         }
@@ -18030,7 +18027,6 @@ std_string_c_str (StdString * self)
     "src/overlay/OverlayManager.ts"() {
       init_frida_java_bridge();
       init_SceneOverlayManager();
-      init_bossRegistry();
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -18090,17 +18086,6 @@ std_string_c_str (StdString * self)
               };
               this.overlays[name] = overlayRef;
               Logger(`[Overlay] overlayRef stored for "${name}"`);
-              if (name === "bossOverlay") {
-                Logger("[Overlay] Registering bossOverlay scenes after creation");
-                SceneOverlayManager.getInstance().registerOverlayScenes(
-                  name,
-                  Object.keys(BossRegistry.bossScenes),
-                  (sceneName) => BossRegistry.isBossActive(sceneName)
-                );
-                SceneOverlayManager.getInstance().onSceneChanged(
-                  SceneOverlayManager.currentScene
-                );
-              }
               SceneOverlayManager.getInstance().onSceneChanged(
                 SceneOverlayManager.currentScene
               );
@@ -18126,12 +18111,22 @@ std_string_c_str (StdString * self)
   var BossBattleOverlay;
   var init_BossBattleOverlay = __esm({
     "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
       init_OverlayManager();
+      init_SceneOverlayManager();
       BossBattleOverlay = class {
         constructor(url) {
           this.name = "bossOverlay";
           OverlayManager.getInstance().createOverlay(this.name, url, true);
           Logger("[+] Created overlay overlay manager");
+          SceneOverlayManager.getInstance().registerOverlayScenes(
+            this.name,
+            // All maps that can have bosses
+            Object.keys(BossRegistry.bossScenes),
+            // Condition: boss exists AND this scene has a boss
+            (sceneName) => BossRegistry.isBossActive(sceneName)
+          );
+          Logger("[+] Register overlay manager, all boss names");
         }
         // Optional: TS → HTML health update (HTML handles visuals)
         updateHealth(current, max) {

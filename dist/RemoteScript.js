@@ -17954,13 +17954,14 @@ std_string_c_str (StdString * self)
                 layout.addView(webview, params);
                 Logger("[Overlay] Layout + WebView added");
                 try {
-                  const activity = frida_java_bridge_default.cast(self.context, Activity);
+                  const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
+                  const activity = UnityPlayer.currentActivity.value;
                   activity.addContentView(layout, params);
+                  Logger("[Overlay] Layout attached to UnityPlayer.currentActivity");
                   layout.bringToFront();
                   layout.setZ(9999);
                   webview.bringToFront();
                   webview.setZ(9999);
-                  Logger("[Overlay] Layout attached to Activity 76");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout to Activity: " + e);
                 }

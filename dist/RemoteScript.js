@@ -18026,7 +18026,8 @@ std_string_c_str (StdString * self)
                   Logger("Got here 7");
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   Logger("Got here 8");
-                  wm.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
+                  const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
+                  ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
                   Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout via WindowManager: " + e);

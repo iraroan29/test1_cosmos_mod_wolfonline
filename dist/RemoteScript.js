@@ -18064,6 +18064,7 @@ std_string_c_str (StdString * self)
   var SceneOverlayManager;
   var init_SceneOverlayManager = __esm({
     "src/overlay/SceneOverlayManager.ts"() {
+      init_frida_java_bridge();
       init_bossRegistry();
       init_OverlayManager();
       SceneOverlayManager = class _SceneOverlayManager {
@@ -18109,11 +18110,18 @@ std_string_c_str (StdString * self)
           Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
           this.lastScene = sceneName;
           const overlayManager = OverlayManager.getInstance();
-          Object.values(overlayManager["overlays"]).forEach((overlay) => {
-            if (!overlay.scenes) return;
-            Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
-            const sceneMatch = overlay.scenes.includes(sceneName);
-            Logger("Scene match? " + sceneMatch);
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            Object.values(overlayManager["overlays"]).forEach((overlay) => {
+              if (!overlay.scenes) return;
+              Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
+              const sceneMatch = overlay.scenes.includes(sceneName);
+              Logger("Scene match? " + sceneMatch);
+              const conditionMatch = true;
+              Logger("Condition match? " + conditionMatch);
+              const shouldShow = sceneMatch && conditionMatch;
+              Logger("Setting visibility to: " + shouldShow);
+              overlay.layout.setVisibility(shouldShow ? 0 : 4);
+            });
           });
         }
       };

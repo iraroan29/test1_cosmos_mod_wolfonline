@@ -17911,6 +17911,15 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
+                webview.setOnTouchListener(frida_java_bridge_default.registerClass({
+                  name: "com.overlay.TouchPassthrough_" + name,
+                  implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
+                  methods: {
+                    onTouch: function(v, event) {
+                      return false;
+                    }
+                  }
+                }).$new());
                 const settings = webview.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);

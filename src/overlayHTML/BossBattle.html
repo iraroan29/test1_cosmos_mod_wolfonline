@@ -31,10 +31,6 @@ html, body {
   pointer-events: none;
 }
 
-#debug-damage-btn {
-  pointer-events: auto;
-}
-
 
 
 /* =========================
@@ -198,7 +194,7 @@ html, body {
 
 
 /* TEMP DEBUG BUTTON */
-#debug-damage-btn {
+/* #debug-damage-btn {
   position: fixed;
   bottom: 2vmin;
   right: 2vmin;
@@ -218,7 +214,7 @@ html, body {
 
 #debug-damage-btn:hover {
   background: rgba(0, 0, 0, 0.8);
-}
+} */
 
 </style>
 </head>
@@ -240,7 +236,7 @@ html, body {
 
 
 <!-- TEMP DEBUG BUTTON -->
-<button id="debug-damage-btn">Deal Damage</button>
+<!-- <button id="debug-damage-btn">Deal Damage</button> -->
 
 <script>
 /* =========================
@@ -395,19 +391,19 @@ function darkenHex(hex, factor = 0.45) {
 /* =========================
    DEMO (REMOVE IN PROD)
 ========================= */
-initBoss("WolfOnline_Map_Lava", 2500, 2500);
+// initBoss("WolfOnline_Map_Lava", 2500, 2500);
 // setMap("Wild");
 // setHp(2500, 2500);
 // dealDamage(200);
 // dealDamage(540, true);
 
 // TEMP DEBUG BUTTON LOGIC
-document.getElementById("debug-damage-btn").addEventListener("click", () => {
-  const damage = Math.floor(Math.random() * 300 + 100); // 100–400
-  const isCrit = Math.random() < 0.25; // 25% crit chance
+// document.getElementById("debug-damage-btn").addEventListener("click", () => {
+//   const damage = Math.floor(Math.random() * 300 + 100); // 100–400
+//   const isCrit = Math.random() < 0.25; // 25% crit chance
 
-  dealDamage(damage, isCrit);
-});
+//   dealDamage(damage, isCrit);
+// });
 </script>
 
 

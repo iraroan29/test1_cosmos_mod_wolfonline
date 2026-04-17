@@ -18003,9 +18003,11 @@ std_string_c_str (StdString * self)
                     WindowManager
                   );
                   const lp = WMLayoutParams.$new(
-                    WMLayoutParams.MATCH_PARENT,
-                    WMLayoutParams.MATCH_PARENT,
-                    WMLayoutParams.TYPE_APPLICATION_PANEL,
+                    -1,
+                    // MATCH_PARENT
+                    -1,
+                    // MATCH_PARENT
+                    WMLayoutParams.TYPE_APPLICATION_PANEL.value,
                     WMLayoutParams.FLAG_NOT_FOCUSABLE.value | WMLayoutParams.FLAG_NOT_TOUCHABLE.value | WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value | WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value,
                     PixelFormat.TRANSLUCENT.value
                   );

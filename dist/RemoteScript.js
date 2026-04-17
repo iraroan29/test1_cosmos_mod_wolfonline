@@ -17947,58 +17947,41 @@ std_string_c_str (StdString * self)
                 webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
                 Logger("[Overlay] JS interface added");
                 Logger("[Overlay] Loading URL: " + url);
-                webview.loadUrl(url);
-                webview.setWebViewClient(frida_java_bridge_default.registerClass({
-                  name: "com.overlay.WebClient_" + name,
-                  superClass: frida_java_bridge_default.use("android.webkit.WebViewClient"),
+                const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
+                const URL = frida_java_bridge_default.use("java.net.URL");
+                const Scanner = frida_java_bridge_default.use("java.util.Scanner");
+                const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
+                const RunnableImpl = frida_java_bridge_default.registerClass({
+                  name: "com.overlay.RunnableFetch_" + name,
+                  implements: [frida_java_bridge_default.use("java.lang.Runnable")],
                   methods: {
-                    onPageFinished: [{
-                      returnType: "void",
-                      argumentTypes: ["android.webkit.WebView", "java.lang.String"],
-                      implementation: function(view, url2) {
-                        try {
-                          Logger("[Overlay] Intercepting GitHub Raw content");
-                          const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
-                          const URL = frida_java_bridge_default.use("java.net.URL");
-                          const Scanner = frida_java_bridge_default.use("java.util.Scanner");
-                          const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
-                          const RunnableImpl = frida_java_bridge_default.registerClass({
-                            name: "com.overlay.RunnableFetch_" + name,
-                            implements: [frida_java_bridge_default.use("java.lang.Runnable")],
-                            methods: {
-                              run: function() {
-                                try {
-                                  const u = URL.$new(url2);
-                                  const stream = u.openStream();
-                                  const scanner = Scanner.$new(stream, "UTF-8");
-                                  scanner.useDelimiter(Pattern.quote("\\A"));
-                                  const html = scanner.hasNext() ? scanner.next() : "";
-                                  scanner.close();
-                                  Logger("[Overlay] HTML fetched, injecting...");
-                                  frida_java_bridge_default.scheduleOnMainThread(() => {
-                                    view.loadDataWithBaseURL(
-                                      url2,
-                                      html,
-                                      "text/html",
-                                      "UTF-8",
-                                      null
-                                    );
-                                    Logger("[Overlay] HTML injected as proper HTML");
-                                  });
-                                } catch (e) {
-                                  Logger("[Overlay] Background fetch error: " + e);
-                                }
-                              }
-                            }
-                          });
-                          Thread2.$new(RunnableImpl.$new()).start();
-                        } catch (e) {
-                          Logger("[Overlay] Error forcing HTML mode: " + e);
-                        }
+                    run: function() {
+                      try {
+                        Logger("[Overlay] Fetching GitHub Raw HTML...");
+                        const u = URL.$new(url);
+                        const stream = u.openStream();
+                        const scanner = Scanner.$new(stream, "UTF-8");
+                        scanner.useDelimiter(Pattern.quote("\\A"));
+                        const html = scanner.hasNext() ? scanner.next() : "";
+                        scanner.close();
+                        Logger("[Overlay] HTML fetched, injecting...");
+                        frida_java_bridge_default.scheduleOnMainThread(() => {
+                          webview.loadDataWithBaseURL(
+                            url,
+                            html,
+                            "text/html",
+                            "UTF-8",
+                            null
+                          );
+                          Logger("[Overlay] HTML injected as proper HTML");
+                        });
+                      } catch (e) {
+                        Logger("[Overlay] Background fetch error: " + e);
                       }
-                    }]
+                    }
                   }
-                }).$new());
+                });
+                Thread2.$new(RunnableImpl.$new()).start();
                 Logger("[Overlay] Creating layout container");
                 const layout = FrameLayout.$new(self.context);
                 const params = LayoutParams.$new(-1, -1);

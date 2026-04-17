@@ -17960,7 +17960,7 @@ std_string_c_str (StdString * self)
                   layout.setZ(9999);
                   webview.bringToFront();
                   webview.setZ(9999);
-                  Logger("[Overlay] Layout attached to Activity");
+                  Logger("[Overlay] Layout attached to Activity 76");
                 } catch (e) {
                   Logger("[Overlay] ERROR attaching layout to Activity: " + e);
                 }

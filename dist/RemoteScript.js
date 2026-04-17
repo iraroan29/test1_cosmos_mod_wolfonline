@@ -17991,6 +17991,7 @@ std_string_c_str (StdString * self)
           boss = obj;
           bossMaxHp = obj.field("maxhp").value;
           bossHp = obj.field("hp").value;
+          Logger("After setting boss stats");
           OverlayManager.getInstance().sendToHtml(
             "bossOverlay",
             `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`

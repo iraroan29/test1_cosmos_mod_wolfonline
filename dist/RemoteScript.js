@@ -18116,9 +18116,12 @@ std_string_c_str (StdString * self)
           Object.values(overlayManager["overlays"]).forEach((overlay) => {
             if (!overlay.scenes) return;
             Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
+            Logger("Scene match? " + overlay.scenes.includes(sceneName));
             const sceneMatch = overlay.scenes.includes(sceneName);
             const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+            Logger("Condition match? " + (overlay.condition ? overlay.condition(sceneName) : "no condition"));
             const shouldShow = sceneMatch && conditionMatch;
+            Logger("Setting visibility to: " + shouldShow);
             overlay.layout.setVisibility(shouldShow ? 0 : 4);
           });
         }

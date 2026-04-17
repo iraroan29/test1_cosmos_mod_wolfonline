@@ -17995,13 +17995,16 @@ std_string_c_str (StdString * self)
                 try {
                   const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                   const activity = UnityPlayer.currentActivity.value;
+                  Logger("Got here 1");
                   const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
                   const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
                   const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
+                  Logger("Got here 2");
                   const wm = frida_java_bridge_default.cast(
                     activity.getSystemService("window"),
                     WindowManager
                   );
+                  Logger("Got here 3");
                   const lp = WMLayoutParams.$new(
                     -1,
                     // MATCH_PARENT
@@ -18010,14 +18013,19 @@ std_string_c_str (StdString * self)
                     0
                     // temporary type, will override below
                   );
+                  Logger("Got here 4");
                   lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                   const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                   const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
+                  Logger("Got here 5");
                   lp.flags.value = FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE | FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                  Logger("Got here 6");
                   lp.format.value = PixelFormat.TRANSLUCENT.value;
+                  Logger("Got here 7");
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                  Logger("Got here 8");
                   wm.addView(layout, lp);
                   Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
                 } catch (e) {

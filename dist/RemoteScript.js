@@ -17920,10 +17920,12 @@ std_string_c_str (StdString * self)
                 webview.setWebChromeClient(WebChromeClient.$new());
                 const WebViewClient = frida_java_bridge_default.use("android.webkit.WebViewClient");
                 webview.setWebViewClient(WebViewClient.$new());
+                const View = frida_java_bridge_default.use("android.view.View");
+                webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
                 webview.setClickable(false);
                 webview.setLongClickable(false);
-                webview.setFocusable(false);
-                webview.setFocusableInTouchMode(false);
+                webview.setFocusable(true);
+                webview.setFocusableInTouchMode(true);
                 webview.setVerticalScrollBarEnabled(false);
                 webview.setHorizontalScrollBarEnabled(false);
                 webview.setOverScrollMode(2);
@@ -17980,7 +17982,7 @@ std_string_c_str (StdString * self)
                         frida_java_bridge_default.scheduleOnMainThread(() => {
                           webview.loadDataWithBaseURL(
                             "file:///",
-                            // <-- THIS FIXES EVERYTHING
+                            // required for JS interface to work
                             html,
                             "text/html",
                             "UTF-8",
@@ -18021,7 +18023,7 @@ std_string_c_str (StdString * self)
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                   const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                  lp.flags.value = FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE | FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                  lp.flags.value = FLAG_NOT_TOUCHABLE | FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
                   lp.format.value = PixelFormat.TRANSLUCENT.value;
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");

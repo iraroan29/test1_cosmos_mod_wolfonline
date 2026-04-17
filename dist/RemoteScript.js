@@ -18053,13 +18053,24 @@ std_string_c_str (StdString * self)
               Logger("[Overlay] WebView created");
               webview.getSettings().setJavaScriptEnabled(true);
               webview.getSettings().setDomStorageEnabled(true);
+              const self = this;
               const JSBridge = frida_java_bridge_default.registerClass({
                 name: "com.overlay.JSBridge_" + name,
-                implements: [frida_java_bridge_default.use("android.webkit.JavascriptInterface")],
                 methods: {
-                  sendToMod: (value) => {
-                    const overlay = this.overlays[name];
-                    if (overlay?.onHtmlMessage) overlay.onHtmlMessage(value);
+                  sendToMod: {
+                    returnType: "void",
+                    argumentTypes: ["java.lang.String"],
+                    implementation: function(value) {
+                      try {
+                        Logger(`[Overlay] JSBridge sendToMod fired (${name}): ${value}`);
+                        const overlay = self.overlays[name];
+                        if (overlay && overlay.onHtmlMessage) {
+                          overlay.onHtmlMessage(value);
+                        }
+                      } catch (e) {
+                        Logger("[Overlay] sendToMod error: " + e);
+                      }
+                    }
                   }
                 }
               });

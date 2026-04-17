@@ -17996,6 +17996,19 @@ std_string_c_str (StdString * self)
                 const params = LayoutParams.$new(-1, -1);
                 layout.addView(webview, params);
                 Logger("[Overlay] Layout + WebView added");
+                layout.setClickable(false);
+                layout.setFocusable(false);
+                layout.setFocusableInTouchMode(false);
+                layout.setLongClickable(false);
+                layout.setOnTouchListener(frida_java_bridge_default.registerClass({
+                  name: "com.overlay.LayoutPassthrough_" + name,
+                  implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
+                  methods: {
+                    onTouch: function(v, event) {
+                      return false;
+                    }
+                  }
+                }).$new());
                 try {
                   const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                   const activity = UnityPlayer.currentActivity.value;

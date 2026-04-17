@@ -18007,10 +18007,10 @@ std_string_c_str (StdString * self)
                     // MATCH_PARENT
                     -1,
                     // MATCH_PARENT
-                    WMLayoutParams.TYPE_APPLICATION_PANEL,
-                    // ⭐ no .value
-                    WMLayoutParams.FLAG_NOT_FOCUSABLE | WMLayoutParams.FLAG_NOT_TOUCHABLE | WMLayoutParams.FLAG_LAYOUT_IN_SCREEN | WMLayoutParams.FLAG_LAYOUT_NO_LIMITS,
-                    PixelFormat.TRANSLUCENT
+                    WMLayoutParams.TYPE_APPLICATION_PANEL.value,
+                    // ⭐ MUST use .value
+                    WMLayoutParams.FLAG_NOT_FOCUSABLE.value | WMLayoutParams.FLAG_NOT_TOUCHABLE.value | WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value | WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value,
+                    PixelFormat.TRANSLUCENT.value
                   );
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   wm.addView(layout, lp);

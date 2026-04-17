@@ -18296,7 +18296,7 @@ std_string_c_str (StdString * self)
           initRespawnUpdates();
           MountainBossHooks();
           new BossBattleOverlay("https://wolfonline.tiiny.site/");
-          Logger("LOAD THE DAMN COTRRECT SCIPRASG");
+          Logger("LOAD THE DAMN COTRRECT SCI  PRASG");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });

@@ -17907,6 +17907,7 @@ std_string_c_str (StdString * self)
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
                 const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+                const Activity = frida_java_bridge_default.use("android.app.Activity");
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
@@ -17952,6 +17953,13 @@ std_string_c_str (StdString * self)
                 const params = LayoutParams.$new(-1, -1);
                 layout.addView(webview, params);
                 Logger("[Overlay] Layout + WebView added");
+                try {
+                  const activity = frida_java_bridge_default.cast(self.context, Activity);
+                  activity.addContentView(layout, params);
+                  Logger("[Overlay] Layout attached to Activity");
+                } catch (e) {
+                  Logger("[Overlay] ERROR attaching layout to Activity: " + e);
+                }
                 const overlayRef = {
                   name,
                   webview,

@@ -18354,7 +18354,7 @@ std_string_c_str (StdString * self)
         await configManager.init();
         const context = frida_java_bridge_default.use("android.app.ActivityThread").currentApplication().getApplicationContext();
         Il2Cpp.perform(() => {
-          Logger("    ------------");
+          Logger(" 1   ------------");
           OverlayManager.getInstance().initialize(context);
           SceneOverlayManager.getInstance().initialize();
           Logger("    ------------");

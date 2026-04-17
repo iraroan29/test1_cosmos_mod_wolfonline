@@ -17889,6 +17889,8 @@ std_string_c_str (StdString * self)
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
+          this.pendingMessages = {};
+          this.htmlReady = {};
         }
         static getInstance() {
           if (!this.instance) this.instance = new _OverlayManager();
@@ -18038,7 +18040,14 @@ std_string_c_str (StdString * self)
                   layout,
                   url,
                   scenes: [],
-                  condition: null
+                  condition: null,
+                  onHtmlMessage: (msg) => {
+                    Logger(`[Overlay] onHtmlMessage for "${name}": ${msg}`);
+                    if (msg === "htmlReady") {
+                      _OverlayManager.getInstance().onHtmlReady(name);
+                      return;
+                    }
+                  }
                 };
                 self.overlays[name] = overlayRef;
                 Logger(`[Overlay] overlayRef stored for "${name}"`);
@@ -18054,10 +18063,22 @@ std_string_c_str (StdString * self)
         getOverlay(name) {
           return this.overlays[name];
         }
-        sendToHtml(name, js) {
-          const overlay = this.overlays[name];
-          if (!overlay) return;
-          overlay.webview.evaluateJavascript(js, null);
+        sendToHtml(id, js) {
+          if (!this.htmlReady[id]) {
+            if (!this.pendingMessages[id]) this.pendingMessages[id] = [];
+            this.pendingMessages[id].push(js);
+            Logger(`Queued JS for ${id} because HTML not ready`);
+            return;
+          }
+          this.overlays[id].webview.evaluateJavascript(js);
+        }
+        onHtmlReady(id) {
+          this.htmlReady[id] = true;
+          Logger(`${id} HTML ready, flushing queue`);
+          for (const js of this.pendingMessages[id] || []) {
+            this.sendToHtml(id, js);
+          }
+          this.pendingMessages[id] = [];
         }
       };
     }

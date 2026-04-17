@@ -17569,6 +17569,7 @@ std_string_c_str (StdString * self)
     SystemObject = Il2Cpp.corlib.class("System.Object");
     SingleClass = Il2Cpp.corlib.class("System.Single");
     RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
+      antiDamageAmount = this.field("anti_damage").value.method("GetDectrypted").invoke();
       hunter = hunter;
       if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
         return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
@@ -17591,12 +17592,13 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] givePoints successfully initialized!");
   }
-  var mod_points, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
+  var mod_points, antiDamageAmount, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
   var init_givePoints = __esm({
     "src/hooks/givePoints.ts"() {
       init_ConfigManager();
       init_playerWolfStore();
       mod_points = 1e4;
+      antiDamageAmount = 0;
       cooldownActive = false;
       cooldownEndTime = 0;
     }
@@ -17808,7 +17810,8 @@ std_string_c_str (StdString * self)
         this.field("hp").value = 1;
         return this.method("Damage").invoke(damageAmount);
       }
-      const dmgHp = hp - damageAmount;
+      Logger(`hp: ${hp} antiDmg: ${antiDamageAmount} damage: ${damageAmount}`);
+      const dmgHp = hp - Math.min(antiDamageAmount, damageAmount);
       const maxHp = this.field("hpmax").value;
       if (dmgHp <= 0) {
         let roll = Math.floor(Math.random() * 101);
@@ -17826,6 +17829,7 @@ std_string_c_str (StdString * self)
   var init_ensureDamageTaken = __esm({
     "src/hooks/ensureDamageTaken.ts"() {
       init_ConfigManager();
+      init_givePoints();
     }
   });
 

@@ -18111,7 +18111,7 @@ std_string_c_str (StdString * self)
           const overlayManager = OverlayManager.getInstance();
           Object.values(overlayManager["overlays"]).forEach((overlay) => {
             if (!overlay.scenes) return;
-            Logger("Overlay12 " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
+            Logger("Overlay13 " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
             const sceneMatch = overlay.scenes.includes(sceneName);
             Logger("Scene match? " + sceneMatch);
             let conditionMatch = true;
@@ -18151,7 +18151,8 @@ std_string_c_str (StdString * self)
             SceneOverlayManager.getInstance().registerOverlayScenes(
               this.name,
               Object.keys(BossRegistry.bossScenes),
-              (sceneName) => BossRegistry.isBossActive(sceneName)
+              null
+              //(sceneName) => BossRegistry.isBossActive(sceneName)
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene

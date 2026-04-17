@@ -17990,6 +17990,7 @@ std_string_c_str (StdString * self)
         setBoss(obj, sceneName) {
           Logger("got into setBoss");
           boss = obj;
+          Logger("set the boss");
           bossMaxHp = obj.field("health_Max").value;
           bossHp = obj.field("health").value;
           Logger("After setting boss stats");

@@ -17947,6 +17947,7 @@ std_string_c_str (StdString * self)
               console.log("Overlay creation error:", e);
             }
           });
+          Logger("[***] HAVE OVERLAY REF CREATED !!! " + overlayRef);
           return overlayRef;
         }
         getOverlay(name) {

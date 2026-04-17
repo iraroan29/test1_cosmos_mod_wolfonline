@@ -17958,22 +17958,37 @@ std_string_c_str (StdString * self)
                       implementation: function(view, url2) {
                         try {
                           Logger("[Overlay] Intercepting GitHub Raw content");
-                          const URL = frida_java_bridge_default.use("java.net.URL");
-                          const Scanner = frida_java_bridge_default.use("java.util.Scanner");
-                          const u = URL.$new(url2);
-                          const stream = u.openStream();
-                          const scanner = Scanner.$new(stream, "UTF-8");
-                          scanner.useDelimiter(frida_java_bridge_default.use("java.util.regex.Pattern").quote("\\A"));
-                          const html = scanner.hasNext() ? scanner.next() : "";
-                          scanner.close();
-                          view.loadDataWithBaseURL(
-                            url2,
-                            html,
-                            "text/html",
-                            "UTF-8",
-                            null
-                          );
-                          Logger("[Overlay] HTML loaded as proper HTML");
+                          const Runnable = frida_java_bridge_default.use("java.lang.Runnable");
+                          const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
+                          const task = Runnable.$new({
+                            run: function() {
+                              try {
+                                const URL = frida_java_bridge_default.use("java.net.URL");
+                                const Scanner = frida_java_bridge_default.use("java.util.Scanner");
+                                const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
+                                const u = URL.$new(url2);
+                                const stream = u.openStream();
+                                const scanner = Scanner.$new(stream, "UTF-8");
+                                scanner.useDelimiter(Pattern.quote("\\A"));
+                                const html = scanner.hasNext() ? scanner.next() : "";
+                                scanner.close();
+                                Logger("[Overlay] HTML fetched, injecting...");
+                                frida_java_bridge_default.scheduleOnMainThread(() => {
+                                  view.loadDataWithBaseURL(
+                                    url2,
+                                    html,
+                                    "text/html",
+                                    "UTF-8",
+                                    null
+                                  );
+                                  Logger("[Overlay] HTML injected as proper HTML");
+                                });
+                              } catch (e) {
+                                Logger("[Overlay] Background fetch error: " + e);
+                              }
+                            }
+                          });
+                          Thread2.$new(task).start();
                         } catch (e) {
                           Logger("[Overlay] Error forcing HTML mode: " + e);
                         }

@@ -18030,6 +18030,7 @@ std_string_c_str (StdString * self)
     "src/overlay/OverlayManager.ts"() {
       init_frida_java_bridge();
       init_SceneOverlayManager();
+      init_bossRegistry();
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -18089,6 +18090,17 @@ std_string_c_str (StdString * self)
               };
               this.overlays[name] = overlayRef;
               Logger(`[Overlay] overlayRef stored for "${name}"`);
+              if (name === "bossOverlay") {
+                Logger("[Overlay] Registering bossOverlay scenes after creation");
+                SceneOverlayManager.getInstance().registerOverlayScenes(
+                  name,
+                  Object.keys(BossRegistry.bossScenes),
+                  (sceneName) => BossRegistry.isBossActive(sceneName)
+                );
+                SceneOverlayManager.getInstance().onSceneChanged(
+                  SceneOverlayManager.currentScene
+                );
+              }
               SceneOverlayManager.getInstance().onSceneChanged(
                 SceneOverlayManager.currentScene
               );
@@ -18114,25 +18126,12 @@ std_string_c_str (StdString * self)
   var BossBattleOverlay;
   var init_BossBattleOverlay = __esm({
     "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
       init_OverlayManager();
-      init_SceneOverlayManager();
       BossBattleOverlay = class {
         constructor(url) {
           this.name = "bossOverlay";
           OverlayManager.getInstance().createOverlay(this.name, url, true);
-          setTimeout(() => {
-            Logger("[BossOverlay] Registering scenes after overlay exists");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              this.name,
-              Object.keys(BossRegistry.bossScenes),
-              (sceneName) => BossRegistry.isBossActive(sceneName)
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          }, 200);
-          Logger("[+] Register overlay manager, all boss names");
+          Logger("[+] Created overlay overlay manager");
         }
         // Optional: TS → HTML health update (HTML handles visuals)
         updateHealth(current, max) {

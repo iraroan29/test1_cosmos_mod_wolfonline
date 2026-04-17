@@ -18002,15 +18002,21 @@ std_string_c_str (StdString * self)
                     activity.getSystemService("window"),
                     WindowManager
                   );
+                  const TYPE = WMLayoutParams.TYPE_APPLICATION_PANEL.valueOf();
+                  const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.valueOf();
+                  const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.valueOf();
+                  const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.valueOf();
+                  const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.valueOf();
+                  const FORMAT = PixelFormat.TRANSLUCENT.valueOf();
+                  const flags = FLAG_NOT_FOCUSABLE | FLAG_NOT_TOUCHABLE | FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
                   const lp = WMLayoutParams.$new(
                     -1,
                     // MATCH_PARENT
                     -1,
                     // MATCH_PARENT
-                    WMLayoutParams.TYPE_APPLICATION_PANEL.value,
-                    // ⭐ MUST use .value
-                    WMLayoutParams.FLAG_NOT_FOCUSABLE.value | WMLayoutParams.FLAG_NOT_TOUCHABLE.value | WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value | WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value,
-                    PixelFormat.TRANSLUCENT.value
+                    TYPE,
+                    flags,
+                    FORMAT
                   );
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   wm.addView(layout, lp);

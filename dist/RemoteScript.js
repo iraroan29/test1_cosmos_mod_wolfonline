@@ -18082,10 +18082,9 @@ std_string_c_str (StdString * self)
         },
         bossCorrectMap: {
           "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
-          "Attack_Animals_Lava_Guardian": "WolfOnline_Map_Lava",
-          "Attack_Animals_Wild_Guardian": "WolfOnline_Map_Wild_Guardian",
-          "Attack_Animals_Snow_Guardian": "WolfOnline_Map_Snow_Guardian",
-          "Attack_Animals_BlackTiger": "WolfOnline_Map_BlackTiger"
+          "Dragon_High": "WolfOnline_Map_Lava",
+          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
+          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
         },
         /** Called when boss spawns */
         setBoss(obj, sceneName) {

@@ -17998,6 +17998,7 @@ std_string_c_str (StdString * self)
         registerOverlayScenes(overlayName, scenes, condition) {
           Logger("Register Overlay Sceenes Begin");
           const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          Logger("Got overlay");
           if (overlay) {
             overlay.scenes = scenes;
             overlay.condition = condition || null;

@@ -18007,9 +18007,10 @@ std_string_c_str (StdString * self)
                     // MATCH_PARENT
                     -1,
                     // MATCH_PARENT
-                    WMLayoutParams.TYPE_APPLICATION_PANEL
-                    // type
+                    0
+                    // temporary type, will override below
                   );
+                  lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                   const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;

@@ -17904,7 +17904,7 @@ std_string_c_str (StdString * self)
             throw new Error("OverlayManager not initialized");
           }
           try {
-            Logger("[Overlay] Using context: " + this.context);
+            Logger("[Overlay] Using context : " + this.context);
             const WebView = frida_java_bridge_default.use("android.webkit.WebView");
             const LayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
             const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");

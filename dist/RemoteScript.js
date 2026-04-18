@@ -18083,6 +18083,9 @@ std_string_c_str (StdString * self)
   });
 
   // src/helpers/bossRegistry.ts
+  function isBossActive() {
+    return boss !== null;
+  }
   var boss, bossHp, bossMaxHp, BossRegistry;
   var init_bossRegistry = __esm({
     "src/helpers/bossRegistry.ts"() {
@@ -18239,8 +18242,7 @@ std_string_c_str (StdString * self)
             SceneOverlayManager.getInstance().registerOverlayScenes(
               this.name,
               Object.keys(BossRegistry.bossScenes),
-              null
-              //(sceneName) => BossRegistry.isBossActive(sceneName)
+              () => isBossActive()
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene

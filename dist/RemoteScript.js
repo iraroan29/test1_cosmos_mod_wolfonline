@@ -17569,7 +17569,7 @@ std_string_c_str (StdString * self)
     SystemObject = Il2Cpp.corlib.class("System.Object");
     SingleClass = Il2Cpp.corlib.class("System.Single");
     RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
-      antiDamageAmount = this.field("anti_damage").value.method("GetDectrypted").invoke();
+      antiDamageAmount = this.field("anti_damage").value;
       hunter = hunter;
       if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
         return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
@@ -17598,7 +17598,6 @@ std_string_c_str (StdString * self)
       init_ConfigManager();
       init_playerWolfStore();
       mod_points = 1e4;
-      antiDamageAmount = 0;
       cooldownActive = false;
       cooldownEndTime = 0;
     }
@@ -17811,7 +17810,7 @@ std_string_c_str (StdString * self)
         return this.method("Damage").invoke(damageAmount);
       }
       Logger(`hp: ${hp} antiDmg: ${antiDamageAmount} damage: ${damageAmount}`);
-      const dmgHp = hp - Math.min(antiDamageAmount, damageAmount);
+      const dmgHp = hp - damageAmount;
       const maxHp = this.field("hpmax").value;
       if (dmgHp <= 0) {
         let roll = Math.floor(Math.random() * 101);

@@ -17981,10 +17981,11 @@ std_string_c_str (StdString * self)
                         Logger("[Overlay] HTML fetched, injecting...");
                         frida_java_bridge_default.scheduleOnMainThread(() => {
                           webview.loadDataWithBaseURL(
-                            "file:///",
-                            // required for JS interface to work
+                            "file:///android_asset/",
+                            // trusted origin
                             html,
-                            "text/html",
+                            "text/html; charset=UTF-8",
+                            // <-- REQUIRED for JS execution
                             "UTF-8",
                             null
                           );

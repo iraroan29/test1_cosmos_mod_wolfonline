@@ -339,7 +339,7 @@ function updateHpBar() {
   fill.style.width = percent * 100 + "%";
 
   // HP number only
-  text.textContent = currentHp.toString();
+  text.textContent = Math.ceil(currentHp).toString();
 
   // Compute exact logical fill edge (not animated width)
   const barWidth = bar.clientWidth;
@@ -366,7 +366,7 @@ function spawnDamageText(amount, critHit) {
   const el = document.createElement("div");
   el.className = "damage-text";
   if (critHit) el.classList.add("crit");
-  el.textContent = `-${amount}`;
+  el.textContent = `-${Number(amount).toFixed(2)}`;
 
   const cx = innerWidth / 2;
   const cy = innerHeight / 2;

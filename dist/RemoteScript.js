@@ -17796,21 +17796,25 @@ std_string_c_str (StdString * self)
   // src/hooks/ensureDamageTaken.ts
   function ensureDamageTaken() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
+    const antiCheat = Il2Cpp.domain.assembly("CodeStage.AntiCheat");
+    if (!assemblyC || !antiCheat) {
       Logger("[!] Assembly-CSharp not ready for ensureDamageTaken, retrying...");
       setTimeout(ensureDamageTaken, 500);
       return;
     }
     const AssemblyC = assemblyC.image;
+    const AntiCheat = antiCheat.image;
     const Player_Wolf = AssemblyC.class("Player_Wolf");
+    const ObscuredFloat = AntiCheat.class("CodeStage.AntiCheat.ObscuredTypes.ObscuredFloat");
     Player_Wolf.method("Damage").implementation = function(damageAmount) {
       const hp = this.field("hp").value;
       if (hp < 0) {
         this.field("hp").value = 1;
         return this.method("Damage").invoke(damageAmount);
       }
-      Logger(`hp: ${hp} antiDmg: ${antiDamageAmount} damage: ${damageAmount}`);
-      const dmgHp = hp - damageAmount;
+      const antidmg = ObscuredFloat.method("op_Implicit").overload("CodeStage.AntiCheat.ObscuredTypes.ObscuredFloat").invoke(antiDamageAmount);
+      Logger(`hp: ${hp} antiDmg: ${antidmg} damage: ${damageAmount} damage`);
+      const dmgHp = hp - Math.min(antiDamageAmount, damageAmount);
       const maxHp = this.field("hpmax").value;
       if (dmgHp <= 0) {
         let roll = Math.floor(Math.random() * 101);

@@ -17795,16 +17795,13 @@ std_string_c_str (StdString * self)
   // src/hooks/ensureDamageTaken.ts
   function ensureDamageTaken() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    const antiCheat = Il2Cpp.domain.assembly("CodeStage.AntiCheat");
-    if (!assemblyC || !antiCheat) {
+    if (!assemblyC) {
       Logger("[!] Assembly-CSharp not ready for ensureDamageTaken, retrying...");
       setTimeout(ensureDamageTaken, 500);
       return;
     }
     const AssemblyC = assemblyC.image;
-    const AntiCheat = antiCheat.image;
     const Player_Wolf = AssemblyC.class("Player_Wolf");
-    const ObscuredFloat = AntiCheat.class("CodeStage.AntiCheat.ObscuredTypes.ObscuredFloat");
     Player_Wolf.method("Damage").implementation = function(damageAmount) {
       const hp = this.field("hp").value;
       if (hp < 0) {

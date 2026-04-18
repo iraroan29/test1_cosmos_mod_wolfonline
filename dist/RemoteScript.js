@@ -18494,6 +18494,13 @@ std_string_c_str (StdString * self)
         }
       };
       frida_java_bridge_default.perform(async () => {
+        const Executable = frida_java_bridge_default.use("java.lang.reflect.Executable");
+        Executable.isAnnotationPresent.implementation = function(annotationClass) {
+          if (annotationClass.getName() === "android.webkit.JavascriptInterface") {
+            return true;
+          }
+          return this.isAnnotationPresent(annotationClass);
+        };
         Log = frida_java_bridge_default.use("android.util.Log");
         Logger("Load GameConfig");
         await configManager.init();

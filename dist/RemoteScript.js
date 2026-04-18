@@ -17398,7 +17398,7 @@ std_string_c_str (StdString * self)
       color.field("g").value = 1;
       color.field("b").value = 1;
       color.field("a").value = 1;
-      let userID = ID.toString().trim().replaceAll('"', "");
+      let userID = ID.content;
       const displayName = removeCE + configManager.get("tierName") + "[b][ffffff]" + userID + removeCE;
       mText.method("Add").invoke(
         Il2Cpp.string(`${displayName}`),
@@ -18359,27 +18359,35 @@ std_string_c_str (StdString * self)
       this.method("Start").invoke();
       const mInput = this.field("mInput").value;
       mInput.field("characterLimit").value = 1e3;
+      let ID = mInput.field("mValue").value;
+      if (!ID.content.includes(SECRET_SYMBOLS)) {
+        mInput.field("mValue").value.content += SECRET_SYMBOLS;
+      }
     };
     InputID.method("OnSubmit").implementation = function() {
       const mInput = this.field("mInput").value;
       let ID = mInput.field("mValue").value;
       for (const [searchName, replaceName] of names) {
-        if (ID.toString().trim().replaceAll('"', "") === searchName.trim()) {
+        if (ID.content === searchName) {
           mInput.field("mValue").value = Il2Cpp.string(replaceName);
           break;
         }
+      }
+      if (!ID.content.includes(SECRET_SYMBOLS)) {
+        mInput.field("mValue").value.content += SECRET_SYMBOLS;
       }
       this.method("OnSubmit").invoke();
     };
     Logger("[+] inputID successfully initialized!");
   }
-  var names;
+  var names, SECRET_SYMBOLS;
   var init_inputid = __esm({
     "src/hooks/inputid.ts"() {
       names = /* @__PURE__ */ new Map([
         ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
         ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
       ]);
+      SECRET_SYMBOLS = "\u272A\u272B\u2737\u2727\u2736\u2726\u272C\u2730\u2734\u272D\u2735\u272F";
     }
   });
 

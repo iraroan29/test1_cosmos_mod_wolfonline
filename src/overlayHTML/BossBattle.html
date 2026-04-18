@@ -319,10 +319,12 @@ window.dealDamage = function(damage, critHit = false) {
 }
 
 // At the end of your HTML script
-window.onload = function() {
-    if (typeof AndroidBridge !== 'undefined') {
-        // Send a message back to Frida to trigger onHtmlReady
-        AndroidBridge.sendToMod("READY"); 
+window.onload = () => {
+    if (window.AndroidBridge) {
+        AndroidBridge.sendToMod(JSON.stringify({ 
+            type: "READY", 
+            overlay: "bossOverlay" 
+        }));
     }
 };
 

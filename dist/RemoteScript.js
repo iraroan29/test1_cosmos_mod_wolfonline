@@ -17661,6 +17661,7 @@ std_string_c_str (StdString * self)
   var init_OverlayManager = __esm({
     "src/overlay/OverlayManager.ts"() {
       init_frida_java_bridge();
+      init_ConfigManager();
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -17717,14 +17718,25 @@ std_string_c_str (StdString * self)
                     sendToMod: {
                       returnType: "void",
                       argumentTypes: ["java.lang.String"],
-                      implementation: function(value) {
-                        if (value === "READY") {
-                          self.onHtmlReady(name);
-                          return;
-                        }
-                        const overlay = self.overlays[name];
-                        if (overlay && overlay.onHtmlMessage) {
-                          overlay.onHtmlMessage(value);
+                      implementation: function(jsonString) {
+                        try {
+                          const data = JSON.parse(jsonString);
+                          if (data.type === "READY") {
+                            Logger(`[Overlay] ${data.overlay} is ready to receive data`);
+                            self.onHtmlReady(data.overlay);
+                            if (data.overlay === "cosmosOverlay") {
+                              const js = `initStats(${configManager.get("currentTier")}, ${configManager.get("currentDeathTier")}, ${configManager.get("honorScore")}, ${configManager.get("aidScore")});`;
+                              self.sendToHtml(data.overlay, js);
+                            } else if (data.overlay === "bossOverlay") {
+                            }
+                          } else {
+                            const overlay = self.overlays[data.overlay];
+                            if (overlay && overlay.onHtmlMessage) {
+                              overlay.onHtmlMessage(data.value);
+                            }
+                          }
+                        } catch (e) {
+                          Logger("[Overlay] Bridge Error: " + e);
                         }
                       }
                     }
@@ -18247,6 +18259,53 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/CosmosMenuOverlay.ts
+  var _CosmosMenuOverlay, CosmosMenuOverlay;
+  var init_CosmosMenuOverlay = __esm({
+    "src/overlay/CosmosMenuOverlay.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _CosmosMenuOverlay = class _CosmosMenuOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_CosmosMenuOverlay.OVERLAY_NAME, url, true);
+            Logger("[CosmosOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _CosmosMenuOverlay.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true
+              }),
+              () => SharedState.realBody != null
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _CosmosMenuOverlay.OVERLAY_NAME = "cosmosOverlay";
+      CosmosMenuOverlay = _CosmosMenuOverlay;
+      configManager.onUpdate("currentTier", (tier) => {
+        const js = `setTierByValue(${tier});`;
+        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("currentDeathTier", (deathTier) => {
+        const js = `setDeathTier(${deathTier});`;
+        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("honorScore", (honor) => {
+        const js = `setHonor(${honor});`;
+        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("aidScore", (aid) => {
+        const js = `setAid(${aid});`;
+        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
+      });
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18271,6 +18330,7 @@ std_string_c_str (StdString * self)
       init_dragonHooks();
       init_snowHooks();
       init_wildHooks();
+      init_CosmosMenuOverlay();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18314,6 +18374,7 @@ std_string_c_str (StdString * self)
           SnowBossHooks();
           WildBossHooks();
           Logger("LOAD THE DAMN SCRIPT!!");
+          new CosmosMenuOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/CosmosMenu.html");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

@@ -661,6 +661,16 @@ window.initStats = function(tier, deathTier, honor, aid){
   setAid(aid);
 }
 
+window.onload = () => {
+    if (window.AndroidBridge) {
+        // Send a JSON string identifying who is ready and what they want
+        AndroidBridge.sendToMod(JSON.stringify({ 
+            type: "READY", 
+            overlay: "cosmosOverlay" 
+        }));
+    }
+};
+
 /* =========================
    MENU + CHAT LOGIC
 ========================= */

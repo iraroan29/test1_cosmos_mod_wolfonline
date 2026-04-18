@@ -14721,17 +14721,17 @@ std_string_c_str (StdString * self)
     return className.slice(className.lastIndexOf(".") + 1);
   }
   function readTypeNames(env, types) {
-    const names = [];
+    const names2 = [];
     const n = env.getArrayLength(types);
     for (let i = 0; i !== n; i++) {
       const t = env.getObjectArrayElement(types, i);
       try {
-        names.push(env.getTypeName(t));
+        names2.push(env.getTypeName(t));
       } finally {
         env.deleteLocalRef(t);
       }
     }
-    return names;
+    return names2;
   }
   function makeSourceFileName(className) {
     const tokens = className.split(".");
@@ -18345,6 +18345,44 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/inputid.ts
+  function inputID() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for inputID, retrying...");
+      setTimeout(inputID, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const InputID = AssemblyC.class("Input_ID");
+    InputID.method("Start").implementation = function() {
+      this.method("Start").invoke();
+      const mInput = this.field("mInput").value;
+      mInput.field("characterLimit").value = 1e3;
+    };
+    InputID.method("OnSubmit").implementation = function() {
+      const mInput = this.field("mInput").value;
+      let ID = mInput.field("mValue").value;
+      for (const [searchName, replaceName] of names) {
+        if (ID.toString().trim().replaceAll('"', "") === searchName.trim()) {
+          mInput.field("mValue").value = Il2Cpp.string(replaceName);
+          break;
+        }
+      }
+      this.method("OnSubmit").invoke();
+    };
+    Logger("[+] inputID successfully initialized!");
+  }
+  var names;
+  var init_inputid = __esm({
+    "src/hooks/inputid.ts"() {
+      names = /* @__PURE__ */ new Map([
+        ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
+        ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
+      ]);
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18370,6 +18408,7 @@ std_string_c_str (StdString * self)
       init_snowHooks();
       init_wildHooks();
       init_CosmosMenuOverlay();
+      init_inputid();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18396,6 +18435,7 @@ std_string_c_str (StdString * self)
           SceneOverlayManager.getInstance().initialize();
           Logger("    ------------");
           Logger("    ------------");
+          inputID();
           hudName();
           givePoints();
           playerUpdate();

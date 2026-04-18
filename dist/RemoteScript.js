@@ -17943,14 +17943,13 @@ std_string_c_str (StdString * self)
                       returnType: "void",
                       argumentTypes: ["java.lang.String"],
                       implementation: function(value) {
-                        try {
-                          Logger(`[Overlay] JSBridge sendToMod fired (${name}): ${value}`);
-                          const overlay = self.overlays[name];
-                          if (overlay && overlay.onHtmlMessage) {
-                            overlay.onHtmlMessage(value);
-                          }
-                        } catch (e) {
-                          Logger("[Overlay] sendToMod error: " + e);
+                        if (value === "READY") {
+                          self.onHtmlReady(name);
+                          return;
+                        }
+                        const overlay = self.overlays[name];
+                        if (overlay && overlay.onHtmlMessage) {
+                          overlay.onHtmlMessage(value);
                         }
                       }
                     }
@@ -18061,20 +18060,22 @@ std_string_c_str (StdString * self)
           return this.overlays[name];
         }
         sendToHtml(id, js) {
-          if (!this.htmlReady[id]) {
-            if (!this.pendingMessages[id]) this.pendingMessages[id] = [];
-            this.pendingMessages[id].push(js);
-            Logger(`Queued JS for ${id} because HTML not ready`);
-            return;
-          }
-          this.overlays[id].webview.evaluateJavascript(js);
+          const overlay = this.overlays[id];
+          if (!overlay || !overlay.webview) return;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              overlay.webview.evaluateJavascript(js, null);
+            } catch (e) {
+              Logger(`[Overlay] evaluateJavascript error: ${e}`);
+            }
+          });
         }
         onHtmlReady(id) {
           this.htmlReady[id] = true;
-          Logger(`${id} HTML ready, flushing queue`);
-          for (const js of this.pendingMessages[id] || []) {
+          Logger(`[Overlay] ${id} signaled READY. Flushing ${this.pendingMessages[id]?.length || 0} messages.`);
+          (this.pendingMessages[id] || []).forEach((js) => {
             this.sendToHtml(id, js);
-          }
+          });
           this.pendingMessages[id] = [];
         }
       };

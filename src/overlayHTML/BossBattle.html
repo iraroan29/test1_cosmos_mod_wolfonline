@@ -239,25 +239,6 @@ html, body {
 <!-- <button id="debug-damage-btn">Deal Damage</button> -->
 
 <script>
-(function () {
-  // 🔍 Boot probe: does JS even run?
-  console.log("BossOverlay JS BOOT");
-
-  try {
-    AndroidBridge.sendToMod("boot");
-  } catch (e) {
-    console.log("AndroidBridge error in boot:", e);
-  }
-
-  window.onload = () => {
-    console.log("BossOverlay window.onload fired");
-    try {
-      AndroidBridge.sendToMod("htmlReady");
-    } catch (e) {
-      console.log("AndroidBridge error in onload:", e);
-    }
-  };
-})();
 
 /* =========================
    MAP THEMES + BOSS NAMES
@@ -322,7 +303,7 @@ function setHp(hp, max) {
   updateHpBar();
 }
 
-function initBoss(mapName, hp, hpmax){
+window.initBoss = function(mapName, hp, hpmax){
   setMap(mapName);
   setHp(hp, hpmax);
 }
@@ -331,11 +312,20 @@ function initBoss(mapName, hp, hpmax){
  * @param {number} damage
  * @param {boolean} isCritHit
  */
-function dealDamage(damage, critHit = false) {
+window.dealDamage = function(damage, critHit = false) {
   currentHp = Math.max(0, currentHp - damage);
   updateHpBar();
   spawnDamageText(damage, critHit);
 }
+
+// At the end of your HTML script
+window.onload = function() {
+    if (typeof AndroidBridge !== 'undefined') {
+        // Send a message back to Frida to trigger onHtmlReady
+        AndroidBridge.sendToMod("READY"); 
+    }
+};
+
 
 /* =========================
    INTERNALS

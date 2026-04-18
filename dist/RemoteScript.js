@@ -17806,7 +17806,7 @@ std_string_c_str (StdString * self)
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                   const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                  lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
+                  lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
                   if (touchPassthrough) {
                     lp.flags.value |= FLAG_NOT_TOUCHABLE;
                   } else {

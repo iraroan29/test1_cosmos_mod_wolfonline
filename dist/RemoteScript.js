@@ -17806,7 +17806,10 @@ std_string_c_str (StdString * self)
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                   const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                  lp.flags.value = FLAG_NOT_TOUCHABLE | FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                  lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
+                  if (touchPassthrough) {
+                    lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                  }
                   lp.format.value = PixelFormat.TRANSLUCENT.value;
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                   const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
@@ -17955,6 +17958,7 @@ std_string_c_str (StdString * self)
       init_frida_java_bridge();
       init_bossRegistry();
       init_OverlayManager();
+      init_playerWolfStore();
       SceneOverlayManager = class _SceneOverlayManager {
         constructor() {
           this.initialized = false;
@@ -17982,6 +17986,7 @@ std_string_c_str (StdString * self)
           };
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
             BossRegistry.clearBoss();
+            SharedState.realBody = null;
             return this.method("Internal_SceneUnloaded").invoke(scene, mode);
           };
           Logger("[*] SceneOverlayManager - Scene hooks installed");
@@ -18269,7 +18274,7 @@ std_string_c_str (StdString * self)
       _CosmosMenuOverlay = class _CosmosMenuOverlay {
         constructor(url) {
           (async () => {
-            await OverlayManager.getInstance().createOverlay(_CosmosMenuOverlay.OVERLAY_NAME, url, true);
+            await OverlayManager.getInstance().createOverlay(_CosmosMenuOverlay.OVERLAY_NAME, url, false);
             Logger("[CosmosOverlay] Overlay created, now registering scenes");
             SceneOverlayManager.getInstance().registerOverlayScenes(
               _CosmosMenuOverlay.OVERLAY_NAME,

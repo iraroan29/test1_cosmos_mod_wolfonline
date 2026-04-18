@@ -17812,9 +17812,7 @@ std_string_c_str (StdString * self)
         this.field("hp").value = 1;
         return this.method("Damage").invoke(damageAmount);
       }
-      const antidmg = ObscuredFloat.method("op_Implicit").overload("CodeStage.AntiCheat.ObscuredTypes.ObscuredFloat").invoke(antiDamageAmount);
-      Logger(`hp: ${hp} antiDmg: ${antidmg} damage: ${damageAmount} damage`);
-      const dmgHp = hp - Math.min(antiDamageAmount, damageAmount);
+      const dmgHp = hp - Math.min(4.75, damageAmount);
       const maxHp = this.field("hpmax").value;
       if (dmgHp <= 0) {
         let roll = Math.floor(Math.random() * 101);
@@ -17832,7 +17830,6 @@ std_string_c_str (StdString * self)
   var init_ensureDamageTaken = __esm({
     "src/hooks/ensureDamageTaken.ts"() {
       init_ConfigManager();
-      init_givePoints();
     }
   });
 

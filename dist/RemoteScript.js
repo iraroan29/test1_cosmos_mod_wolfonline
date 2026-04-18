@@ -18291,6 +18291,10 @@ std_string_c_str (StdString * self)
       BossRegistry.clearBoss();
       return this.method("Death").invoke();
     };
+    MountainBoss.method("Damage").implementation = function(damage) {
+      BossRegistry.dealDamage(damage, false);
+      return this.method("Damage").invoke();
+    };
     Logger("[+] MountainBossHooks successfully initialized!");
   }
   var init_mountainHooks = __esm({
@@ -18357,6 +18361,10 @@ std_string_c_str (StdString * self)
       BossRegistry.clearBoss();
       return this.method("Death").invoke();
     };
+    DragonBoss.method("Damage").implementation = function(damage) {
+      BossRegistry.dealDamage(damage, false);
+      return this.method("Damage").invoke();
+    };
     Logger("[+] DragonBossHooks successfully initialized!");
   }
   var init_dragonHooks = __esm({
@@ -18401,6 +18409,10 @@ std_string_c_str (StdString * self)
       BossRegistry.clearBoss();
       return this.method("Death").invoke();
     };
+    SnowBoss.method("Damage").implementation = function(damage) {
+      BossRegistry.dealDamage(damage, false);
+      return this.method("Damage").invoke();
+    };
     Logger("[+] SnowBossHooks successfully initialized!");
   }
   var init_snowHooks = __esm({
@@ -18444,6 +18456,10 @@ std_string_c_str (StdString * self)
     WildBoss.method("Death").implementation = function() {
       BossRegistry.clearBoss();
       return this.method("Death").invoke();
+    };
+    WildBoss.method("Damage").implementation = function(damage) {
+      BossRegistry.dealDamage(damage, false);
+      return this.method("Damage").invoke();
     };
     Logger("[+] WildBossHooks successfully initialized!");
   }

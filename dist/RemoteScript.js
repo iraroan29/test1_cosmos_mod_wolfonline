@@ -17688,6 +17688,34 @@ std_string_c_str (StdString * self)
                 Logger("[Overlay] Creating WebView instance");
                 const webview = WebView.$new(self.context);
                 Logger("[Overlay] WebView created");
+                frida_java_bridge_default.scheduleOnMainThread(() => {
+                  const View2 = frida_java_bridge_default.use("android.view.View");
+                  webview.setOnTouchListener(frida_java_bridge_default.registerClass({
+                    name: "com.overlay.TouchListener",
+                    implements: [frida_java_bridge_default.use("android.view.View$OnTouchListener")],
+                    methods: {
+                      onTouch: function(view, event) {
+                        const action = event.getAction();
+                        if (action === 0) {
+                          const x = event.getX();
+                          const y = event.getY();
+                          webview.evaluateJavascript(
+                            `checkHitbox(${x}, ${y})`,
+                            frida_java_bridge_default.registerClass({
+                              name: "com.overlay.HitboxCallback",
+                              implements: [frida_java_bridge_default.use("android.webkit.ValueCallback")],
+                              methods: {
+                                onReceiveValue: function(value) {
+                                }
+                              }
+                            }).$new()
+                          );
+                        }
+                        return false;
+                      }
+                    }
+                  }).$new());
+                });
                 const WebChromeClient = frida_java_bridge_default.use("android.webkit.WebChromeClient");
                 webview.setWebChromeClient(WebChromeClient.$new());
                 const WebViewClient = frida_java_bridge_default.use("android.webkit.WebViewClient");

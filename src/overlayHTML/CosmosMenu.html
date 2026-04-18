@@ -41,6 +41,9 @@ html, body {
   height: 100%;
   background: transparent;
   font-family: "Segoe UI", system-ui, sans-serif;
+  /* This makes the background a "ghost" */
+  pointer-events: none; 
+  overflow: hidden;
 }
 
 /* =========================
@@ -164,6 +167,7 @@ html, body {
   cursor: pointer;
   pointer-events: auto;
   display: none;
+  pointer-events: auto; /* The button captures the touch */
 }
 
 /* =========================
@@ -443,7 +447,7 @@ html, body {
       <span id="aid-value"></span>
     </div>
 
-    <button id="menu-button">Menu</button>
+    <!-- <button id="menu-button">Menu</button> -->
   </div>
 
   <!-- MOD PANEL -->

@@ -17696,8 +17696,8 @@ std_string_c_str (StdString * self)
                 webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
                 webview.setClickable(false);
                 webview.setLongClickable(false);
-                webview.setFocusable(true);
-                webview.setFocusableInTouchMode(true);
+                webview.setFocusable(false);
+                webview.setFocusableInTouchMode(false);
                 webview.setVerticalScrollBarEnabled(false);
                 webview.setHorizontalScrollBarEnabled(false);
                 webview.setOverScrollMode(2);

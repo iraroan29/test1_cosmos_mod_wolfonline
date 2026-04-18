@@ -17887,8 +17887,7 @@ std_string_c_str (StdString * self)
           "WolfOnline_Map_Lava": true,
           "WolfOnline_Map_Wild_Guardian": true,
           "WolfOnline_Map_Mountain_Guardian": true,
-          "WolfOnline_Map_Snow_Guardian": true,
-          "WolfOnline_Map_BlackTiger": true
+          "WolfOnline_Map_Snow_Guardian": true
         },
         bossCorrectMap: {
           "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
@@ -18275,7 +18274,19 @@ std_string_c_str (StdString * self)
             SceneOverlayManager.getInstance().registerOverlayScenes(
               _CosmosMenuOverlay.OVERLAY_NAME,
               Object.keys({
-                "WolfOnline_Map_Snow": true
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
               }),
               () => SharedState.realBody != null
             );

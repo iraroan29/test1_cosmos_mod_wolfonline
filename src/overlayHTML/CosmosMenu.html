@@ -99,7 +99,7 @@ html, body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(var(--galaxy-rgb), 0.22);
+  background: rgba(var(--galaxy-rgb), 0.50);
   z-index: 0;
 }
 
@@ -640,10 +640,10 @@ window.setTierByValue = function(v) {
 }
 
 window.setHonor = function(v) {
-  document.getElementById("honor-value").textContent = v;
+  document.getElementById("honor-value").textContent = Number(v).toFixed(2);
 }
 window.setAid = function(v) {
-  document.getElementById("aid-value").textContent = v;
+  document.getElementById("aid-value").textContent = Number(v).toFixed(2);
 }
 window.setDeathTier = function(v) {
   const row = document.getElementById("deathtier-row");

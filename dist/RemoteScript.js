@@ -18003,7 +18003,6 @@ std_string_c_str (StdString * self)
               if (!overlay.scenes) return;
               const sceneMatch = overlay.scenes.includes(sceneName);
               const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-              Logger("Actually comparing additional conditions if any");
               const shouldShow = sceneMatch && conditionMatch;
               overlay.layout.setVisibility(shouldShow ? 0 : 4);
             });

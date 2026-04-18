@@ -17569,7 +17569,6 @@ std_string_c_str (StdString * self)
     SystemObject = Il2Cpp.corlib.class("System.Object");
     SingleClass = Il2Cpp.corlib.class("System.Single");
     RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
-      antiDamageAmount = this.field("anti_damage").value;
       hunter = hunter;
       if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
         return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
@@ -17592,7 +17591,7 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] givePoints successfully initialized!");
   }
-  var mod_points, antiDamageAmount, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
+  var mod_points, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
   var init_givePoints = __esm({
     "src/hooks/givePoints.ts"() {
       init_ConfigManager();

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Mod HUD</title>
+
+<style>
+/* =========================
+   ROOT / THEME VARIABLES
+========================= */
+:root {
+  --galaxy-main: #4c1d95;
+  --galaxy-accent: #a78bfa;
+  --galaxy-rgb: 76,29,149;
+
+  --hud-border-width: 0.35vmin;
+  --hud-border-padding: 0.5vmin;
+  --hud-border-angle: 0deg;
+
+  --panel-width: 18vmin;
+  --panel-radius: 2.2vmin;
+  --font-size-main: clamp(1rem, 1.8vmin, 1.4rem);
+
+  /* text colors (set per tier in JS) */
+  --text-main: #222;
+  --text-muted: #444;
+}
+
+/* =========================
+   RESET
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* =========================
+   HUD (CLICK-THROUGH)
+========================= */
+#hud {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* =========================
+   BORDER
+========================= */
+#hud::before {
+  content: "";
+  position: absolute;
+  inset: var(--hud-border-padding);
+  padding: var(--hud-border-width);
+  border-radius: 1.5vmin;
+
+  background: conic-gradient(
+    from var(--hud-border-angle),
+    var(--galaxy-main),
+    var(--galaxy-accent),
+    var(--galaxy-main)
+  );
+
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+
+  animation: borderSpin 60s linear infinite;
+}
+
+@keyframes borderSpin {
+  from { --hud-border-angle: 0deg; }
+  to   { --hud-border-angle: 360deg; }
+}
+
+/* =========================
+   PANELS (SHARED)
+========================= */
+.panel {
+  position: absolute;
+  top: 60%;
+  transform: translateY(-50%);
+  padding: 2.5vmin;
+  border-radius: var(--panel-radius);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(var(--galaxy-rgb), 0.22);
+  z-index: 0;
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+   LEFT PANEL
+========================= */
+#left-panel {
+  left: calc(2vmin + var(--hud-border-padding));
+  width: var(--panel-width);
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.panel-title {
+  font-size: calc(var(--font-size-main) * 1.1);
+  font-weight: 600;
+  margin-bottom: 1.2vmin;
+  color: var(--text-main);
+
+  /* ✅ NEW */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+
+.panel-line {
+  margin-bottom: 1vmin;
+  color: var(--text-main);
+}
+
+.label {
+  color: var(--text-muted);
+}
+
+/* =========================
+   MENU BUTTON
+========================= */
+#menu-button {
+  margin-top: 1.8vmin;
+  align-self: center;
+
+  padding: 0.8vmin 3vmin;
+  border-radius: 999px;
+  font-weight: 700;
+
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  color: #000;
+
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  display: none;
+}
+
+/* =========================
+   MOD PANEL
+========================= */
+#mod-panel {
+  left: calc(
+    2vmin + var(--hud-border-padding) +
+    var(--panel-width) + 2vmin
+  );
+  width: 32vmin;
+  display: none;
+  pointer-events: auto;
+}
+
+/* =========================
+   DROPDOWN + TOGGLE
+========================= */
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6vmin;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.dropdown-header.disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.dropdown-content {
+  display: none;
+  margin-top: 1vmin;
+}
+/* generic dropdown behavior */
+.dropdown-content {
+  display: none;
+}
+
+.dropdown.open .dropdown-content {
+  display: block;
+}
+
+.desc {
+  font-size: 0.85em;
+  line-height: 1.4;
+  margin-bottom: 1vmin;
+  color: var(--text-muted);
+}
+
+/* Toggle */
+.toggle-switch {
+  margin-left: auto;
+  width: 3.2vmin;
+  height: 1.6vmin;
+  position: relative;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-switch .slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(var(--galaxy-rgb), 0.4);
+}
+
+.toggle-switch .slider::before {
+  content: "";
+  position: absolute;
+  width: 1.2vmin;
+  height: 1.2vmin;
+  left: 0.2vmin;
+  top: 0.2vmin;
+  border-radius: 50%;
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  transition: 0.25s;
+}
+
+.toggle-switch input:checked + .slider::before {
+  transform: translateX(1.4vmin);
+}
+
+/* =========================
+ REUSABLE SEPARATOR
+========================= */
+.cosmos-separator {
+  width: 100%;
+  height: 0.18vmin;
+  margin: 1.2vmin 0;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(var(--galaxy-rgb), 0.45),
+    transparent
+  );
+}
+
+/* =========================
+   SLIDERS (GRADIENT)
+========================= */
+#mod-panel input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 0.6vmin;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  margin-bottom: 1vmin;
+}
+
+#mod-panel input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.4vmin;
+  height: 1.4vmin;
+  border-radius: 50%;
+  background: linear-gradient(
+    to right,
+    var(--galaxy-accent),
+    var(--galaxy-main)
+  );
+  margin-top: -0.4vmin;
+}
+/* =========================
+   COSMOS TEXT INPUTS (STANDBY)
+========================= */
+
+/* Base text input */
+.cosmos-input {
+  width: 100%;
+  padding: 0.6vmin 1vmin;
+
+  font-size: calc(var(--font-size-main) * 0.9);
+  font-family: inherit;
+  color: var(--text-main);
+
+  background: rgba(var(--galaxy-rgb), 0.15);
+  border-radius: 1.2vmin;
+  border: none;
+
+  outline: none;
+  box-shadow:
+    inset 0 0 0 0.18vmin rgba(var(--galaxy-rgb), 0.35),
+    inset 0 0.6vmin 1vmin rgba(0,0,0,0.25);
+
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* Multiline support */
+.cosmos-input.textarea {
+  resize: vertical;
+  min-height: 6vmin;
+  line-height: 1.4;
+}
+
+/* Focus state */
+.cosmos-input:focus {
+  background: rgba(var(--galaxy-rgb), 0.22);
+  box-shadow:
+    inset 0 0 0 0.2vmin var(--galaxy-main),
+    0 0 0.8vmin rgba(var(--galaxy-accent), 0.4);
+}
+
+/* Disabled state */
+.cosmos-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Placeholder styling */
+.cosmos-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* =========================
+   GRADIENT TEXT (COSMOS)
+========================= */
+.cosmos-gradient-text {
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  /* Depth + glow */
+  text-shadow:
+    0 0.25vmin 0.3vmin rgba(0, 0, 0, 0.45),
+    0 0 0.8vmin rgba(var(--galaxy-accent), 0.45),
+    0 0 1.4vmin rgba(var(--galaxy-main), 0.35);
+}
+
+/* =========================
+   COSMOS SUBTITLE
+========================= */
+.cosmos-subtitle {
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+
+  /* ✅ Tighter spacing */
+  margin-top: 0vmin;
+
+  text-shadow:
+    0 0.12vmin 0.2vmin rgba(0, 0, 0, 0.45),
+    0 0 0.5vmin rgba(var(--galaxy-accent), 0.35),
+    0 0 0.9vmin rgba(var(--galaxy-main), 0.25);
+}
+
+</style>
+</head>
+
+<body>
+<div id="hud">
+  <!-- EXAMPLES FOR TEXT BOXES -->
+    <!-- <input
+      type="text"
+      class="cosmos-input"
+      placeholder="Enter player name"
+    />
+    <textarea
+      class="cosmos-input textarea"
+      placeholder="Enter mod message…"
+    ></textarea>
+    <label>Message</label>
+    <textarea
+      class="cosmos-input textarea"
+      placeholder="Optional note"
+    ></textarea> -->
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel" class="panel">
+    
+    <div class="panel-title">
+      <div class="cosmos-gradient-text">Cosmos Mod</div>
+      <div class="cosmos-gradient-text cosmos-subtitle">
+        by Apricity!
+      </div>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Tier:</span>
+      <span id="tier-value"></span>
+    </div>
+
+    <div class="panel-line" id="deathtier-row" style="display:none;">
+      <span class="label">DeathTier:</span>
+      <span id="deathtier-value"></span>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Honor:</span>
+      <span id="honor-value"></span>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Aid:</span>
+      <span id="aid-value"></span>
+    </div>
+
+    <button id="menu-button">Menu</button>
+  </div>
+
+  <!-- MOD PANEL -->
+  <div id="mod-panel" class="panel">
+    <!-- GIVE POINTS -->
+      <div class="dropdown" data-dropdown id="givePointsDropdown">
+        <div class="dropdown-header">
+          <span class="dropdown-arrow">▶</span>
+          <span>Give Points</span>
+
+          <span
+            id="givePointsValue"
+            style="margin-left:auto; font-weight:500;"
+          >
+            0
+          </span>
+        </div>
+
+        <div class="dropdown-content">
+          <input
+            type="range"
+            id="givePoints"
+            min="0"
+            max="10000"
+            step="1000"
+            value="0"
+          />
+          <!-- Seporator line -->
+          <div class="cosmos-separator"></div>
+        </div>
+      </div>
+
+    <!-- Death Aura -->
+      <div class="dropdown" data-dropdown id="deathAuraDropdown" style="display:none;">
+        <div class="dropdown-header" id="deathHeader">
+          <span class="dropdown-arrow">▶</span>
+          <span>Death Aura</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="deathAuraEnabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="dropdown-content">
+          <!-- Seporator line -->
+          <div class="cosmos-separator"></div>
+          <!-- Affects other players (Toggle) -->
+          <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+            <span class="label">Affects other players?</span>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                id="deathAuraOtherPlayers"
+                checked
+              >
+              <span class="slider"></span>
+            </label>
+          </div>
+          <!-- Seporator line -->
+          <div class="cosmos-separator"></div>
+        </div>
+      </div>
+
+    <!-- CHAT FILTERS -->
+    <div class="dropdown" data-dropdown id="chatDropdown">
+    <div class="dropdown-header" id="chatHeader">
+      <span id="chatArrow">▶</span>
+      <span>Chat Filters</span>
+
+      <label class="toggle-switch">
+        <input type="checkbox" id="chatEnabled" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="dropdown-content" id="chatContent">
+      <!-- Seporator line -->
+      <div class="cosmos-separator"></div>
+      <!-- Hide Howl Msg (Toggle) -->
+      <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+        <span class="label">Hide Howl Messages</span>
+        <label class="toggle-switch">
+          <input
+            type="checkbox"
+            id="hideHowl"
+            checked
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+      <!-- Hide Join Msg (Toggle) -->
+      <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+        <span class="label">Hide Join Messages</span>
+        <label class="toggle-switch">
+          <input
+            type="checkbox"
+            id="hideJoin"
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+      <!-- Seporator line -->
+      <div class="cosmos-separator"></div>
+      <!-- Combined Filter Description Text -->
+      <div class="desc" id="chatDesc"></div>
+      <label>Max Characters</label>
+      <input type="range" id="maxChars" min="100" max="1000" step="50" value="150">
+      <label>Max Messages</label>
+      <input type="range" id="maxMsgs" min="5" max="10" step="1" value="5">
+      <label>Time Frame (seconds)</label>
+      <input type="range" id="timeFrame" min="5" max="15" step="5" value="5">
+      <label>Time Out (seconds)</label>
+      <input type="range" id="timeout" min="5" max="60" step="5" value="10">
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* =========================
+   UNIVERSAL MOD SEND HELPER
+========================= */
+function sendModEvent(event, data) {
+  // try {
+  //   if (
+  //     window.AndroidBridge &&
+  //     AndroidBridge.AndroidBridge &&
+  //     typeof AndroidBridge.AndroidBridge.sendToMod === "function"
+  //   ) {
+  //     AndroidBridge.AndroidBridge.sendToMod(
+  //       event,
+  //       JSON.stringify(data)
+  //     );
+  //   } else {
+  //     // Safe fallback for PC / browser testing
+  //     console.log("[MOD SEND]", event, data);
+  //   }
+  // } catch (err) {
+  //   console.error("sendModEvent failed:", event, err);
+  // }
+}
+
+/* =========================
+   DEBOUNCE HELPER
+========================= */
+function debounce(fn, delay = 150) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+/* =========================
+   TIER SYSTEM
+========================= */
+const tierMap = ["Nothing","Stardust","Nova","Pulsar","Nebula","SuperNova","Celestial"];
+const tiers = {
+  Nothing:   { main:"#7e7e7e", accent:"#7e7e7e", rgb:"102,102,102" },
+  Stardust: { main:"#39383b", accent:"#b3b3b5", rgb:"119,119,119" },
+  Nova:     { main:"#4c1d95", accent:"#9d8de4", rgb:"76,29,149" },
+  Pulsar:   { main:"#5d3ddd", accent:"#60a5fa", rgb:"30,58,138" },
+  Nebula:   { main:"#7c3aed", accent:"#f472b6", rgb:"124,58,237" },
+  SuperNova:{ main:"#7dbece", accent:"#11a9a4", rgb:"56,189,248" },
+  Celestial:{ main:"#de9f31", accent:"#f9e493", rgb:"253,230,138" }
+};
+
+function darken(hex, factor=0.45) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.floor(((n>>16)&255) * factor);
+  const g = Math.floor(((n>>8)&255) * factor);
+  const b = Math.floor((n&255) * factor);
+  return `#${((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}`;
+}
+
+let currentTierValue = 6;
+let honorValue = 30.75;
+let aidValue = 12.5;
+let deathTierValue = 4;
+
+const root = document.documentElement;
+const menuBtn = document.getElementById("menu-button");
+
+window.setTierByValue = function(v) {
+  const t =  tiers[tierMap[v]];
+  root.style.setProperty("--galaxy-main", t.main);
+  root.style.setProperty("--galaxy-accent", t.accent);
+  root.style.setProperty("--galaxy-rgb", t.rgb);
+
+  root.style.setProperty("--text-main", darken(t.main, 0.35));
+  root.style.setProperty("--text-muted", darken(t.main, 0.55));
+
+  document.getElementById("tier-value").textContent = tierMap[v];
+  menuBtn.style.display = v === 0 ? "none" : "block";
+}
+
+window.setHonor = function(v) {
+  document.getElementById("honor-value").textContent = v;
+}
+window.setAid = function(v) {
+  document.getElementById("aid-value").textContent = v;
+}
+window.setDeathTier = function(v) {
+  const row = document.getElementById("deathtier-row");
+  const dropdown = document.getElementById("deathAuraDropdown");
+  row.style.display = v > 0 ? "block" : "none";
+  dropdown.style.display = v > 3 ? "block" : "none";
+  document.getElementById("deathtier-value").textContent = v;
+}
+
+// Initialize stats when first loading
+window.initStats = function(tier, deathTier, honor, aid){
+  setTierByValue(tier);
+  setDeathTier(deathTier);
+  setHonor(honor);
+  setAid(aid);
+}
+
+/* =========================
+   MENU + CHAT LOGIC
+========================= */
+const modPanel = document.getElementById("mod-panel");
+menuBtn.onclick = () => {
+  modPanel.style.display = modPanel.style.display === "block" ? "none" : "block";
+};
+
+let chatEnabled = true;
+let chatOpen = false;
+
+const chatHeader = document.getElementById("chatHeader");
+const chatArrow = document.getElementById("chatArrow");
+const chatContent = document.getElementById("chatContent");
+const chatEnabledToggle = document.getElementById("chatEnabled");
+
+function updateChatUI() {
+  const chatDropdown = document.getElementById("chatDropdown");
+
+  if (!chatEnabled) {
+    chatDropdown.classList.remove("open");
+    chatArrow.textContent = "▶";
+    chatHeader.classList.add("disabled");
+    return;
+  }
+
+  chatHeader.classList.remove("disabled");
+}
+
+chatEnabledToggle.onchange = () => {
+  chatEnabled = chatEnabledToggle.checked;
+  updateChatUI();
+  updateDesc(); // ✅ sends enabled/disabled state
+};
+
+// Chat filter slider element bindings (DO NOT rely on implicit globals)
+const hideHowlToggle = document.getElementById("hideHowl");
+const hideJoinToggle = document.getElementById("hideJoin");
+const maxChars = document.getElementById("maxChars");
+const maxMsgs = document.getElementById("maxMsgs");
+const timeFrame = document.getElementById("timeFrame");
+const timeoutSlider = document.getElementById("timeout");
+const desc = document.getElementById("chatDesc");
+
+const sendChatFiltersDebounced = debounce((data) => {
+  sendModEvent("chatFilters", data);
+}, 250);
+
+function updateDesc() {
+  const data = {
+    enabled: chatEnabled,
+
+    hideHowlMessages: hideHowlToggle.checked,
+    hideJoinMessages: hideJoinToggle.checked,
+
+    maxCharacters: parseInt(maxChars.value, 10),
+    maxMessages: parseInt(maxMsgs.value, 10),
+    timeFrameSeconds: parseInt(timeFrame.value, 10),
+    timeoutSeconds: parseInt(timeoutSlider.value, 10)
+  };
+
+  desc.textContent =
+    `Apply a ${data.timeoutSeconds} second time out if someone sends ` +
+    `${data.maxMessages} messages within a ${data.timeFrameSeconds} second window. ` +
+    `Also don't show messages over ${data.maxCharacters} characters.`;
+
+  sendChatFiltersDebounced(data);
+}
+[maxChars, maxMsgs, timeFrame, timeoutSlider].forEach(s =>
+  s.addEventListener("input", updateDesc)
+);
+[hideHowlToggle, hideJoinToggle].forEach(t =>
+  t.addEventListener("change", updateDesc)
+);
+updateDesc();
+
+const givePointsSlider = document.getElementById("givePoints");
+const givePointsValue = document.getElementById("givePointsValue");
+
+const sendGivePointsDebounced = debounce((points) => {
+  sendModEvent("givePoints", { points });
+}, 200);
+
+function updateGivePointsValue() {
+  const value = parseInt(givePointsSlider.value, 10);
+
+  // immediate UI update
+  givePointsValue.textContent = value > 0 ? value : "----";
+
+  // debounced send
+  sendGivePointsDebounced(value);
+}
+
+givePointsSlider.addEventListener("input", updateGivePointsValue);
+
+// Death info
+let deathAuraEnabled = true;
+let deathAuraOpen = false;
+const deathAuraEnabledToggle = document.getElementById("deathAuraEnabled");
+const deathAuraEffectsPlayersToggle = document.getElementById("deathAuraOtherPlayers");
+const deathHeader = document.getElementById("deathHeader");
+function updateDeathUI() {
+  const deathAuraDropdown = document.getElementById("deathAuraDropdown");
+  const arrow = deathAuraDropdown.querySelector(".dropdown-arrow");
+
+  if (!deathAuraEnabled) {
+    deathAuraDropdown.classList.remove("open");
+    deathHeader.classList.add("disabled");
+    if (arrow) arrow.textContent = "▶";
+    return;
+  }
+
+  deathHeader.classList.remove("disabled");
+}
+deathAuraEnabledToggle.onchange = () => {
+  deathAuraEnabled = deathAuraEnabledToggle.checked;
+  updateDeathUI();
+};
+
+/* initial render */
+updateGivePointsValue();
+updateChatUI();
+updateDeathUI();
+
+/* =========================
+   GENERIC DROPDOWN MANAGER
+   (single-open enforcement)
+========================= */
+const dropdowns = document.querySelectorAll("[data-dropdown]");
+
+dropdowns.forEach(dropdown => {
+  const header = dropdown.querySelector(".dropdown-header");
+
+  header.addEventListener("click", () => {
+
+    /* ✅ HARD BLOCK Chat Filters when disabled */
+    if (dropdown.id === "chatDropdown" && !chatEnabled) {
+      return;
+    }
+    /* ✅ HARD BLOCK Death Aura Filters when disabled */
+    if (dropdown.id === "deathAuraDropdown" && !deathAuraEnabled) {
+      return;
+    }
+
+    const wasOpen = dropdown.classList.contains("open");
+
+    // Close all dropdowns + reset arrows
+    dropdowns.forEach(d => {
+      d.classList.remove("open");
+      const a =
+        d.querySelector(".dropdown-arrow") ||
+        d.querySelector("#chatArrow");
+      if (a) a.textContent = "▶";
+    });
+
+    // Open this dropdown if it wasn't already open
+    if (!wasOpen) {
+      dropdown.classList.add("open");
+      const a =
+        dropdown.querySelector(".dropdown-arrow") ||
+        dropdown.querySelector("#chatArrow");
+      if (a) a.textContent = "▼";
+    }
+  });
+});
+
+
+</script>
+</body>
+</html>

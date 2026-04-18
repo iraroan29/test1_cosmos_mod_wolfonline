@@ -18212,13 +18212,9 @@ std_string_c_str (StdString * self)
           frida_java_bridge_default.scheduleOnMainThread(() => {
             Object.values(overlayManager["overlays"]).forEach((overlay) => {
               if (!overlay.scenes) return;
-              Logger("Overlay " + overlay.name + " scenes: " + JSON.stringify(overlay.scenes));
               const sceneMatch = overlay.scenes.includes(sceneName);
-              Logger("Scene match? " + sceneMatch);
               const conditionMatch = true;
-              Logger("Condition match? " + conditionMatch);
               const shouldShow = sceneMatch && conditionMatch;
-              Logger("Setting visibility to: " + shouldShow);
               overlay.layout.setVisibility(shouldShow ? 0 : 4);
             });
           });

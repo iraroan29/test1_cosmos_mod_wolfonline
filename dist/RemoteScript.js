@@ -17809,6 +17809,8 @@ std_string_c_str (StdString * self)
                   lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                   if (touchPassthrough) {
                     lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                  } else {
+                    lp.flags.value |= WMLayoutParams.FLAG_NOT_TOUCH_MODAL.value;
                   }
                   lp.format.value = PixelFormat.TRANSLUCENT.value;
                   lp.token.value = activity.getWindow().getDecorView().getWindowToken();

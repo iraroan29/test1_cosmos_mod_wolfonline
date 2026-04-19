@@ -18440,6 +18440,15 @@ std_string_c_str (StdString * self)
           }
           return this.isAnnotationPresent(annotationClass);
         };
+        const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+        WebView.$init.overload("android.content.Context").implementation = function(ctx) {
+          this.$init(ctx);
+          this.setClickable(true);
+        };
+        WebView.dispatchTouchEvent.implementation = function(event) {
+          Logger("[WebView] Touch received: " + event.getAction());
+          return this.dispatchTouchEvent(event);
+        };
         Log = frida_java_bridge_default.use("android.util.Log");
         Logger("Load GameConfig");
         await configManager.init();

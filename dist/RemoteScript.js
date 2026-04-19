@@ -18096,7 +18096,7 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null) {
+      if (boss === null && bossGO !== null) {
         Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
@@ -18117,9 +18117,9 @@ std_string_c_str (StdString * self)
       let critHit = false;
       let damageMax = this.field("damage_max").value;
       if (roll < 50) {
-        this.field("damage_max").value = 600;
+        this.field("damage_max").value = 700;
         critHit = true;
-        dmg *= 100;
+        dmg *= 500;
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);

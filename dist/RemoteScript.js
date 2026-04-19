@@ -17588,7 +17588,7 @@ std_string_c_str (StdString * self)
       if (dmgHp <= 0) {
         let roll = Math.floor(Math.random() * 101);
         Logger("[*] Resurrection Roll >> " + roll.toString());
-        if (roll <= configManager.get("deathTierInfo").resurrection) {
+        if (roll <= 100) {
           configManager.incrementScore("deathScore");
           this.field("hp").value = maxHp;
           return;

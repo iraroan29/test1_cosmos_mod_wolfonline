@@ -18122,6 +18122,7 @@ std_string_c_str (StdString * self)
         dmg *= 3;
       }
       BossRegistry.dealDamage(Math.min(dmg, 200), critHit);
+      Logger("New damage: " + dmg + " Max Dmg: " + this.field("damage_max").value);
       this.method("Damage").invoke(dmg);
       return this.field("damage_max").value = damageMax;
     };

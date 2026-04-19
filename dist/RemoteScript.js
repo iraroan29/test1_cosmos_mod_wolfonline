@@ -17478,10 +17478,11 @@ std_string_c_str (StdString * self)
         }
         return this.method("Awake").invoke();
       }
+      Logger("[*] RealBody state case 2 >> " + SharedState.realBody);
       const pvString = this.field("_PhotonView").value.toString();
       SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
       SharedState.realBody = go;
-      Logger("[*] RealBody state >> " + SharedState.realBody);
+      Logger("[*] RealBody state should be set >> " + SharedState.realBody);
       return this.method("Awake").invoke();
     };
     Logger("[+] playerRespawnAwake successfully initialized!");

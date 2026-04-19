@@ -18102,6 +18102,9 @@ std_string_c_str (StdString * self)
       }
       const hp = this.field("health").value;
       if (boss === null && hp > 0) {
+        if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
+          PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
+        }
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18150,8 +18153,8 @@ std_string_c_str (StdString * self)
     const PhotonNetwork = AssemblyC.class("PhotonNetwork");
     PhotonNetwork.method("SetMasterClient").implementation = function(otherPlayer) {
       const player = this.method("get_player").invoke();
-      Logger("Steal Master Client from >> " + otherPlayer.toString() + " by replacing with " + player.toString());
-      return this.method("SetMasterClient").invoke(player);
+      this.method("SetMasterClient").invoke(player);
+      Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
     };
     Logger("[+] stealMasterClient successfully initialized!");
   }
@@ -18182,7 +18185,9 @@ std_string_c_str (StdString * self)
       }
       const hp = this.field("health").value;
       if (boss === null && hp > 0) {
-        Logger("Set boss");
+        if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
+          PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
+        }
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18241,7 +18246,9 @@ std_string_c_str (StdString * self)
       }
       const hp = this.field("health").value;
       if (boss === null && hp > 0) {
-        Logger("Set boss");
+        if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
+          PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
+        }
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18300,7 +18307,9 @@ std_string_c_str (StdString * self)
       }
       const hp = this.field("health").value;
       if (boss === null && hp > 0) {
-        Logger("Set boss");
+        if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
+          PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
+        }
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

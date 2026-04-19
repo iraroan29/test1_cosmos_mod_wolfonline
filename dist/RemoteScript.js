@@ -18096,8 +18096,8 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null) {
-        Logger("Set boss >> its health >>" + this.field("health").value);
+      const hp = this.field("health").value;
+      if (boss === null && hp >= 0) {
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

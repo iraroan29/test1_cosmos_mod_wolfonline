@@ -165,11 +165,16 @@ html, body {
 
   border: none;
   cursor: pointer;
-  pointer-events: auto;
-  display: none;
-  pointer-events: auto; /* Restores touch to this element */
+  opacity: 0; /* Hide it visually */
+  pointer-events: none;
+  display: flex;
   touch-action: manipulation; /* Removes 300ms delay for faster clicking */
   -webkit-tap-highlight-color: transparent; /* Removes the gray flicker on tap */
+}
+
+#menu-button.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* =========================
@@ -642,7 +647,8 @@ window.setTierByValue = function(v) {
   root.style.setProperty("--text-muted", darken(t.main, 0.55));
 
   document.getElementById("tier-value").textContent = tierMap[v];
-  menuBtn.style.display = v === 0 ? "none" : "block";
+  menuBtn.classList.add('visible');
+  menuBtn.style.pointerEvents = 'auto';
 }
 
 window.setHonor = function(v) {
@@ -680,26 +686,23 @@ window.onload = () => {
 // TRY GETTING BUTTON TO WORK
 
 // 1. Solidify window the millisecond the finger touches the button
-btn.addEventListener('touchstart', () => {
-    if (window.AndroidBridge) AndroidBridge.setTouchState(true);
-});
+// Add a listener to the window itself to catch the touch hitting the WebView
+window.addEventListener('touchstart', (e) => {
+    // Check if the touch actually hit our button
+    if (e.target.closest('#menu-button')) {
+        console.log("Touch hit button! Sending to Bridge...");
+        if (window.AndroidBridge) {
+            // Force the WindowManager to be solid
+            AndroidBridge.setTouchState(true);
+        }
+    }
+}, { capture: true, passive: false });
 
-// 2. The click event
-btn.addEventListener('click', () => {
-    console.log("Button Action Triggered");
-    // Your menu opening logic here
-    
-    // 3. Keep the window solid for a split second after the click
-    // If you release it too fast, the click event fails.
-    setTimeout(() => {
-        AndroidBridge.setTouchState(false);
-    }, 150);
-});
+// Simple click check
+document.getElementById('menu-button').onclick = function() {
+    console.log("BUTTON CLICKED SUCCESSFULLY");
+};
 
-// 4. Safety: If they drag their finger off, release the window
-btn.addEventListener('touchcancel', () => {
-    AndroidBridge.setTouchState(false);
-});
 
 
 /* =========================

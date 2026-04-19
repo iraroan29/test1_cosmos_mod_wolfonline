@@ -18096,8 +18096,9 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null && bossGO !== null) {
-        Logger("Set boss " + bossGO);
+      Logger("BOSS GO!!! " + bossGO.toString() + " WHAT IS THIS?? " + this.toString());
+      if (boss === null) {
+        Logger("Set boss ");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

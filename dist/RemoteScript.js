@@ -17682,6 +17682,9 @@ std_string_c_str (StdString * self)
             frida_java_bridge_default.scheduleOnMainThread(() => {
               Logger(`[Overlay] ENTER main thread for "${name}"`);
               try {
+                let wm = null;
+                let lp = null;
+                let layout = null;
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
                 const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
@@ -17715,6 +17718,26 @@ std_string_c_str (StdString * self)
                 const JSBridge = frida_java_bridge_default.registerClass({
                   name: "com.overlay.JSBridge_" + name,
                   methods: {
+                    // Add this new method to the bridge
+                    setTouchState: {
+                      returnType: "void",
+                      argumentTypes: ["boolean"],
+                      implementation: function(isTouchable) {
+                        frida_java_bridge_default.scheduleOnMainThread(() => {
+                          try {
+                            const FLAG_NOT_TOUCHABLE = 16;
+                            if (isTouchable) {
+                              lp.flags.value &= ~FLAG_NOT_TOUCHABLE;
+                            } else {
+                              lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                            }
+                            wm.updateViewLayout(layout, lp);
+                          } catch (e) {
+                            Logger("[Overlay] Touch Toggle Error: " + e);
+                          }
+                        });
+                      }
+                    },
                     sendToMod: {
                       returnType: "void",
                       argumentTypes: ["java.lang.String"],
@@ -17780,7 +17803,7 @@ std_string_c_str (StdString * self)
                   }
                 });
                 Thread2.$new(RunnableImpl.$new()).start();
-                const layout = FrameLayout.$new(self.context);
+                layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
                 try {
@@ -17789,11 +17812,11 @@ std_string_c_str (StdString * self)
                   const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
                   const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
                   const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
-                  const wm = frida_java_bridge_default.cast(
+                  const wm2 = frida_java_bridge_default.cast(
                     activity.getSystemService("window"),
                     WindowManager
                   );
-                  const lp = WMLayoutParams.$new(
+                  const lp2 = WMLayoutParams.$new(
                     -1,
                     // MATCH_PARENT
                     -1,
@@ -17801,21 +17824,23 @@ std_string_c_str (StdString * self)
                     0
                     // temporary type, will override below
                   );
-                  lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
+                  lp2.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                   const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                   const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                   const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                   const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                  lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                  const FLAG_NOT_TOUCH_MODAL = WMLayoutParams.FLAG_NOT_TOUCH_MODAL.value;
+                  let flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                   if (touchPassthrough) {
-                    lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                    flags |= FLAG_NOT_TOUCHABLE;
                   } else {
-                    lp.flags.value |= WMLayoutParams.FLAG_NOT_TOUCH_MODAL.value;
+                    flags |= FLAG_NOT_TOUCH_MODAL | FLAG_NOT_TOUCHABLE;
                   }
-                  lp.format.value = PixelFormat.TRANSLUCENT.value;
-                  lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                  lp2.flags.value = flags;
+                  lp2.format.value = PixelFormat.TRANSLUCENT.value;
+                  lp2.token.value = activity.getWindow().getDecorView().getWindowToken();
                   const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
-                  ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
+                  ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm2, layout, lp2);
                   Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
                   webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
                   Logger("[Overlay] JS interface added");

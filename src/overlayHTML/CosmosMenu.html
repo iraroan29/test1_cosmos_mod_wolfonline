@@ -570,23 +570,23 @@ html, body {
    UNIVERSAL MOD SEND HELPER
 ========================= */
 function sendModEvent(event, data) {
-  // try {
-  //   if (
-  //     window.AndroidBridge &&
-  //     AndroidBridge.AndroidBridge &&
-  //     typeof AndroidBridge.AndroidBridge.sendToMod === "function"
-  //   ) {
-  //     AndroidBridge.AndroidBridge.sendToMod(
-  //       event,
-  //       JSON.stringify(data)
-  //     );
-  //   } else {
-  //     // Safe fallback for PC / browser testing
-  //     console.log("[MOD SEND]", event, data);
-  //   }
-  // } catch (err) {
-  //   console.error("sendModEvent failed:", event, err);
-  // }
+  try {
+    if (
+      window.AndroidBridge &&
+      AndroidBridge.AndroidBridge &&
+      typeof AndroidBridge.AndroidBridge.sendToMod === "function"
+    ) {
+      AndroidBridge.AndroidBridge.sendToMod(
+        event,
+        JSON.stringify(data)
+      );
+    } else {
+      // Safe fallback for PC / browser testing
+      console.log("[MOD SEND]", event, data);
+    }
+  } catch (err) {
+    console.error("sendModEvent failed:", event, err);
+  }
 }
 
 /* =========================
@@ -674,6 +674,37 @@ window.onload = () => {
         }));
     }
 };
+
+
+// Send touch state messages
+// Monitor 'over' and 'out' events globally on the document
+document.addEventListener('mouseover', (e) => {
+    // Check if the hovered element (or its parents) is your menu button
+    if (e.target.closest('#menu-button')) {
+        AndroidBridge.setTouchState(true);
+    }
+});
+
+document.addEventListener('mouseout', (e) => {
+    if (e.target.closest('#menu-button')) {
+        AndroidBridge.setTouchState(false);
+    }
+});
+
+// For Touch Support on Mobile
+document.addEventListener('touchstart', (e) => {
+    if (e.target.closest('#menu-button')) {
+        AndroidBridge.setTouchState(true);
+    }
+});
+
+document.addEventListener('touchend', (e) => {
+    if (e.target.closest('#menu-button')) {
+        // Short delay ensures the 'click' event fires before becoming passthrough again
+        setTimeout(() => AndroidBridge.setTouchState(false), 100);
+    }
+});
+
 
 /* =========================
    MENU + CHAT LOGIC

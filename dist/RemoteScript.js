@@ -17285,6 +17285,9 @@ std_string_c_str (StdString * self)
   });
 
   // src/helpers/playerWolfStore.ts
+  function isPlayerActive() {
+    return SharedState.realBody !== null;
+  }
   var SharedState;
   var init_playerWolfStore = __esm({
     "src/helpers/playerWolfStore.ts"() {
@@ -18380,7 +18383,7 @@ std_string_c_str (StdString * self)
                 "WolfOnline_Map_Hellgate_0": true,
                 "WolfOnline_Map_WolfAndDino": true
               }),
-              () => !SharedState.realBody.isNull()
+              () => isPlayerActive()
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene

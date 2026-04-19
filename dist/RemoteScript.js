@@ -17998,21 +17998,17 @@ std_string_c_str (StdString * self)
         initialize() {
           if (this.initialized) return;
           this.initialized = true;
-          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
           const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
           if (!core) {
             Logger("[!] Unity not ready for SceneOverlayManager");
             return;
           }
           const UnityCoreImage = core.image;
-          const AssemblyC = assemblyC.image;
-          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
             const sceneName = scene.method("get_name").invoke().content;
             _SceneOverlayManager.currentScene = sceneName;
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
           };
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
@@ -18105,6 +18101,7 @@ std_string_c_str (StdString * self)
         if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
+        Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18154,7 +18151,6 @@ std_string_c_str (StdString * self)
     PhotonNetwork.method("SetMasterClient").implementation = function(otherPlayer) {
       const player = this.method("get_player").invoke();
       this.method("SetMasterClient").invoke(player);
-      Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
     };
     Logger("[+] stealMasterClient successfully initialized!");
   }
@@ -18188,6 +18184,7 @@ std_string_c_str (StdString * self)
         if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
+        Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18249,6 +18246,7 @@ std_string_c_str (StdString * self)
         if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
+        Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }
@@ -18310,6 +18308,7 @@ std_string_c_str (StdString * self)
         if (!PhotonNetwork.method("get_isMasterClient").invoke()) {
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
+        Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

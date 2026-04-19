@@ -454,7 +454,7 @@ html, body {
       <span id="aid-value"></span>
     </div>
 
-    <button id="menu-button">Menu</button>
+    <!-- <button id="menu-button">Menu</button> -->
   </div>
 
   <!-- MOD PANEL -->
@@ -635,7 +635,7 @@ let aidValue = 12.5;
 let deathTierValue = 4;
 
 const root = document.documentElement;
-const menuBtn = document.getElementById("menu-button");
+// const menuBtn = document.getElementById("menu-button");
 
 window.setTierByValue = function(v) {
   const t =  tiers[tierMap[v]];
@@ -647,8 +647,8 @@ window.setTierByValue = function(v) {
   root.style.setProperty("--text-muted", darken(t.main, 0.55));
 
   document.getElementById("tier-value").textContent = tierMap[v];
-  menuBtn.classList.add('visible');
-  menuBtn.style.pointerEvents = 'auto';
+  // menuBtn.classList.add('visible');
+  // menuBtn.style.pointerEvents = 'auto';
 }
 
 window.setHonor = function(v) {
@@ -687,21 +687,21 @@ window.onload = () => {
 
 // 1. Solidify window the millisecond the finger touches the button
 // Add a listener to the window itself to catch the touch hitting the WebView
-window.addEventListener('touchstart', (e) => {
-    // Check if the touch actually hit our button
-    if (e.target.closest('#menu-button')) {
-        console.log("Touch hit button! Sending to Bridge...");
-        if (window.AndroidBridge) {
-            // Force the WindowManager to be solid
-            AndroidBridge.setTouchState(true);
-        }
-    }
-}, { capture: true, passive: false });
+// window.addEventListener('touchstart', (e) => {
+//     // Check if the touch actually hit our button
+//     if (e.target.closest('#menu-button')) {
+//         console.log("Touch hit button! Sending to Bridge...");
+//         if (window.AndroidBridge) {
+//             // Force the WindowManager to be solid
+//             AndroidBridge.setTouchState(true);
+//         }
+//     }
+// }, { capture: true, passive: false });
 
 // Simple click check
-document.getElementById('menu-button').onclick = function() {
-    console.log("BUTTON CLICKED SUCCESSFULLY");
-};
+// document.getElementById('menu-button').onclick = function() {
+//     console.log("BUTTON CLICKED SUCCESSFULLY");
+// };
 
 
 

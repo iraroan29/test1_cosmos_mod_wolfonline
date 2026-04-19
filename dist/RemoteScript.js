@@ -18014,7 +18014,6 @@ std_string_c_str (StdString * self)
             const sceneName = scene.method("get_name").invoke().content;
             _SceneOverlayManager.currentScene = sceneName;
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
           };
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {

@@ -18097,7 +18097,7 @@ std_string_c_str (StdString * self)
         return;
       }
       const hp = this.field("health").value;
-      if (boss === null && hp >= 0) {
+      if (boss === null && hp > 0) {
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

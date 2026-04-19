@@ -17286,11 +17286,15 @@ std_string_c_str (StdString * self)
 
   // src/helpers/playerWolfStore.ts
   function isPlayerActive() {
-    return SharedState.realBody !== null;
+    return activePlayer !== null;
   }
-  var SharedState;
+  function setPlayer(obj) {
+    activePlayer = obj;
+  }
+  var activePlayer, SharedState;
   var init_playerWolfStore = __esm({
     "src/helpers/playerWolfStore.ts"() {
+      activePlayer = null;
       SharedState = {
         spawningClone: false,
         pendingOldBody: null,
@@ -17468,13 +17472,13 @@ std_string_c_str (StdString * self)
       if (!isMine) {
         return this.method("Awake").invoke();
       }
-      Logger("[*] RealBody state >> " + SharedState.realBody);
       const go = this.method("get_gameObject").invoke();
       if (SharedState.spawningClone) {
         Logger("Destroy Older Body");
         SharedState.spawningClone = false;
         SharedState.pendingOldBody = SharedState.realBody;
         SharedState.realBody = go;
+        setPlayer(this);
         if (SharedState.pendingOldBody) {
           PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState.pendingOldBody);
           SharedState.pendingOldBody = null;
@@ -17484,7 +17488,7 @@ std_string_c_str (StdString * self)
       const pvString = this.field("_PhotonView").value.toString();
       SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
       SharedState.realBody = go;
-      Logger("[*] RealBody state should be set >> " + SharedState.realBody);
+      setPlayer(this);
       return this.method("Awake").invoke();
     };
     Logger("[+] playerRespawnAwake successfully initialized!");
@@ -18022,6 +18026,7 @@ std_string_c_str (StdString * self)
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
             BossRegistry.clearBoss();
             SharedState.realBody = null;
+            setPlayer(null);
             return this.method("Internal_SceneUnloaded").invoke(scene, mode);
           };
           Logger("[*] SceneOverlayManager - Scene hooks installed");

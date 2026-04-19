@@ -679,25 +679,25 @@ window.onload = () => {
 
 // TRY GETTING BUTTON TO WORK
 
-// 1. Solidify immediately when the finger hits the screen
-menuBtn.addEventListener('touchstart', (e) => {
-    AndroidBridge.setTouchState(true);
+// 1. Solidify window the millisecond the finger touches the button
+btn.addEventListener('touchstart', () => {
+    if (window.AndroidBridge) AndroidBridge.setTouchState(true);
 });
 
-// 2. The Actual Action
-menuBtn.addEventListener('click', (e) => {
-    console.log("Menu button clicked!");
-    // Trigger your menu logic here
+// 2. The click event
+btn.addEventListener('click', () => {
+    console.log("Button Action Triggered");
+    // Your menu opening logic here
     
-    // 3. ONLY release the window after a short delay
-    // This gives the browser time to finish the click cycle
+    // 3. Keep the window solid for a split second after the click
+    // If you release it too fast, the click event fails.
     setTimeout(() => {
         AndroidBridge.setTouchState(false);
-    }, 150); 
+    }, 150);
 });
 
-// 4. Safety release if the user drags their finger off the button
-menuBtn.addEventListener('touchcancel', () => {
+// 4. Safety: If they drag their finger off, release the window
+btn.addEventListener('touchcancel', () => {
     AndroidBridge.setTouchState(false);
 });
 

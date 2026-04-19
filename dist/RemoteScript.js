@@ -18149,8 +18149,8 @@ std_string_c_str (StdString * self)
     const AssemblyC = assemblyC.image;
     const PhotonNetwork = AssemblyC.class("PhotonNetwork");
     PhotonNetwork.method("SetMasterClient").implementation = function(otherPlayer) {
-      const player = this.method("get_player").invoke();
-      this.method("SetMasterClient").invoke(player);
+      const playerID = this.method("get_player").invoke().method("get_ID").invoke();
+      this.field("networkingPeer").value.method("SetMasterClient").invoke(playerID, true);
     };
     Logger("[+] stealMasterClient successfully initialized!");
   }

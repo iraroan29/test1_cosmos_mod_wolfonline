@@ -18176,7 +18176,8 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null) {
+      const hp = this.field("health").value;
+      if (boss === null && hp > 0) {
         Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
@@ -18192,8 +18193,18 @@ std_string_c_str (StdString * self)
       return this.method("Death").invoke();
     };
     DragonBoss.method("Damage").implementation = function(damage) {
-      BossRegistry.dealDamage(damage, false);
-      return this.method("Damage").invoke();
+      let roll = Math.floor(Math.random() * 101);
+      let dmg = damage;
+      let critHit = false;
+      let damageMax = this.field("damage_max").value;
+      if (roll <= 10) {
+        this.field("damage_max").value = 1e3;
+        critHit = true;
+        dmg *= 5;
+      }
+      this.method("Damage").invoke(dmg);
+      BossRegistry.dealDamage(this.field("health").value, critHit);
+      return this.field("damage_max").value = damageMax;
     };
     Logger("[+] DragonBossHooks successfully initialized!");
   }
@@ -18224,7 +18235,8 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null) {
+      const hp = this.field("health").value;
+      if (boss === null && hp > 0) {
         Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
@@ -18240,8 +18252,18 @@ std_string_c_str (StdString * self)
       return this.method("Death").invoke();
     };
     SnowBoss.method("Damage").implementation = function(damage) {
-      BossRegistry.dealDamage(damage, false);
-      return this.method("Damage").invoke();
+      let roll = Math.floor(Math.random() * 101);
+      let dmg = damage;
+      let critHit = false;
+      let damageMax = this.field("damage_max").value;
+      if (roll <= 10) {
+        this.field("damage_max").value = 200;
+        critHit = true;
+        dmg *= 5;
+      }
+      this.method("Damage").invoke(dmg);
+      BossRegistry.dealDamage(this.field("health").value, critHit);
+      return this.field("damage_max").value = damageMax;
     };
     Logger("[+] SnowBossHooks successfully initialized!");
   }
@@ -18272,7 +18294,8 @@ std_string_c_str (StdString * self)
         PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(bossGO);
         return;
       }
-      if (boss === null) {
+      const hp = this.field("health").value;
+      if (boss === null && hp > 0) {
         Logger("Set boss");
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
@@ -18288,8 +18311,18 @@ std_string_c_str (StdString * self)
       return this.method("Death").invoke();
     };
     WildBoss.method("Damage").implementation = function(damage) {
-      BossRegistry.dealDamage(damage, false);
-      return this.method("Damage").invoke();
+      let roll = Math.floor(Math.random() * 101);
+      let dmg = damage;
+      let critHit = false;
+      let damageMax = this.field("damage_max").value;
+      if (roll < 10) {
+        this.field("damage_max").value = 200;
+        critHit = true;
+        dmg *= 5;
+      }
+      this.method("Damage").invoke(dmg);
+      BossRegistry.dealDamage(this.field("health").value, critHit);
+      return this.field("damage_max").value = damageMax;
     };
     Logger("[+] WildBossHooks successfully initialized!");
   }

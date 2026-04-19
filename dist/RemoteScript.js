@@ -18116,8 +18116,8 @@ std_string_c_str (StdString * self)
       let dmg = damage;
       let critHit = false;
       let damageMax = this.field("damage_max").value;
-      if (roll < 50) {
-        this.field("damage_max").value = 700;
+      if (roll < 80) {
+        this.field("damage_max").value = 5e3;
         critHit = true;
         dmg *= 500;
       }

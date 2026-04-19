@@ -18112,7 +18112,14 @@ std_string_c_str (StdString * self)
       return this.method("Death").invoke();
     };
     MountainBoss.method("Damage").implementation = function(damage) {
-      BossRegistry.dealDamage(damage, false);
+      let roll = Math.floor(Math.random() * 101);
+      let dmg = damage;
+      let critHit = false;
+      if (roll < 50) {
+        critHit = true;
+        dmg *= 5;
+      }
+      BossRegistry.dealDamage(dmg, critHit);
       return this.method("Damage").invoke();
     };
     Logger("[+] MountainBossHooks successfully initialized!");

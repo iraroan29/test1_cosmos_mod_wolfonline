@@ -18447,7 +18447,6 @@ std_string_c_str (StdString * self)
           this.setClickable(true);
         };
         WebView.dispatchTouchEvent.implementation = function(event) {
-          Logger("[WebView] Touch received: " + event.getAction());
           return this.dispatchTouchEvent(event);
         };
         Log = frida_java_bridge_default.use("android.util.Log");

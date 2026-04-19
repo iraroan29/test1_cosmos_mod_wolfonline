@@ -167,7 +167,9 @@ html, body {
   cursor: pointer;
   pointer-events: auto;
   display: none;
-  pointer-events: auto; /* The button captures the touch */
+  pointer-events: auto; /* Restores touch to this element */
+  touch-action: manipulation; /* Removes 300ms delay for faster clicking */
+  -webkit-tap-highlight-color: transparent; /* Removes the gray flicker on tap */
 }
 
 /* =========================
@@ -675,34 +677,28 @@ window.onload = () => {
     }
 };
 
+// TRY GETTING BUTTON TO WORK
 
-// Send touch state messages
-// Monitor 'over' and 'out' events globally on the document
-document.addEventListener('mouseover', (e) => {
-    // Check if the hovered element (or its parents) is your menu button
-    if (e.target.closest('#menu-button')) {
-        AndroidBridge.setTouchState(true);
-    }
+// 1. Solidify immediately when the finger hits the screen
+menuBtn.addEventListener('touchstart', (e) => {
+    AndroidBridge.setTouchState(true);
 });
 
-document.addEventListener('mouseout', (e) => {
-    if (e.target.closest('#menu-button')) {
+// 2. The Actual Action
+menuBtn.addEventListener('click', (e) => {
+    console.log("Menu button clicked!");
+    // Trigger your menu logic here
+    
+    // 3. ONLY release the window after a short delay
+    // This gives the browser time to finish the click cycle
+    setTimeout(() => {
         AndroidBridge.setTouchState(false);
-    }
+    }, 150); 
 });
 
-// For Touch Support on Mobile
-document.addEventListener('touchstart', (e) => {
-    if (e.target.closest('#menu-button')) {
-        AndroidBridge.setTouchState(true);
-    }
-});
-
-document.addEventListener('touchend', (e) => {
-    if (e.target.closest('#menu-button')) {
-        // Short delay ensures the 'click' event fires before becoming passthrough again
-        setTimeout(() => AndroidBridge.setTouchState(false), 100);
-    }
+// 4. Safety release if the user drags their finger off the button
+menuBtn.addEventListener('touchcancel', () => {
+    AndroidBridge.setTouchState(false);
 });
 
 

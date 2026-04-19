@@ -17719,22 +17719,22 @@ std_string_c_str (StdString * self)
                   name: "com.overlay.JSBridge_" + name,
                   methods: {
                     // Add this new method to the bridge
+                    // Inside your JSBridge implementation
                     setTouchState: {
                       returnType: "void",
                       argumentTypes: ["boolean"],
                       implementation: function(isTouchable) {
+                        if (!wm || !lp || !layout) return;
                         frida_java_bridge_default.scheduleOnMainThread(() => {
-                          try {
-                            const FLAG_NOT_TOUCHABLE = 16;
-                            if (isTouchable) {
-                              lp.flags.value &= ~FLAG_NOT_TOUCHABLE;
-                            } else {
-                              lp.flags.value |= FLAG_NOT_TOUCHABLE;
-                            }
-                            wm.updateViewLayout(layout, lp);
-                          } catch (e) {
-                            Logger("[Overlay] Touch Toggle Error: " + e);
+                          const FLAG_NOT_TOUCHABLE = 16;
+                          if (isTouchable) {
+                            Logger("[*] setTouchState >> IS TOUCHABLE");
+                            lp.flags.value &= ~FLAG_NOT_TOUCHABLE;
+                          } else {
+                            Logger("[*] setTouchState >> IS NOT TOUCHABLE");
+                            lp.flags.value |= FLAG_NOT_TOUCHABLE;
                           }
+                          wm.updateViewLayout(layout, lp);
                         });
                       }
                     },

@@ -18382,7 +18382,7 @@ std_string_c_str (StdString * self)
                 "WolfOnline_Map_Hellgate_0": true,
                 "WolfOnline_Map_WolfAndDino": true
               }),
-              () => SharedState.realBody != null
+              () => !SharedState.realBody.isNull()
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene

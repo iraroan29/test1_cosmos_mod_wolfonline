@@ -18117,13 +18117,12 @@ std_string_c_str (StdString * self)
       let critHit = false;
       let damageMax = this.field("damage_max").value;
       if (roll < 50) {
-        this.field("damage_max").value = 200;
+        this.field("damage_max").value = 600;
         critHit = true;
-        dmg *= 3;
+        dmg *= 100;
       }
-      BossRegistry.dealDamage(Math.min(dmg, 200), critHit);
-      Logger("New damage: " + dmg + " Max Dmg: " + this.field("damage_max").value + "Actual hp: " + this.field("health").value);
       this.method("Damage").invoke(dmg);
+      BossRegistry.dealDamage(this.field("health").value, critHit);
       return this.field("damage_max").value = damageMax;
     };
     Logger("[+] MountainBossHooks successfully initialized!");

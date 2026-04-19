@@ -312,8 +312,9 @@ window.initBoss = function(mapName, hp, hpmax){
  * @param {number} damage
  * @param {boolean} isCritHit
  */
-window.dealDamage = function(damage, critHit = false) {
-  currentHp = Math.max(0, currentHp - damage);
+window.dealDamage = function(newHp, critHit = false) {
+  let damage = currentHp - newHp;
+  currentHp = Math.max(0, newHp);
   updateHpBar();
   spawnDamageText(damage, critHit);
 }

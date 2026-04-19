@@ -17481,6 +17481,7 @@ std_string_c_str (StdString * self)
       const pvString = this.field("_PhotonView").value.toString();
       SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
       SharedState.realBody = go;
+      Logger("[*] RealBody state >> " + SharedState.realBody);
       return this.method("Awake").invoke();
     };
     Logger("[+] playerRespawnAwake successfully initialized!");

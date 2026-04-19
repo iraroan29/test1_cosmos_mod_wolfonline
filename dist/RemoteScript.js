@@ -17460,12 +17460,12 @@ std_string_c_str (StdString * self)
     const Player_Wolf = AssemblyC.class("Player_Wolf");
     const PhotonNetwork = AssemblyC.class("PhotonNetwork");
     Player_Wolf.method("Awake").implementation = function() {
-      Logger("[*] RealBody state >> " + SharedState.realBody);
       const pv = this.field("_PhotonView").value;
       const isMine = pv.method("get_isMine").invoke();
       if (!isMine) {
         return this.method("Awake").invoke();
       }
+      Logger("[*] RealBody state >> " + SharedState.realBody);
       const go = this.method("get_gameObject").invoke();
       if (SharedState.spawningClone) {
         Logger("Destroy Older Body");

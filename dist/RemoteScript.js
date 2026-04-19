@@ -18097,7 +18097,7 @@ std_string_c_str (StdString * self)
         return;
       }
       if (boss === null && bossGO !== null) {
-        Logger("Set boss " + bossGO.toString());
+        Logger("Set boss " + bossGO);
         BossRegistry.setBoss(this, scene);
         return this.method("Update").invoke();
       }

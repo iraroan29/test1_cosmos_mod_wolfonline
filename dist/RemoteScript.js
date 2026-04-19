@@ -18115,9 +18115,11 @@ std_string_c_str (StdString * self)
       let roll = Math.floor(Math.random() * 101);
       let dmg = damage;
       let critHit = false;
+      let damageMax = this.field("damage_max").value;
+      Logger("Max damage value: " + damageMax);
       if (roll < 50) {
         critHit = true;
-        dmg *= 5;
+        dmg *= 100;
       }
       BossRegistry.dealDamage(dmg, critHit);
       return this.method("Damage").invoke();

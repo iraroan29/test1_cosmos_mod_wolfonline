@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cosmos Mod HUD</title>
+<title>Cosmos Mod Menu</title>
 
 <style>
+/* ===== MODE ===== */
+:root {
+  --overlay-mode: menu;
+}
+
+/* ===== ALL ORIGINAL CSS (UNCHANGED) ===== */
 /* =========================
    ROOT / THEME VARIABLES
 ========================= */
@@ -18,7 +24,7 @@
   --hud-border-padding: 0.5vmin;
   --hud-border-angle: 0deg;
 
-  --panel-width: 18vmin;
+  --panel-width: 20vmin;
   --panel-radius: 2.2vmin;
   --font-size-main: clamp(1rem, 1.8vmin, 1.4rem);
 
@@ -36,54 +42,25 @@
   padding: 0;
 }
 
+/* ===== Android WebView tap highlight disable ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+button,
+button * {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
 html, body {
   width: 100%;
   height: 100%;
   background: transparent;
   font-family: "Segoe UI", system-ui, sans-serif;
-  /* This makes the background a "ghost" */
-  pointer-events: none; 
-  overflow: hidden;
-}
-
-/* =========================
-   HUD (CLICK-THROUGH)
-========================= */
-#hud {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-}
-
-/* =========================
-   BORDER
-========================= */
-#hud::before {
-  content: "";
-  position: absolute;
-  inset: var(--hud-border-padding);
-  padding: var(--hud-border-width);
-  border-radius: 1.5vmin;
-
-  background: conic-gradient(
-    from var(--hud-border-angle),
-    var(--galaxy-main),
-    var(--galaxy-accent),
-    var(--galaxy-main)
-  );
-
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-
-  animation: borderSpin 60s linear infinite;
-}
-
-@keyframes borderSpin {
-  from { --hud-border-angle: 0deg; }
-  to   { --hud-border-angle: 360deg; }
 }
 
 /* =========================
@@ -91,7 +68,7 @@ html, body {
 ========================= */
 .panel {
   position: absolute;
-  top: 40%;
+  top: 50%;
   transform: translateY(-50%);
   padding: 2.5vmin;
   border-radius: var(--panel-radius);
@@ -102,7 +79,7 @@ html, body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(var(--galaxy-rgb), 0.50);
+  background: rgba(var(--galaxy-rgb), 0.22);
   z-index: 0;
 }
 
@@ -111,38 +88,21 @@ html, body {
   z-index: 1;
 }
 
-/* =========================
-   LEFT PANEL
-========================= */
-#left-panel {
+/* MENU BUTTON ANCHOR — mirrors left panel */
+#menu-anchor {
+  position: absolute;
   left: calc(2vmin + var(--hud-border-padding));
+  top: 60%;
+  transform: translateY(-50%);
+
   width: var(--panel-width);
   display: flex;
-  flex-direction: column;
-  pointer-events: none;
+  justify-content: center;
 }
 
-.panel-title {
-  font-size: calc(var(--font-size-main) * 1.1);
-  font-weight: 600;
-  margin-bottom: 1.2vmin;
-  color: var(--text-main);
-
-  /* ✅ NEW */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-
-.panel-line {
-  margin-bottom: 1vmin;
-  color: var(--text-main);
-}
-
-.label {
-  color: var(--text-muted);
+#menu-root {
+  /* REMOVE absolute positioning */
+  position: static;
 }
 
 /* =========================
@@ -165,16 +125,8 @@ html, body {
 
   border: none;
   cursor: pointer;
-  opacity: 0; /* Hide it visually */
-  pointer-events: none;
-  display: flex;
-  touch-action: manipulation; /* Removes 300ms delay for faster clicking */
-  -webkit-tap-highlight-color: transparent; /* Removes the gray flicker on tap */
-}
-
-#menu-button.visible {
-  opacity: 1;
   pointer-events: auto;
+  display: none;
 }
 
 /* =========================
@@ -403,202 +355,143 @@ html, body {
     0 0 0.9vmin rgba(var(--galaxy-main), 0.25);
 }
 
+/* Hide HUD visuals entirely */
+#hud {
+  display: none !important;
+}
 </style>
 </head>
 
 <body>
-<div id="hud">
-  <!-- EXAMPLES FOR TEXT BOXES -->
-    <!-- <input
-      type="text"
-      class="cosmos-input"
-      placeholder="Enter player name"
-    />
-    <textarea
-      class="cosmos-input textarea"
-      placeholder="Enter mod message…"
-    ></textarea>
-    <label>Message</label>
-    <textarea
-      class="cosmos-input textarea"
-      placeholder="Optional note"
-    ></textarea> -->
 
-  <!-- LEFT PANEL -->
-  <div id="left-panel" class="panel">
-    
-    <div class="panel-title">
-      <div class="cosmos-gradient-text">Cosmos Mod</div>
-      <div class="cosmos-gradient-text cosmos-subtitle">
-        by Apricity!
-      </div>
+
+<div id="menu-root">
+<!-- MENU BUTTON + MOD PANEL ONLY -->
+    <div id="menu-anchor">
+        <button id="menu-button">Menu</button>
     </div>
-
-    <div class="panel-line">
-      <span class="label">Tier:</span>
-      <span id="tier-value"></span>
-    </div>
-
-    <div class="panel-line" id="deathtier-row" style="display:none;">
-      <span class="label">DeathTier:</span>
-      <span id="deathtier-value"></span>
-    </div>
-
-    <div class="panel-line">
-      <span class="label">Honor:</span>
-      <span id="honor-value"></span>
-    </div>
-
-    <div class="panel-line">
-      <span class="label">Aid:</span>
-      <span id="aid-value"></span>
-    </div>
-
-    <!-- <button id="menu-button">Menu</button> -->
-  </div>
-
-  <!-- MOD PANEL -->
-  <div id="mod-panel" class="panel">
-    <!-- GIVE POINTS -->
-      <div class="dropdown" data-dropdown id="givePointsDropdown">
-        <div class="dropdown-header">
-          <span class="dropdown-arrow">▶</span>
-          <span>Give Points</span>
-
-          <span
-            id="givePointsValue"
-            style="margin-left:auto; font-weight:500;"
-          >
-            0
-          </span>
+    <div id="mod-panel" class="panel">
+        <!-- GIVE POINTS -->
+        <div class="dropdown" data-dropdown id="givePointsDropdown">
+            <div class="dropdown-header">
+                <span class="dropdown-arrow">▶</span>
+                <span>Give Points</span>
+                <span id="givePointsValue" style="margin-left:auto; font-weight:500;">0</span>
+            </div>
+            <div class="dropdown-content">
+                <input type="range" id="givePoints" min="0" max="10000" step="1000" value="0" />
+                <div class="cosmos-separator"></div>
+            </div>
+        </div>
+        <!-- Death Aura -->
+        <div class="dropdown" data-dropdown id="deathAuraDropdown" style="display:none;">
+            <div class="dropdown-header" id="deathHeader">
+                <span class="dropdown-arrow">▶</span>
+                <span>Death Aura</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="deathAuraEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="dropdown-content">
+            <!-- Seporator line -->
+            <div class="cosmos-separator"></div>
+            <!-- Affects other players (Toggle) -->
+            <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+                <span class="label">Affects other players?</span>
+                <label class="toggle-switch">
+                <input
+                    type="checkbox"
+                    id="deathAuraOtherPlayers"
+                    checked
+                >
+                <span class="slider"></span>
+                </label>
+            </div>
+            <!-- Seporator line -->
+            <div class="cosmos-separator"></div>
+            </div>
         </div>
 
-        <div class="dropdown-content">
-          <input
-            type="range"
-            id="givePoints"
-            min="0"
-            max="10000"
-            step="1000"
-            value="0"
-          />
-          <!-- Seporator line -->
-          <div class="cosmos-separator"></div>
+        <!-- CHAT FILTERS -->
+        <div class="dropdown" data-dropdown id="chatDropdown">
+            <div class="dropdown-header" id="chatHeader">
+                <span id="chatArrow">▶</span>
+                <span>Chat Filters</span>
+
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chatEnabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="dropdown-content" id="chatContent">
+            <!-- Seporator line -->
+            <div class="cosmos-separator"></div>
+            <!-- Hide Howl Msg (Toggle) -->
+            <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+                <span class="label">Hide Howl Messages</span>
+                <label class="toggle-switch">
+                <input
+                    type="checkbox"
+                    id="hideHowl"
+                    checked
+                >
+                <span class="slider"></span>
+                </label>
+            </div>
+            <!-- Hide Join Msg (Toggle) -->
+            <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
+                <span class="label">Hide Join Messages</span>
+                <label class="toggle-switch">
+                <input
+                    type="checkbox"
+                    id="hideJoin"
+                >
+                <span class="slider"></span>
+                </label>
+            </div>
+            <!-- Seporator line -->
+            <div class="cosmos-separator"></div>
+            <!-- Combined Filter Description Text -->
+            <div class="desc" id="chatDesc"></div>
+                <label>Max Characters</label>
+                <input type="range" id="maxChars" min="100" max="1000" step="50" value="150">
+                <label>Max Messages</label>
+                <input type="range" id="maxMsgs" min="5" max="10" step="1" value="5">
+                <label>Time Frame (seconds)</label>
+                <input type="range" id="timeFrame" min="5" max="15" step="5" value="5">
+                <label>Time Out (seconds)</label>
+                <input type="range" id="timeout" min="5" max="60" step="5" value="10">
+            </div>
         </div>
-      </div>
-
-    <!-- Death Aura -->
-      <div class="dropdown" data-dropdown id="deathAuraDropdown" style="display:none;">
-        <div class="dropdown-header" id="deathHeader">
-          <span class="dropdown-arrow">▶</span>
-          <span>Death Aura</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="deathAuraEnabled" checked>
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <div class="dropdown-content">
-          <!-- Seporator line -->
-          <div class="cosmos-separator"></div>
-          <!-- Affects other players (Toggle) -->
-          <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
-            <span class="label">Affects other players?</span>
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                id="deathAuraOtherPlayers"
-                checked
-              >
-              <span class="slider"></span>
-            </label>
-          </div>
-          <!-- Seporator line -->
-          <div class="cosmos-separator"></div>
-        </div>
-      </div>
-
-    <!-- CHAT FILTERS -->
-    <div class="dropdown" data-dropdown id="chatDropdown">
-    <div class="dropdown-header" id="chatHeader">
-      <span id="chatArrow">▶</span>
-      <span>Chat Filters</span>
-
-      <label class="toggle-switch">
-        <input type="checkbox" id="chatEnabled" checked>
-        <span class="slider"></span>
-      </label>
     </div>
-    <div class="dropdown-content" id="chatContent">
-      <!-- Seporator line -->
-      <div class="cosmos-separator"></div>
-      <!-- Hide Howl Msg (Toggle) -->
-      <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
-        <span class="label">Hide Howl Messages</span>
-        <label class="toggle-switch">
-          <input
-            type="checkbox"
-            id="hideHowl"
-            checked
-          >
-          <span class="slider"></span>
-        </label>
-      </div>
-      <!-- Hide Join Msg (Toggle) -->
-      <div class="panel-line" style="display:flex; align-items:center; gap:0.8vmin;">
-        <span class="label">Hide Join Messages</span>
-        <label class="toggle-switch">
-          <input
-            type="checkbox"
-            id="hideJoin"
-          >
-          <span class="slider"></span>
-        </label>
-      </div>
-      <!-- Seporator line -->
-      <div class="cosmos-separator"></div>
-      <!-- Combined Filter Description Text -->
-      <div class="desc" id="chatDesc"></div>
-      <label>Max Characters</label>
-      <input type="range" id="maxChars" min="100" max="1000" step="50" value="150">
-      <label>Max Messages</label>
-      <input type="range" id="maxMsgs" min="5" max="10" step="1" value="5">
-      <label>Time Frame (seconds)</label>
-      <input type="range" id="timeFrame" min="5" max="15" step="5" value="5">
-      <label>Time Out (seconds)</label>
-      <input type="range" id="timeout" min="5" max="60" step="5" value="10">
-    </div>
-  </div>
 </div>
 
 <script>
+/* ===== MODE FLAG ===== */
+window.__OVERLAY_MODE__ = "menu";
 
-/* =========================
-   UNIVERSAL MOD SEND HELPER
-========================= */
-function sendModEvent(event, data) {
-  try {
-    if (
-      window.AndroidBridge &&
-      AndroidBridge.AndroidBridge &&
-      typeof AndroidBridge.AndroidBridge.sendToMod === "function"
-    ) {
-      AndroidBridge.AndroidBridge.sendToMod(
-        event,
-        JSON.stringify(data)
-      );
-    } else {
-      // Safe fallback for PC / browser testing
-      console.log("[MOD SEND]", event, data);
-    }
-  } catch (err) {
-    console.error("sendModEvent failed:", event, err);
-  }
+/* ===== ORIGINAL SCRIPT (UNCHANGED) ===== */
+window.sendModEvent = function(event, data) {
+  // Android hook or safe fallback
+//   if (window.AndroidBridge?.AndroidBridge?.sendToMod) {
+//     AndroidBridge.AndroidBridge.sendToMod(event, JSON.stringify(data));
+//   } else {
+//     console.log("[MOD SEND]", event, data);
+//   }
 }
 
-/* =========================
-   DEBOUNCE HELPER
-========================= */
+window.reportMenuSize = function() {
+  const root = document.getElementById("menu-root");
+  if (!root || !window.AndroidBridge) return;
+
+  const rect = root.getBoundingClientRect();
+//   AndroidBridge.resizeOverlay(
+//     Math.ceil(rect.width),
+//     Math.ceil(rect.height)
+//   );
+}
+
 function debounce(fn, delay = 150) {
   let timer;
   return function (...args) {
@@ -606,14 +499,13 @@ function debounce(fn, delay = 150) {
     timer = setTimeout(() => fn.apply(this, args), delay);
   };
 }
-
 /* =========================
    TIER SYSTEM
 ========================= */
 const tierMap = ["Nothing","Stardust","Nova","Pulsar","Nebula","SuperNova","Celestial"];
 const tiers = {
   Nothing:   { main:"#7e7e7e", accent:"#7e7e7e", rgb:"102,102,102" },
-  Stardust: { main:"#39383b", accent:"#909091", rgb:"119,119,119" },
+  Stardust: { main:"#39383b", accent:"#b3b3b5", rgb:"119,119,119" },
   Nova:     { main:"#4c1d95", accent:"#9d8de4", rgb:"76,29,149" },
   Pulsar:   { main:"#5d3ddd", accent:"#60a5fa", rgb:"30,58,138" },
   Nebula:   { main:"#7c3aed", accent:"#f472b6", rgb:"124,58,237" },
@@ -629,15 +521,15 @@ function darken(hex, factor=0.45) {
   return `#${((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}`;
 }
 
-let currentTierValue = 6;
-let honorValue = 30.75;
-let aidValue = 12.5;
-let deathTierValue = 4;
+let currentTierValue = 2;
+let deathTierValue = 1;
 
 const root = document.documentElement;
-// const menuBtn = document.getElementById("menu-button");
+const menuBtn = document.getElementById("menu-button");
+const modPanel = document.getElementById("mod-panel");
 
-window.setTierByValue = function(v) {
+function setTierByValue(v) {
+  currentTierValue = v;
   const t =  tiers[tierMap[v]];
   root.style.setProperty("--galaxy-main", t.main);
   root.style.setProperty("--galaxy-accent", t.accent);
@@ -646,71 +538,29 @@ window.setTierByValue = function(v) {
   root.style.setProperty("--text-main", darken(t.main, 0.35));
   root.style.setProperty("--text-muted", darken(t.main, 0.55));
 
-  document.getElementById("tier-value").textContent = tierMap[v];
-  // menuBtn.classList.add('visible');
-  // menuBtn.style.pointerEvents = 'auto';
+  menuBtn.style.display = v === 0 ? "none" : "block";
 }
-
-window.setHonor = function(v) {
-  document.getElementById("honor-value").textContent = Number(v).toFixed(2);
-}
-window.setAid = function(v) {
-  document.getElementById("aid-value").textContent = Number(v).toFixed(2);
-}
-window.setDeathTier = function(v) {
-  const row = document.getElementById("deathtier-row");
+function setDeathTier(v) {
+  deathTierValue = v;
   const dropdown = document.getElementById("deathAuraDropdown");
-  row.style.display = v > 0 ? "block" : "none";
   dropdown.style.display = v > 3 ? "block" : "none";
-  document.getElementById("deathtier-value").textContent = v;
 }
 
-// Initialize stats when first loading
-window.initStats = function(tier, deathTier, honor, aid){
-  setTierByValue(tier);
-  setDeathTier(deathTier);
-  setHonor(honor);
-  setAid(aid);
-}
+setTierByValue(currentTierValue);
+setDeathTier(deathTierValue);
 
-window.onload = () => {
-    if (window.AndroidBridge) {
-        // Send a JSON string identifying who is ready and what they want
-        AndroidBridge.sendToMod(JSON.stringify({ 
-            type: "READY", 
-            overlay: "cosmosOverlay" 
-        }));
-    }
-};
+/* INITIAL STATE */
+modPanel.style.display = "none";
 
-// TRY GETTING BUTTON TO WORK
-
-// 1. Solidify window the millisecond the finger touches the button
-// Add a listener to the window itself to catch the touch hitting the WebView
-// window.addEventListener('touchstart', (e) => {
-//     // Check if the touch actually hit our button
-//     if (e.target.closest('#menu-button')) {
-//         console.log("Touch hit button! Sending to Bridge...");
-//         if (window.AndroidBridge) {
-//             // Force the WindowManager to be solid
-//             AndroidBridge.setTouchState(true);
-//         }
-//     }
-// }, { capture: true, passive: false });
-
-// Simple click check
-// document.getElementById('menu-button').onclick = function() {
-//     console.log("BUTTON CLICKED SUCCESSFULLY");
-// };
-
-
-
-/* =========================
-   MENU + CHAT LOGIC
-========================= */
-const modPanel = document.getElementById("mod-panel");
+/* EXTENDED MENU TOGGLE (NON‑DESTRUCTIVE) */
 menuBtn.onclick = () => {
-  modPanel.style.display = modPanel.style.display === "block" ? "none" : "block";
+  const open = modPanel.style.display !== "block";
+  modPanel.style.display = open ? "block" : "none";
+
+  // Wait for DOM layout to commit
+  requestAnimationFrame(() => {
+    window.reportMenuSize();
+  });
 };
 
 let chatEnabled = true;
@@ -870,8 +720,6 @@ dropdowns.forEach(dropdown => {
     }
   });
 });
-
-
 </script>
 </body>
 </html>

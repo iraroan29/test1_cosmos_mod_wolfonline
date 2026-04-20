@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cosmos Mod HUD</title>
+
+<style>
+/* ===== MODE ===== */
+:root {
+  --overlay-mode: hud;
+}
+
+/* ===== ALL ORIGINAL CSS (UNCHANGED) ===== */
+/* =========================
+   ROOT / THEME VARIABLES
+========================= */
+:root {
+  --galaxy-main: #4c1d95;
+  --galaxy-accent: #a78bfa;
+  --galaxy-rgb: 76,29,149;
+
+  --hud-border-width: 0.35vmin;
+  --hud-border-padding: 0.5vmin;
+  --hud-border-angle: 0deg;
+
+  --panel-width: 20vmin;
+  --panel-radius: 2.2vmin;
+  --font-size-main: clamp(1rem, 1.8vmin, 1.4rem);
+
+  /* text colors (set per tier in JS) */
+  --text-main: #222;
+  --text-muted: #444;
+}
+
+/* =========================
+   RESET
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* =========================
+   HUD (CLICK-THROUGH)
+========================= */
+#hud {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* =========================
+   BORDER
+========================= */
+#hud::before {
+  content: "";
+  position: absolute;
+  inset: var(--hud-border-padding);
+  padding: var(--hud-border-width);
+  border-radius: 1.5vmin;
+
+  background: conic-gradient(
+    from var(--hud-border-angle),
+    var(--galaxy-main),
+    var(--galaxy-accent),
+    var(--galaxy-main)
+  );
+
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+
+  animation: borderSpin 60s linear infinite;
+}
+
+@keyframes borderSpin {
+  from { --hud-border-angle: 0deg; }
+  to   { --hud-border-angle: 360deg; }
+}
+
+/* =========================
+   PANELS (SHARED)
+========================= */
+.panel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 2.5vmin;
+  border-radius: var(--panel-radius);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(var(--galaxy-rgb), 0.22);
+  z-index: 0;
+}
+
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+   LEFT PANEL
+========================= */
+#left-panel {
+  left: calc(2vmin + var(--hud-border-padding));
+  width: var(--panel-width);
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.panel-title {
+  font-size: calc(var(--font-size-main) * 1.1);
+  font-weight: 600;
+  margin-bottom: 1.2vmin;
+  color: var(--text-main);
+
+  /* ✅ NEW */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.panel-line {
+  margin-bottom: 1vmin;
+  color: var(--text-main);
+}
+
+.label {
+  color: var(--text-muted);
+}
+
+/* =========================
+   MENU BUTTON
+========================= */
+#menu-button {
+  margin-top: 1.8vmin;
+  align-self: center;
+
+  padding: 0.8vmin 3vmin;
+  border-radius: 999px;
+  font-weight: 700;
+
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  color: #000;
+
+  border: none;
+  cursor: pointer;
+  pointer-events: auto;
+  display: none;
+}
+
+/* =========================
+   MOD PANEL
+========================= */
+#mod-panel {
+  left: calc(
+    2vmin + var(--hud-border-padding) +
+    var(--panel-width) + 2vmin
+  );
+  width: 32vmin;
+  display: none;
+  pointer-events: auto;
+}
+
+/* =========================
+   GRADIENT TEXT (COSMOS)
+========================= */
+.cosmos-gradient-text {
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  /* Depth + glow */
+  text-shadow:
+    0 0.25vmin 0.3vmin rgba(0, 0, 0, 0.45),
+    0 0 0.8vmin rgba(var(--galaxy-accent), 0.45),
+    0 0 1.4vmin rgba(var(--galaxy-main), 0.35);
+}
+
+/* =========================
+   COSMOS SUBTITLE
+========================= */
+.cosmos-subtitle {
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+
+  /* ✅ Tighter spacing */
+  margin-top: 0vmin;
+
+  text-shadow:
+    0 0.12vmin 0.2vmin rgba(0, 0, 0, 0.45),
+    0 0 0.5vmin rgba(var(--galaxy-accent), 0.35),
+    0 0 0.9vmin rgba(var(--galaxy-main), 0.25);
+}
+
+/* =========================
+   TIER GRADIENT TEXT (SHARED)
+========================= */
+.tier-gradient-text {
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  text-shadow:
+    0 0.25vmin 0.3vmin rgba(0, 0, 0, 0.45),
+    0 0 0.8vmin rgba(var(--galaxy-accent), 0.45),
+    0 0 1.4vmin rgba(var(--galaxy-main), 0.35);
+}
+
+
+/* === PHANTOM MENU BUTTON === */
+.phantom {
+  visibility: hidden;
+}
+
+/* =========================
+   POPUP BANNER (COSMOS STYLE)
+========================= */
+.popup-banner {
+  position: absolute;
+  top: 10vmin;
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 1.6vmin 3.2vmin;
+  border-radius: 999px;
+
+  pointer-events: none;
+  z-index: 200;
+
+  /* Subtle tier glass plate */
+  background: linear-gradient(
+    to right,
+    rgba(var(--galaxy-rgb), 0.26),
+    rgba(var(--galaxy-rgb), 0.12)
+  );
+
+  backdrop-filter: blur(0.7vmin);
+
+  box-shadow:
+    0 0.6vmin 1.8vmin rgba(0, 0, 0, 0.45),
+    0 0 2.4vmin rgba(var(--galaxy-rgb), 0.45);
+
+  opacity: 0;
+  transform: translateX(-50%) translateY(-1vmin);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.popup-banner.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.popup-banner.hidden {
+  display: none;
+}
+
+/* Banner text tuning */
+#popup-banner-text {
+  font-weight: 800;
+  font-size: calc(var(--font-size-main) * 1.02);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* =========================
+   POPUP BANNER – NEGATIVE AFFECT (TEXT ONLY)
+========================= */
+.popup-banner.negative #popup-banner-text {
+  /* Disable gradient text */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+
+  /* Solid, subdued tier color */
+  color: var(--text-muted);
+
+  /* Explicitly remove any inherited glow */
+  text-shadow: none;
+}
+
+
+</style>
+</head>
+
+<body>
+<div id="hud">
+  <!-- POPUP MESSAGES/BANNERS -->
+  <div id="popup-banner" class="popup-banner hidden">
+    <span id="popup-banner-text" class="tier-gradient-text"></span>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <div id="left-panel" class="panel">
+    <div class="panel-title">
+      <div class="cosmos-gradient-text">Cosmos Mod</div>
+      <div class="cosmos-gradient-text cosmos-subtitle">
+        by Apricity!
+      </div>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Tier:</span>
+      <span id="tier-value"></span>
+    </div>
+
+    <div class="panel-line" id="deathtier-row" style="display:none;">
+      <span class="label">DeathTier:</span>
+      <span id="deathtier-value"></span>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Honor:</span>
+      <span id="honor-value"></span>
+    </div>
+
+    <div class="panel-line">
+      <span class="label">Aid:</span>
+      <span id="aid-value"></span>
+    </div>
+
+    <!-- Menu button acts ONLY as layout spacer -->
+    <button id="menu-button" class="phantom">Menu</button>
+  </div>
+
+</div>
+
+<script>
+/* ===== MODE FLAG ===== */
+window.__OVERLAY_MODE__ = "hud";
+
+/* ===== ORIGINAL SCRIPT (UNCHANGED) ===== */
+const popupQueue = [];
+let popupActive = false;
+let popupBannerTimeout = null;
+
+/* =========================
+   TIER SYSTEM
+========================= */
+const tierMap = ["Nothing","Stardust","Nova","Pulsar","Nebula","SuperNova","Celestial"];
+const tiers = {
+  Nothing:   { main:"#7e7e7e", accent:"#7e7e7e", rgb:"102,102,102" },
+  Stardust: { main:"#39383b", accent:"#ecd577", rgb:"119,119,119" },
+  Nova:     { main:"#751d95", accent:"#b785f3", rgb:"76,29,149" },
+  Pulsar:   { main:"#5d3ddd", accent:"#60a5fa", rgb:"30,58,138" },
+  Nebula:   { main:"#7c3aed", accent:"#f472b6", rgb:"124,58,237" },
+  SuperNova:{ main:"#7dbece", accent:"#39df7c", rgb:"56,189,248" },
+  Celestial:{ main:"#ff593b", accent:"#ffe57b", rgb:"253,230,138" }
+};
+
+function darken(hex, factor=0.45) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.floor(((n>>16)&255) * factor);
+  const g = Math.floor(((n>>8)&255) * factor);
+  const b = Math.floor((n&255) * factor);
+  return `#${((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}`;
+}
+
+let currentTierValue = 2;
+let honorValue = 30.0;
+let aidValue = 10.5;
+let deathTierValue = 0;
+
+const root = document.documentElement;
+const menuBtn = document.getElementById("menu-button");
+
+function setTierByValue(v) {
+  const t =  tiers[tierMap[v]];
+  root.style.setProperty("--galaxy-main", t.main);
+  root.style.setProperty("--galaxy-accent", t.accent);
+  root.style.setProperty("--galaxy-rgb", t.rgb);
+
+  root.style.setProperty("--text-main", darken(t.main, 0.35));
+  root.style.setProperty("--text-muted", darken(t.main, 0.55));
+
+  document.getElementById("tier-value").textContent = tierMap[v];
+  menuBtn.style.display = v === 0 ? "none" : "block";
+}
+
+function setHonor(v) {
+  document.getElementById("honor-value").textContent = v;
+}
+function setAid(v) {
+  document.getElementById("aid-value").textContent = v;
+}
+function setDeathTier(v) {
+  const row = document.getElementById("deathtier-row");
+  row.style.display = v > 0 ? "block" : "none";
+  document.getElementById("deathtier-value").textContent = v;
+}
+
+setTierByValue(currentTierValue);
+setHonor(honorValue);
+setAid(aidValue);
+setDeathTier(deathTierValue);
+
+
+/* HUD‑only behavior */
+menuBtn.classList.add("phantom");
+
+/* OPTIONAL: allow native HUD resizing */
+window.setMenuOpen = function(open) {
+  /* no layout mutation needed; phantom already reserves space */
+};
+
+function showNextPopup() {
+  if (popupActive || popupQueue.length === 0) return;
+
+  popupActive = true;
+
+  const banner = document.getElementById("popup-banner");
+  const text = document.getElementById("popup-banner-text");
+  const item = popupQueue.shift();
+
+  if (!banner || !text) {
+    popupActive = false;
+    return;
+  }
+
+  const { message, negativeAffect } = item;
+
+  text.textContent = message;
+
+  // Apply / clear negative styling
+  banner.classList.toggle("negative", !!negativeAffect);
+
+  // Show
+  banner.classList.remove("hidden");
+  requestAnimationFrame(() => banner.classList.add("show"));
+
+  popupBannerTimeout = setTimeout(() => {
+    banner.classList.remove("show");
+
+    popupBannerTimeout = setTimeout(() => {
+      banner.classList.add("hidden");
+      banner.classList.remove("negative");
+      popupActive = false;
+      showNextPopup();
+    }, 250);
+  }, 3500); // How long each message lasts
+}
+
+
+window.setPopupBanner = function (message, negativeAffect = false) {
+  if (typeof message !== "string" || message.trim() === "") return;
+
+  popupQueue.push({
+    message: message.trim(),
+    negativeAffect: !!negativeAffect
+  });
+
+  showNextPopup();
+};
+
+
+
+setPopupBanner("Tier Up! - Unlocked Multi-Hit x3 Chance: 3%");
+// setPopupBanner("Tier Up! - Multi-Hit x2 Chance Boosted: 2% -> 3%");
+// setPopupBanner("Traveler Milestone! - Speed Boost Applied: 5%");
+
+setPopupBanner("Tier down - Multi-Hit Chance: 3% -> 2%", true);
+
+</script>
+</body>
+</html>

@@ -17285,9 +17285,6 @@ std_string_c_str (StdString * self)
   });
 
   // src/helpers/playerWolfStore.ts
-  function isPlayerActive() {
-    return activePlayer !== null;
-  }
   function setPlayer(obj) {
     activePlayer = obj;
   }
@@ -18358,65 +18355,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/overlay/CosmosMenuOverlay.ts
-  var _CosmosMenuOverlay, CosmosMenuOverlay;
-  var init_CosmosMenuOverlay = __esm({
-    "src/overlay/CosmosMenuOverlay.ts"() {
-      init_ConfigManager();
-      init_playerWolfStore();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _CosmosMenuOverlay = class _CosmosMenuOverlay {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_CosmosMenuOverlay.OVERLAY_NAME, url, false);
-            Logger("[CosmosOverlay] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _CosmosMenuOverlay.OVERLAY_NAME,
-              Object.keys({
-                "WolfOnline_Map_Snow": true,
-                "WolfOnline_Map_Snow_Guardian": true,
-                "WolfOnline_Map_Mountain": true,
-                "WolfOnline_Map_Mountain_Guardian": true,
-                "WolfOnline_Map_Wild": true,
-                "WolfOnline_Map_Wild_Guardian": true,
-                "WolfOnline_Map_Lava": true,
-                "WolfOnline_Map_Fish": true,
-                "WolfOnline_Map_BlackTiger": true,
-                "WolfOnline_Map_Wild_Dog": true,
-                "WolfOnline_Map_Field": true,
-                "WolfOnline_Map_Hellgate_0": true,
-                "WolfOnline_Map_WolfAndDino": true
-              }),
-              () => isPlayerActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          })();
-        }
-      };
-      _CosmosMenuOverlay.OVERLAY_NAME = "cosmosOverlay";
-      CosmosMenuOverlay = _CosmosMenuOverlay;
-      configManager.onUpdate("currentTier", (tier) => {
-        const js = `setTierByValue(${tier});`;
-        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("currentDeathTier", (deathTier) => {
-        const js = `setDeathTier(${deathTier});`;
-        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("honorScore", (honor) => {
-        const js = `setHonor(${honor});`;
-        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("aidScore", (aid) => {
-        const js = `setAid(${aid});`;
-        OverlayManager.getInstance().sendToHtml(CosmosMenuOverlay.OVERLAY_NAME, js);
-      });
-    }
-  });
-
   // src/hooks/inputid.ts
   function inputID() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -18480,7 +18418,6 @@ std_string_c_str (StdString * self)
       init_dragonHooks();
       init_snowHooks();
       init_wildHooks();
-      init_CosmosMenuOverlay();
       init_inputid();
       var Log = null;
       globalThis.Logger = function(message) {
@@ -18534,7 +18471,6 @@ std_string_c_str (StdString * self)
           SnowBossHooks();
           WildBossHooks();
           Logger("LOAD THE DAMN SCRIPT!!");
-          new CosmosMenuOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/CosmosMenu.html");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

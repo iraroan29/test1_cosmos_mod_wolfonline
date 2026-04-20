@@ -435,6 +435,13 @@ menuBtn.classList.add("phantom");
 window.setMenuOpen = function(open) {
   /* no layout mutation needed; phantom already reserves space */
 };
+window.onload = () => {
+    AndroidBridge.sendToMod(JSON.stringify({
+        type: "READY",
+        overlay: "bossOverlay",
+        payload: { htmlReady: true }
+    }));
+};
 
 /* Initialize hud values */
 window.initStats = function(tier, deathTier, honor, aid){

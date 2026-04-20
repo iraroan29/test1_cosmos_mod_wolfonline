@@ -428,12 +428,6 @@ function setDeathTier(v) {
   document.getElementById("deathtier-value").textContent = v;
 }
 
-setTierByValue(currentTierValue);
-setHonor(honorValue);
-setAid(aidValue);
-setDeathTier(deathTierValue);
-
-
 /* HUD‑only behavior */
 menuBtn.classList.add("phantom");
 
@@ -441,6 +435,14 @@ menuBtn.classList.add("phantom");
 window.setMenuOpen = function(open) {
   /* no layout mutation needed; phantom already reserves space */
 };
+
+/* Initialize hud values */
+window.initStates = function(tier, deathTier, honor, aid){
+  setTierByValue(tier);
+  setDeathTier(deathTier);
+  setHonor(honor);
+  setAid(aid);
+}
 
 function showNextPopup() {
   if (popupActive || popupQueue.length === 0) return;

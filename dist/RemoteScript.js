@@ -17756,7 +17756,7 @@ std_string_c_str (StdString * self)
                           if (data.type === "READY") {
                             Logger(`[Overlay] ${data.overlay} is ready to receive data`);
                             self.onHtmlReady(data.overlay);
-                            if (data.overlay === "cosmosOverlay") {
+                            if (data.overlay === "ModHUDOverlay") {
                               const js = `initStats(${configManager.get("currentTier")}, ${configManager.get("currentDeathTier")}, ${configManager.get("honorScore")}, ${configManager.get("aidScore")});`;
                               self.sendToHtml(data.overlay, js);
                             } else if (data.overlay === "bossOverlay") {

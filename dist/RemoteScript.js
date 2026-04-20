@@ -17962,15 +17962,22 @@ std_string_c_str (StdString * self)
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
                 const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+                const View = frida_java_bridge_default.use("android.view.View");
                 const webview = WebView.$new(self.context);
+                webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
                 webview.setClickable(false);
                 webview.setLongClickable(false);
                 webview.setFocusable(false);
                 webview.setFocusableInTouchMode(false);
+                webview.setBackgroundColor(0);
+                const settings = webview.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setUseWideViewPort(true);
+                settings.setLoadWithOverviewMode(true);
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
-                layout.setZ(layer);
                 const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                 const activity = UnityPlayer.currentActivity.value;
                 const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
@@ -17996,6 +18003,10 @@ std_string_c_str (StdString * self)
                 }
                 lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                 wm.addView(layout, lp);
+                try {
+                  layout.setZ(layer);
+                } catch (_) {
+                }
                 const JSBridge = frida_java_bridge_default.registerClass({
                   name: "com.overlay.JSBridge_" + name,
                   methods: {
@@ -18027,6 +18038,38 @@ std_string_c_str (StdString * self)
                   }
                 });
                 webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+                const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
+                const URL = frida_java_bridge_default.use("java.net.URL");
+                const Scanner = frida_java_bridge_default.use("java.util.Scanner");
+                const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
+                const RunnableImpl = frida_java_bridge_default.registerClass({
+                  name: "com.overlay.RunnableFetch_" + name,
+                  implements: [frida_java_bridge_default.use("java.lang.Runnable")],
+                  methods: {
+                    run: function() {
+                      try {
+                        const u = URL.$new(url);
+                        const stream = u.openStream();
+                        const scanner = Scanner.$new(stream, "UTF-8");
+                        scanner.useDelimiter(Pattern.quote("\\A"));
+                        const html = scanner.hasNext() ? scanner.next() : "";
+                        scanner.close();
+                        frida_java_bridge_default.scheduleOnMainThread(() => {
+                          webview.loadDataWithBaseURL(
+                            "file:///android_asset/",
+                            html,
+                            "text/html; charset=UTF-8",
+                            "UTF-8",
+                            null
+                          );
+                        });
+                      } catch (e) {
+                        Logger("[Overlay] HTML fetch error: " + e);
+                      }
+                    }
+                  }
+                });
+                Thread2.$new(RunnableImpl.$new()).start();
                 self.overlays[name] = {
                   name,
                   webview,
@@ -18036,6 +18079,7 @@ std_string_c_str (StdString * self)
                 };
                 resolve();
               } catch (e) {
+                Logger(`[Overlay] ERROR in createOverlay for "${name}": ${e}`);
                 reject(e);
               }
             });

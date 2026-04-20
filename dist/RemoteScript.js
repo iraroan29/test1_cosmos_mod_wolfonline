@@ -16897,12 +16897,12 @@ std_string_c_str (StdString * self)
       };
       DEATH_TABLE = {
         0: { resurrection: 0, deathAura: 0, honorReduction: 0.25 },
-        1: { resurrection: 5, deathAura: 0, honorReduction: 0.5 },
-        2: { resurrection: 10, deathAura: 0, honorReduction: 1 },
-        3: { resurrection: 15, deathAura: 0, honorReduction: 2 },
-        4: { resurrection: 25, deathAura: 0, honorReduction: 3 },
-        5: { resurrection: 40, deathAura: 0, honorReduction: 5 },
-        6: { resurrection: 60, deathAura: 0, honorReduction: 10 }
+        1: { resurrection: 10, deathAura: 0, honorReduction: 0.5 },
+        2: { resurrection: 20, deathAura: 0, honorReduction: 1 },
+        3: { resurrection: 35, deathAura: 0, honorReduction: 2 },
+        4: { resurrection: 50, deathAura: 0, honorReduction: 5 },
+        5: { resurrection: 65, deathAura: 0, honorReduction: 7.5 },
+        6: { resurrection: 80, deathAura: 0, honorReduction: 10 }
       };
       TIER_NAMES = {
         0: { base: "[b][fff76b]\u2605 ", subtier: "[b][fff76b]\u2605 " },
@@ -17927,9 +17927,14 @@ std_string_c_str (StdString * self)
       init_frida_java_bridge();
       init_ConfigManager();
       init_ModOverlay_HUD();
-      init_BossBattleOverlay();
       OverlayManager = class _OverlayManager {
         constructor() {
+          // Your testing device resolution (set these to YOUR device)
+          this.BASE_WIDTH = 2400;
+          this.BASE_HEIGHT = 1080;
+          // Will be filled during initialize()
+          this.deviceWidth = 0;
+          this.deviceHeight = 0;
           this.overlays = {};
           this.pendingMessages = {};
           this.htmlReady = {};
@@ -17940,8 +17945,15 @@ std_string_c_str (StdString * self)
         }
         initialize(context) {
           this.context = context;
+          const Resources = frida_java_bridge_default.use("android.content.res.Resources");
+          const DisplayMetrics = frida_java_bridge_default.use("android.util.DisplayMetrics");
+          const metrics = DisplayMetrics.$new();
+          context.getResources().getDisplayMetrics().value.copyTo(metrics);
+          this.deviceWidth = metrics.widthPixels.value;
+          this.deviceHeight = metrics.heightPixels.value;
+          Logger(`[Overlay] Device resolution detected: ${this.deviceWidth}x${this.deviceHeight}`);
         }
-        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, x = 0, y = 0) {
+        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
           Logger(`[Overlay] createOverlay START for "${name}"`);
           const self = this;
           return new Promise((resolve, reject) => {
@@ -17965,26 +17977,20 @@ std_string_c_str (StdString * self)
                 const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
                 const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
                 const Gravity = frida_java_bridge_default.use("android.view.Gravity");
-                const wm = frida_java_bridge_default.cast(
-                  activity.getSystemService("window"),
-                  WindowManager
-                );
-                const lp = WMLayoutParams.$new(
-                  -2,
-                  // WRAP_CONTENT (window will resize)
-                  -2,
-                  // WRAP_CONTENT
-                  0
-                );
+                const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
+                const lp = WMLayoutParams.$new(-1, -1, 0);
                 lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                 lp.format.value = PixelFormat.TRANSLUCENT.value;
+                const x = self.scaleX(baseX);
+                const y = self.scaleY(baseY);
                 lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
                 lp.x.value = x;
                 lp.y.value = y;
+                const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
+                const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                 const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                 const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
-                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                 if (touchPassthrough) {
                   lp.flags.value |= FLAG_NOT_TOUCHABLE;
                 }
@@ -18000,17 +18006,10 @@ std_string_c_str (StdString * self)
                         try {
                           const data = JSON.parse(jsonString);
                           if (data.type === "READY") {
-                            Logger(`[Overlay] ${data.overlay} is ready to receive data`);
                             self.onHtmlReady(data.overlay);
                             if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                               const js = `initStats(${configManager.get("currentTier")}, ${configManager.get("currentDeathTier")}, ${configManager.get("honorScore")}, ${configManager.get("aidScore")});`;
                               self.sendToHtml(data.overlay, js);
-                            } else if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
-                            }
-                          } else {
-                            const overlay = self.overlays[data.overlay];
-                            if (overlay && overlay.onHtmlMessage) {
-                              overlay.onHtmlMessage(data.value);
                             }
                           }
                         } catch (e) {
@@ -18033,9 +18032,7 @@ std_string_c_str (StdString * self)
                   webview,
                   layout,
                   windowManager: wm,
-                  windowLayoutParams: lp,
-                  scenes: [],
-                  condition: null
+                  windowLayoutParams: lp
                 };
                 resolve();
               } catch (e) {
@@ -18060,6 +18057,14 @@ std_string_c_str (StdString * self)
               Logger(`[Overlay] resizeWindow ERROR for "${name}": ${e}`);
             }
           });
+        }
+        // Scale X from base device → current device
+        scaleX(baseX) {
+          return Math.round(baseX * (this.deviceWidth / this.BASE_WIDTH));
+        }
+        // Scale Y from base device → current device
+        scaleY(baseY) {
+          return Math.round(baseY * (this.deviceHeight / this.BASE_HEIGHT));
         }
         getOverlay(name) {
           return this.overlays[name];
@@ -18405,7 +18410,7 @@ std_string_c_str (StdString * self)
       _ModOverlay_MENU = class _ModOverlay_MENU {
         constructor(url) {
           (async () => {
-            await OverlayManager.getInstance().createOverlay(_ModOverlay_MENU.OVERLAY_NAME, url, false);
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_MENU.OVERLAY_NAME, url, false, 38 /* MENU */, 200, 200);
             Logger("[ModOverlay MENU] Overlay created, now registering scenes");
             SceneOverlayManager.getInstance().registerOverlayScenes(
               _ModOverlay_MENU.OVERLAY_NAME,

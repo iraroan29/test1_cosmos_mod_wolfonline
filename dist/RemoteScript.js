@@ -17804,6 +17804,39 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/BossBattleOverlay.ts
+  var _BossBattleOverlay, BossBattleOverlay;
+  var init_BossBattleOverlay = __esm({
+    "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _BossBattleOverlay = class _BossBattleOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
+            Logger("[BossOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _BossBattleOverlay.OVERLAY_NAME,
+              Object.keys(BossRegistry.bossScenes),
+              () => isBossActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        updateHealth(current, max) {
+          const js = `updateHealth(${current}, ${max});`;
+          OverlayManager.getInstance().sendToHtml(_BossBattleOverlay.OVERLAY_NAME, js);
+        }
+      };
+      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
+      BossBattleOverlay = _BossBattleOverlay;
+    }
+  });
+
   // src/helpers/bossRegistry.ts
   function isBossActive() {
     return boss !== null;
@@ -17811,6 +17844,7 @@ std_string_c_str (StdString * self)
   var boss, bossHp, bossMaxHp, BossRegistry;
   var init_bossRegistry = __esm({
     "src/helpers/bossRegistry.ts"() {
+      init_BossBattleOverlay();
       init_OverlayManager();
       init_SceneOverlayManager();
       boss = null;
@@ -17839,7 +17873,7 @@ std_string_c_str (StdString * self)
           bossHp = obj.field("health").value;
           Logger("After setting boss stats 32523");
           OverlayManager.getInstance().sendToHtml(
-            "bossOverlay",
+            BossBattleOverlay.OVERLAY_NAME,
             `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
           );
           Logger("Made it past sendToHtml");
@@ -17864,7 +17898,7 @@ std_string_c_str (StdString * self)
           bossHp -= amount;
           if (bossHp < 0) bossHp = 0;
           OverlayManager.getInstance().sendToHtml(
-            "bossOverlay",
+            BossBattleOverlay.OVERLAY_NAME,
             `dealDamage(${amount}, ${critHit});`
           );
         },
@@ -17950,39 +17984,6 @@ std_string_c_str (StdString * self)
           });
         }
       };
-    }
-  });
-
-  // src/overlay/BossBattleOverlay.ts
-  var _BossBattleOverlay, BossBattleOverlay;
-  var init_BossBattleOverlay = __esm({
-    "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _BossBattleOverlay = class _BossBattleOverlay {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
-            Logger("[BossOverlay] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _BossBattleOverlay.OVERLAY_NAME,
-              Object.keys(BossRegistry.bossScenes),
-              () => isBossActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          })();
-        }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        updateHealth(current, max) {
-          const js = `updateHealth(${current}, ${max});`;
-          OverlayManager.getInstance().sendToHtml(_BossBattleOverlay.OVERLAY_NAME, js);
-        }
-      };
-      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
-      BossBattleOverlay = _BossBattleOverlay;
     }
   });
 

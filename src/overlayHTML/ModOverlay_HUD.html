@@ -438,7 +438,7 @@ window.setMenuOpen = function(open) {
 window.onload = () => {
     AndroidBridge.sendToMod(JSON.stringify({
         type: "READY",
-        overlay: "bossOverlay",
+        overlay: "ModHUDOverlay",
         payload: { htmlReady: true }
     }));
 };

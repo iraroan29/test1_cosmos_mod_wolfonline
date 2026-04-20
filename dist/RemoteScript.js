@@ -17285,6 +17285,9 @@ std_string_c_str (StdString * self)
   });
 
   // src/helpers/playerWolfStore.ts
+  function isPlayerActive() {
+    return activePlayer !== null;
+  }
   function setPlayer(obj) {
     activePlayer = obj;
   }
@@ -18394,6 +18397,120 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/ModOverlay_HUD.ts
+  var _ModOverlay_HUD, ModOverlay_HUD;
+  var init_ModOverlay_HUD = __esm({
+    "src/overlay/ModOverlay_HUD.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_HUD = class _ModOverlay_HUD {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, false);
+            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_HUD.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+            _ModOverlay_HUD.TIER = configManager.get("currentTier");
+            _ModOverlay_HUD.AID = configManager.get("aidScore");
+            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
+            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
+          })();
+        }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        bannerMessage(message, negativeAffect = false) {
+          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
+      };
+      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
+      _ModOverlay_HUD.TIER = 0;
+      _ModOverlay_HUD.AID = 0;
+      _ModOverlay_HUD.HONOR = 0;
+      _ModOverlay_HUD.DEATHTIER = 0;
+      ModOverlay_HUD = _ModOverlay_HUD;
+      configManager.onUpdate("currentTier", (tier) => {
+        const js = `setTierByValue(${tier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("currentDeathTier", (deathTier) => {
+        const js = `setDeathTier(${deathTier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("honorScore", (honor) => {
+        const js = `setHonor(${honor});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("aidScore", (aid) => {
+        const js = `setAid(${aid});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+    }
+  });
+
+  // src/overlay/ModOverlay_MENU.ts
+  var _ModOverlay_MENU, ModOverlay_MENU;
+  var init_ModOverlay_MENU = __esm({
+    "src/overlay/ModOverlay_MENU.ts"() {
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_MENU = class _ModOverlay_MENU {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_MENU.OVERLAY_NAME, url, false);
+            Logger("[ModOverlay MENU] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_MENU.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _ModOverlay_MENU.OVERLAY_NAME = "ModMenuOverlay";
+      ModOverlay_MENU = _ModOverlay_MENU;
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18419,6 +18536,8 @@ std_string_c_str (StdString * self)
       init_snowHooks();
       init_wildHooks();
       init_inputid();
+      init_ModOverlay_HUD();
+      init_ModOverlay_MENU();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18470,7 +18589,8 @@ std_string_c_str (StdString * self)
           DragonBossHooks();
           SnowBossHooks();
           WildBossHooks();
-          Logger("LOAD THE DAMN SCRIPT!!");
+          new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");
+          new ModOverlay_MENU("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_MENU.html");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

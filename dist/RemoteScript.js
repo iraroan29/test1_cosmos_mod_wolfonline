@@ -18434,7 +18434,7 @@ std_string_c_str (StdString * self)
       const mInput = this.field("mInput").value;
       let ID = mInput.field("mValue").value;
       for (const [searchName, replaceName] of names) {
-        if (ID.content === searchName) {
+        if (ID.content.toString() === searchName) {
           mInput.field("mValue").value = Il2Cpp.string(replaceName);
           break;
         }

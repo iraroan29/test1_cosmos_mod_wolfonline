@@ -18437,6 +18437,48 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/ModOverlay_MENU.ts
+  var _ModOverlay_MENU, ModOverlay_MENU;
+  var init_ModOverlay_MENU = __esm({
+    "src/overlay/ModOverlay_MENU.ts"() {
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_MENU = class _ModOverlay_MENU {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_MENU.OVERLAY_NAME, url, false, 38 /* MENU */, 200, 200);
+            Logger("[ModOverlay MENU] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_MENU.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _ModOverlay_MENU.OVERLAY_NAME = "ModMenuOverlay";
+      ModOverlay_MENU = _ModOverlay_MENU;
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18463,6 +18505,7 @@ std_string_c_str (StdString * self)
       init_wildHooks();
       init_inputid();
       init_ModOverlay_HUD();
+      init_ModOverlay_MENU();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18515,6 +18558,7 @@ std_string_c_str (StdString * self)
           SnowBossHooks();
           WildBossHooks();
           new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");
+          new ModOverlay_MENU("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_MENU.html");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");

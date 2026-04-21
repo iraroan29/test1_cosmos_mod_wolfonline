@@ -18005,7 +18005,7 @@ std_string_c_str (StdString * self)
                 Logger("Here 7 \u2014 Flags applied");
                 lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                 Logger("Here 8 \u2014 Token assigned, calling addView\u2026 bruh");
-                wm.addView(layout, lp);
+                wm.$class.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
                 Logger("Here 9 \u2014 addView succeeded");
                 try {
                   layout.setZ(layer);

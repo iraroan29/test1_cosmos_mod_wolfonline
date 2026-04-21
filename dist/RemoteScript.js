@@ -17984,27 +17984,27 @@ std_string_c_str (StdString * self)
                 const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
                 Logger("Here 5 \u2014 WindowManager acquired");
                 const lp = WMLayoutParams.$new();
-                lp.width = -1;
-                lp.height = -1;
-                lp.type = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
-                lp.format = PixelFormat.TRANSLUCENT.value;
+                lp.width.value = -1;
+                lp.height.value = -1;
+                lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
+                lp.format.value = PixelFormat.TRANSLUCENT.value;
                 const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
                 const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
-                lp.gravity = Gravity.TOP.value | Gravity.LEFT.value;
-                lp.x = x;
-                lp.y = y;
+                lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
+                lp.x.value = x;
+                lp.y.value = y;
                 Logger("Here 6 \u2014 LayoutParams positioned");
                 const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                 const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                 const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                 const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                lp.flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
+                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                 if (touchPassthrough) {
-                  lp.flags |= FLAG_NOT_TOUCHABLE;
+                  lp.flags.value |= FLAG_NOT_TOUCHABLE;
                 }
                 Logger("Here 7 \u2014 Flags applied");
-                lp.token = activity.getWindow().getDecorView().getWindowToken();
-                Logger("Here 8 \u2014 Token assigned, calling addView\u2026");
+                lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                Logger("Here 8 \u2014 Token assigned, calling addView\u2026 bruh");
                 wm.addView(layout, lp);
                 Logger("Here 9 \u2014 addView succeeded");
                 try {

@@ -16880,11 +16880,11 @@ std_string_c_str (StdString * self)
       AID_THRESHOLDS = {
         0: 0,
         1: 20,
-        2: 75,
-        3: 200,
-        4: 500,
-        5: 1200,
-        6: 3e3
+        2: 50,
+        3: 100,
+        4: 200,
+        5: 500,
+        6: 1e3
       };
       DEATH_THRESHOLDS = {
         0: 0,
@@ -16924,12 +16924,12 @@ std_string_c_str (StdString * self)
       };
       MULTI_HIT_TABLE = {
         0: { twoHits: 0, threeHits: 0, fiveHits: 0 },
-        1: { twoHits: 5, threeHits: 1, fiveHits: 0 },
-        2: { twoHits: 10, threeHits: 3, fiveHits: 0 },
-        3: { twoHits: 15, threeHits: 5, fiveHits: 0 },
-        4: { twoHits: 23, threeHits: 8, fiveHits: 0 },
-        5: { twoHits: 35, threeHits: 12, fiveHits: 5 },
-        6: { twoHits: 50, threeHits: 20, fiveHits: 10 }
+        1: { twoHits: 10, threeHits: 0, fiveHits: 0 },
+        2: { twoHits: 20, threeHits: 10, fiveHits: 0 },
+        3: { twoHits: 40, threeHits: 20, fiveHits: 5 },
+        4: { twoHits: 60, threeHits: 30, fiveHits: 10 },
+        5: { twoHits: 80, threeHits: 50, fiveHits: 15 },
+        6: { twoHits: 100, threeHits: 70, fiveHits: 30 }
       };
       POINT_COOLDOWN_REDUCTION = {
         0: 1e4,
@@ -17952,11 +17952,11 @@ std_string_c_str (StdString * self)
           return new Promise((resolve, reject) => {
             frida_java_bridge_default.scheduleOnMainThread(() => {
               try {
+                Logger("Here 1 \u2014 Begin WebView setup");
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
                 const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
                 const View = frida_java_bridge_default.use("android.view.View");
-                Logger("Here 1");
                 const webview = WebView.$new(self.context);
                 webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
                 webview.setClickable(false);
@@ -17964,17 +17964,17 @@ std_string_c_str (StdString * self)
                 webview.setFocusable(false);
                 webview.setFocusableInTouchMode(false);
                 webview.setBackgroundColor(0);
-                Logger("Here 2");
+                Logger("Here 2 \u2014 WebView created");
                 const settings = webview.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
                 settings.setUseWideViewPort(true);
                 settings.setLoadWithOverviewMode(true);
-                Logger("Here 3");
+                Logger("Here 3 \u2014 WebView settings applied");
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
-                Logger("Here 4");
+                Logger("Here 4 \u2014 Layout created and WebView added");
                 const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                 const activity = UnityPlayer.currentActivity.value;
                 const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
@@ -17982,34 +17982,37 @@ std_string_c_str (StdString * self)
                 const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
                 const Gravity = frida_java_bridge_default.use("android.view.Gravity");
                 const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
-                Logger("Here 5");
-                const lp = WMLayoutParams.$new(-1, -1, 0);
-                lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
-                lp.format.value = PixelFormat.TRANSLUCENT.value;
-                const x = self.scaleX(baseX);
-                const y = self.scaleY(baseY);
-                Logger("Here 6");
-                lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
-                lp.x.value = x;
-                lp.y.value = y;
+                Logger("Here 5 \u2014 WindowManager acquired");
+                const lp = WMLayoutParams.$new();
+                lp.width = -1;
+                lp.height = -1;
+                lp.type = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
+                lp.format = PixelFormat.TRANSLUCENT.value;
+                const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
+                const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
+                lp.gravity = Gravity.TOP.value | Gravity.LEFT.value;
+                lp.x = x;
+                lp.y = y;
+                Logger("Here 6 \u2014 LayoutParams positioned");
                 const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                 const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                 const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                 const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                Logger("Here 7");
-                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
+                lp.flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                 if (touchPassthrough) {
-                  lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                  lp.flags |= FLAG_NOT_TOUCHABLE;
                 }
-                Logger("Here 8");
-                lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                Logger("Here 7 \u2014 Flags applied");
+                lp.token = activity.getWindow().getDecorView().getWindowToken();
+                Logger("Here 8 \u2014 Token assigned, calling addView\u2026");
                 wm.addView(layout, lp);
-                Logger("Here 9");
+                Logger("Here 9 \u2014 addView succeeded");
                 try {
                   layout.setZ(layer);
-                } catch (_) {
+                  Logger("Here 10 \u2014 Z-layer applied");
+                } catch (e) {
+                  Logger("Here 10 \u2014 Z-layer failed but safe to ignore");
                 }
-                Logger("Here 10");
                 const JSBridge = frida_java_bridge_default.registerClass({
                   name: "com.overlay.JSBridge_" + name,
                   methods: {
@@ -18041,7 +18044,7 @@ std_string_c_str (StdString * self)
                   }
                 });
                 webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-                Logger("Here 11");
+                Logger("Here 11 \u2014 JSBridge added");
                 const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
                 const URL = frida_java_bridge_default.use("java.net.URL");
                 const Scanner = frida_java_bridge_default.use("java.util.Scanner");
@@ -18074,7 +18077,7 @@ std_string_c_str (StdString * self)
                   }
                 });
                 Thread2.$new(RunnableImpl.$new()).start();
-                Logger("Here 12");
+                Logger("Here 12 \u2014 HTML fetch thread started");
                 self.overlays[name] = {
                   name,
                   webview,
@@ -18082,8 +18085,8 @@ std_string_c_str (StdString * self)
                   windowManager: wm,
                   windowLayoutParams: lp
                 };
+                Logger("Here 13 \u2014 Overlay stored");
                 resolve();
-                Logger("Here 13");
               } catch (e) {
                 Logger(`[Overlay] ERROR in createOverlay for "${name}": ${e}`);
                 reject(e);

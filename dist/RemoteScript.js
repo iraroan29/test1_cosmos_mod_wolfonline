@@ -17933,8 +17933,8 @@ std_string_c_str (StdString * self)
           this.BASE_WIDTH = 2400;
           this.BASE_HEIGHT = 1080;
           // Will be filled during initialize()
-          this.deviceWidth = 0;
-          this.deviceHeight = 0;
+          this.deviceWidth = this.BASE_WIDTH;
+          this.deviceHeight = this.BASE_HEIGHT;
           this.overlays = {};
           this.pendingMessages = {};
           this.htmlReady = {};
@@ -17947,14 +17947,6 @@ std_string_c_str (StdString * self)
           this.context = context;
         }
         createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
-          if (!this.deviceWidth || !this.deviceHeight) {
-            const DisplayMetrics = frida_java_bridge_default.use("android.util.DisplayMetrics");
-            const metrics = DisplayMetrics.$new();
-            this.context.getResources().getDisplayMetrics().value.copyTo(metrics);
-            this.deviceWidth = metrics.widthPixels.value;
-            this.deviceHeight = metrics.heightPixels.value;
-            Logger(`[Overlay] Device resolution detected: ${this.deviceWidth}x${this.deviceHeight}`);
-          }
           Logger(`[Overlay] createOverlay START for "${name}"`);
           const self = this;
           return new Promise((resolve, reject) => {

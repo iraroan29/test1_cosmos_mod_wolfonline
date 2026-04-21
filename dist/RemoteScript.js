@@ -17945,15 +17945,16 @@ std_string_c_str (StdString * self)
         }
         initialize(context) {
           this.context = context;
-          const Resources = frida_java_bridge_default.use("android.content.res.Resources");
-          const DisplayMetrics = frida_java_bridge_default.use("android.util.DisplayMetrics");
-          const metrics = DisplayMetrics.$new();
-          context.getResources().getDisplayMetrics().value.copyTo(metrics);
-          this.deviceWidth = metrics.widthPixels.value;
-          this.deviceHeight = metrics.heightPixels.value;
-          Logger(`[Overlay] Device resolution detected: ${this.deviceWidth}x${this.deviceHeight}`);
         }
         createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
+          if (!this.deviceWidth || !this.deviceHeight) {
+            const DisplayMetrics = frida_java_bridge_default.use("android.util.DisplayMetrics");
+            const metrics = DisplayMetrics.$new();
+            this.context.getResources().getDisplayMetrics().value.copyTo(metrics);
+            this.deviceWidth = metrics.widthPixels.value;
+            this.deviceHeight = metrics.heightPixels.value;
+            Logger(`[Overlay] Device resolution detected: ${this.deviceWidth}x${this.deviceHeight}`);
+          }
           Logger(`[Overlay] createOverlay START for "${name}"`);
           const self = this;
           return new Promise((resolve, reject) => {
@@ -18499,7 +18500,7 @@ std_string_c_str (StdString * self)
         await configManager.init();
         const context = frida_java_bridge_default.use("android.app.ActivityThread").currentApplication().getApplicationContext();
         Il2Cpp.perform(() => {
-          Logger(" 2   ------------");
+          Logger(" 3   ------------");
           OverlayManager.getInstance().initialize(context);
           SceneOverlayManager.getInstance().initialize();
           Logger("    ------------");

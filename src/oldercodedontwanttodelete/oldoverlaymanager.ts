@@ -208,63 +208,73 @@ export class OverlayManager {
                         const WindowManager = Java.use("android.view.WindowManager");
                         const WMLayoutParams = Java.use("android.view.WindowManager$LayoutParams");
                         const PixelFormat = Java.use("android.graphics.PixelFormat");
+                        const Gravity = Java.use("android.view.Gravity");
 
                         const wm = Java.cast(
                             activity.getSystemService("window"),
                             WindowManager
                         );
-
-                        // 1) Use ONLY raw ints in the ctor: (width, height, type)
-                        //    type = 0 (TYPE_APPLICATION) just to satisfy the signature
+                        // ---------------------------------------------------------
+                        // 1. Create LayoutParams using the SAME constructor
+                        //    your old working manager used.
+                        // ---------------------------------------------------------
                         const lp = WMLayoutParams.$new(
                             -1, // MATCH_PARENT
                             -1, // MATCH_PARENT
-                            0   // temporary type, will override below
+                            0   // temporary type (overridden below)
                         );
 
-                        // 2) Now set the real type, flags, and format on the instance
-                        lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
-
-                        // Get the values
-                        const FLAG_NOT_FOCUSABLE    = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
-                        const FLAG_NOT_TOUCHABLE    = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
-                        const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
-                        const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                        const FLAG_NOT_TOUCH_MODAL  = WMLayoutParams.FLAG_NOT_TOUCH_MODAL.value;
-
-                        // Base flags: Always allow the overlay to draw over the whole screen
-                        let flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
-
-                        if (touchPassthrough) {
-                            // State 1: Purely visual. Unity gets 100% of touches.
-                            flags |= FLAG_NOT_TOUCHABLE;
-                        } else {
-                            // State 2: Hybrid. 
-                            // FLAG_NOT_TOUCH_MODAL tells Android: 
-                            // "If a touch happens OUTSIDE the view bounds, send it to the window behind (Unity)."
-                            // NOTE: Since your WebView is MATCH_PARENT, this flag alone isn't enough,
-                            // which is why we use the JSBridge to toggle FLAG_NOT_TOUCHABLE dynamically.
-                            flags |= FLAG_NOT_TOUCH_MODAL | FLAG_NOT_TOUCHABLE; 
-                        }
-
-                        lp.flags.value = flags;
-
-
-
+                        // Set required fields using .value (old behavior)
+                        lp.type.value   = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                         lp.format.value = PixelFormat.TRANSLUCENT.value;
 
-                        // 3) Attach to Unity's window
+                        // Minimal flags BEFORE attach (old behavior)
+                        const FLAG_NOT_FOCUSABLE    = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
+                        const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
+                        const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
+                        const FLAG_NOT_TOUCHABLE    = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
+
+                        lp.flags.value =
+                            FLAG_LAYOUT_IN_SCREEN |
+                            FLAG_LAYOUT_NO_LIMITS |
+                            FLAG_NOT_FOCUSABLE;
+
+                        // Positioning (if you add scaling later)
+                        lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
+                        lp.x.value = 0;
+                        lp.y.value = 0;
+
+                        // Token BEFORE attach (old behavior)
                         lp.token.value = activity.getWindow().getDecorView().getWindowToken();
 
+                        Logger("[Overlay] Attaching layout with minimal flags…");
+
+                        // ---------------------------------------------------------
+                        // 2. Attach window using the SAME addView call
+                        //    your old manager used (interface dispatch).
+                        // ---------------------------------------------------------
                         const ViewManager = Java.use("android.view.ViewManager");
                         ViewManager.addView
                             .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
                             .call(wm, layout, lp);
 
+                        Logger("[Overlay] addView succeeded");
 
-                        Logger("[Overlay] Layout attached via WindowManager as NOT_TOUCHABLE overlay");
+                        // ---------------------------------------------------------
+                        // 3. Apply NOT_TOUCHABLE AFTER attach (critical)
+                        // ---------------------------------------------------------
+                        if (touchPassthrough) {
+                            Logger("[Overlay] Applying NOT_TOUCHABLE after attach");
+                            lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                            wm.updateViewLayout(layout, lp);
+                        }
+
+                        // ---------------------------------------------------------
+                        // 4. Add JSBridge AFTER attach (old behavior)
+                        // ---------------------------------------------------------
                         webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
                         Logger("[Overlay] JS interface added");
+                        
                     } catch (e) {
                         Logger("[Overlay] ERROR attaching layout via WindowManager: " + e);
                     }

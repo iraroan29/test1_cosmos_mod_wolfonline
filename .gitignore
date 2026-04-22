@@ -1,20 +1,25 @@
 # Ignore everything in the root
-/*
+# /*
 
-# Allow src folder so we can selectively ignore inside it
-!src/
+# # Allow src folder so we can selectively ignore inside it
+# !src/
 
-# Ignore ONLY .ts files under src
-src/**/*.ts
+# # Ignore ONLY .ts files under src
+# src/**/*.ts
 
-# Allow dist folder
-!dist/
+# # Allow dist folder
+# !dist/
 
-# Ignore everything inside dist
-dist/**
+# # Ignore everything inside dist
+# dist/**
 
-# Keep only RemoteScript.js inside dist
-!dist/RemoteScript.js
+# # Keep only RemoteScript.js inside dist
+# !dist/RemoteScript.js
+
+
+
+# Ignore node_modules
+node_modules/
 
 # Keep .gitignore tracked
 !.gitignore

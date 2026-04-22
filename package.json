@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "frida-il2cpp-bridge": "^0.12.0",
+    "frida-java-bridge": "^7.0.13"
+  },
+  "devDependencies": {
+    "@types/frida-gum": "^19.0.2",
+    "@types/node": "^25.5.0",
+    "frida-compile": "^19.0.5",
+    "typescript": "^6.0.2"
+  },
+  "name": "publicfridawo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "buildRemote": "npx esbuild ./src/RemoteScript.ts --bundle --outfile=./dist/RemoteScript.js --format=iife --platform=browser --target=es2020 --minify-whitespace=false",
+    "buildLocal": "frida-compile ./src/LocalScriptLoader.ts -o ./dist/libfrida-gadget.script.so",
+    "publish": "npm run buildRemote && git add ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

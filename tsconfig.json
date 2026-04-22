@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "commonjs",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": ["es2021"],
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist",
+
+    "moduleResolution": "bundler",
+    "paths": {
+      "ConfigHelper": ["./config/ConfigHelper.ts"]
+    }
+  },
+  "include": ["src/**/*"]
+}

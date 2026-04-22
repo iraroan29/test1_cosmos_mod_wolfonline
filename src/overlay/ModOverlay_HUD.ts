@@ -13,7 +13,7 @@ export class ModOverlay_HUD {
 
     constructor(url: string) {
         (async () => {
-            await OverlayManager.getInstance().createOverlay(ModOverlay_HUD.OVERLAY_NAME, url, false);
+            await OverlayManager.getInstance().createOverlay(ModOverlay_HUD.OVERLAY_NAME, url, true);
 
             Logger("[ModOverlay HUD] Overlay created, now registering scenes");
 

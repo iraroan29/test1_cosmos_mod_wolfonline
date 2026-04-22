@@ -18385,7 +18385,7 @@ std_string_c_str (StdString * self)
       _ModOverlay_HUD = class _ModOverlay_HUD {
         constructor(url) {
           (async () => {
-            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, false);
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
             Logger("[ModOverlay HUD] Overlay created, now registering scenes");
             SceneOverlayManager.getInstance().registerOverlayScenes(
               _ModOverlay_HUD.OVERLAY_NAME,

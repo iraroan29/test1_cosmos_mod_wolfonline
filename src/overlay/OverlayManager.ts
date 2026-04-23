@@ -185,6 +185,10 @@ export class OverlayManager {
                                         if (data.type === "READY") {
                                             self.onHtmlReady(data.overlay);
                                         }
+                                        if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
+                                            const js = `initStats(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
+                                            OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                                        }
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);
                                     }

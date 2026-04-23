@@ -17665,224 +17665,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/overlay/OverlayManager.ts
-  var OverlayManager;
-  var init_OverlayManager = __esm({
-    "src/overlay/OverlayManager.ts"() {
-      init_frida_java_bridge();
-      OverlayManager = class _OverlayManager {
-        constructor() {
-          // Your testing device resolution (set these to YOUR device)
-          this.BASE_WIDTH = 2400;
-          this.BASE_HEIGHT = 1080;
-          // Will be filled during initialize()
-          this.deviceWidth = this.BASE_WIDTH;
-          this.deviceHeight = this.BASE_HEIGHT;
-          this.overlays = {};
-          this.pendingMessages = {};
-          this.htmlReady = {};
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _OverlayManager();
-          return this.instance;
-        }
-        initialize(context) {
-          this.context = context;
-        }
-        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
-          Logger(`[Overlay] createOverlay START for "${name}"`);
-          const self = this;
-          return new Promise((resolve, reject) => {
-            frida_java_bridge_default.scheduleOnMainThread(() => {
-              try {
-                Logger("Here 1 \u2014 Begin WebView setup");
-                const WebView = frida_java_bridge_default.use("android.webkit.WebView");
-                const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
-                const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
-                const View = frida_java_bridge_default.use("android.view.View");
-                const webview = WebView.$new(self.context);
-                webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
-                webview.setClickable(false);
-                webview.setLongClickable(false);
-                webview.setFocusable(false);
-                webview.setFocusableInTouchMode(false);
-                webview.setBackgroundColor(0);
-                Logger("Here 2 \u2014 WebView created");
-                const settings = webview.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                settings.setUseWideViewPort(true);
-                settings.setLoadWithOverviewMode(true);
-                Logger("Here 3 \u2014 WebView settings applied");
-                const layout = FrameLayout.$new(self.context);
-                const flParams = FrameLayoutParams.$new(-1, -1);
-                layout.addView(webview, flParams);
-                Logger("Here 4 \u2014 Layout created and WebView added");
-                const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
-                const activity = UnityPlayer.currentActivity.value;
-                const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
-                const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
-                const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
-                const Gravity = frida_java_bridge_default.use("android.view.Gravity");
-                const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
-                Logger("Here 5 \u2014 WindowManager acquired");
-                const lp = WMLayoutParams.$new(-1, -1, 0);
-                lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
-                lp.format.value = PixelFormat.TRANSLUCENT.value;
-                const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
-                const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
-                lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
-                lp.x.value = x;
-                lp.y.value = y;
-                Logger("Here 6 \u2014 LayoutParams positioned");
-                const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
-                const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
-                const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
-                const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
-                if (touchPassthrough) {
-                  lp.flags.value |= FLAG_NOT_TOUCHABLE;
-                }
-                Logger("Here 7 \u2014 Flags applied");
-                lp.token.value = activity.getWindow().getDecorView().getWindowToken();
-                Logger("Here 8 \u2014 Token assigned, calling addView\u2026");
-                const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
-                ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
-                Logger("Here 9 \u2014 addView succeeded");
-                try {
-                  layout.setZ(layer);
-                  Logger("Here 10 \u2014 Z-layer applied");
-                } catch (e) {
-                  Logger("Here 10 \u2014 Z-layer failed but safe");
-                }
-                const JSBridge = frida_java_bridge_default.registerClass({
-                  name: "com.overlay.JSBridge_" + name,
-                  methods: {
-                    sendToMod: {
-                      returnType: "void",
-                      argumentTypes: ["java.lang.String"],
-                      implementation: function(jsonString) {
-                        try {
-                          const data = JSON.parse(jsonString);
-                          if (data.type === "READY") {
-                            self.onHtmlReady(data.overlay);
-                          }
-                        } catch (e) {
-                          Logger("[Overlay] Bridge Error: " + e);
-                        }
-                      }
-                    },
-                    resizeOverlay: {
-                      returnType: "void",
-                      argumentTypes: ["int", "int"],
-                      implementation: function(w, h) {
-                        _OverlayManager.getInstance().resizeWindow(name, w, h);
-                      }
-                    }
-                  }
-                });
-                webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-                Logger("Here 11 \u2014 JSBridge added");
-                const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
-                const URL = frida_java_bridge_default.use("java.net.URL");
-                const Scanner = frida_java_bridge_default.use("java.util.Scanner");
-                const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
-                const RunnableImpl = frida_java_bridge_default.registerClass({
-                  name: "com.overlay.RunnableFetch_" + name,
-                  implements: [frida_java_bridge_default.use("java.lang.Runnable")],
-                  methods: {
-                    run: function() {
-                      try {
-                        const u = URL.$new(url);
-                        const stream = u.openStream();
-                        const scanner = Scanner.$new(stream, "UTF-8");
-                        scanner.useDelimiter(Pattern.quote("\\A"));
-                        const html = scanner.hasNext() ? scanner.next() : "";
-                        scanner.close();
-                        frida_java_bridge_default.scheduleOnMainThread(() => {
-                          webview.loadDataWithBaseURL(
-                            "file:///android_asset/",
-                            html,
-                            "text/html; charset=UTF-8",
-                            "UTF-8",
-                            null
-                          );
-                        });
-                      } catch (e) {
-                        Logger("[Overlay] HTML fetch error: " + e);
-                      }
-                    }
-                  }
-                });
-                Thread2.$new(RunnableImpl.$new()).start();
-                Logger("Here 12 \u2014 HTML fetch thread started");
-                self.overlays[name] = {
-                  name,
-                  webview,
-                  layout,
-                  windowManager: wm,
-                  windowLayoutParams: lp
-                };
-                Logger("Here 13 \u2014 Overlay stored");
-                resolve();
-              } catch (e) {
-                Logger(`[Overlay] ERROR in createOverlay for "${name}": ${e}`);
-                reject(e);
-              }
-            });
-          });
-        }
-        resizeWindow(name, width, height) {
-          const overlay = this.overlays[name];
-          if (!overlay) return;
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            try {
-              overlay.windowLayoutParams.width = width;
-              overlay.windowLayoutParams.height = height;
-              overlay.windowManager.updateViewLayout(
-                overlay.layout,
-                overlay.windowLayoutParams
-              );
-              Logger(`[Overlay] Window resized for "${name}" to ${width}x${height}`);
-            } catch (e) {
-              Logger(`[Overlay] resizeWindow ERROR for "${name}": ${e}`);
-            }
-          });
-        }
-        // Scale X from base device → current device
-        scaleX(baseX) {
-          return Math.round(baseX * (this.deviceWidth / this.BASE_WIDTH));
-        }
-        // Scale Y from base device → current device
-        scaleY(baseY) {
-          return Math.round(baseY * (this.deviceHeight / this.BASE_HEIGHT));
-        }
-        getOverlay(name) {
-          return this.overlays[name];
-        }
-        sendToHtml(id, js) {
-          const overlay = this.overlays[id];
-          if (!overlay || !overlay.webview) return;
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            try {
-              overlay.webview.evaluateJavascript(js, null);
-            } catch (e) {
-              Logger(`[Overlay] evaluateJavascript error: ${e}`);
-            }
-          });
-        }
-        onHtmlReady(id) {
-          this.htmlReady[id] = true;
-          Logger(`[Overlay] ${id} signaled READY. Flushing ${this.pendingMessages[id]?.length || 0} messages.`);
-          (this.pendingMessages[id] || []).forEach((js) => {
-            this.sendToHtml(id, js);
-          });
-          this.pendingMessages[id] = [];
-        }
-      };
-    }
-  });
-
   // src/overlay/BossBattleOverlay.ts
   var _BossBattleOverlay, BossBattleOverlay;
   var init_BossBattleOverlay = __esm({
@@ -18061,6 +17843,302 @@ std_string_c_str (StdString * self)
               overlay.layout.setVisibility(shouldShow ? 0 : 4);
             });
           });
+        }
+      };
+    }
+  });
+
+  // src/overlay/ModOverlay_HUD.ts
+  var _ModOverlay_HUD, ModOverlay_HUD;
+  var init_ModOverlay_HUD = __esm({
+    "src/overlay/ModOverlay_HUD.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_HUD = class _ModOverlay_HUD {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
+            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_HUD.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+            _ModOverlay_HUD.TIER = configManager.get("currentTier");
+            _ModOverlay_HUD.AID = configManager.get("aidScore");
+            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
+            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
+          })();
+        }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        bannerMessage(message, negativeAffect = false) {
+          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
+      };
+      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
+      _ModOverlay_HUD.TIER = 0;
+      _ModOverlay_HUD.AID = 0;
+      _ModOverlay_HUD.HONOR = 0;
+      _ModOverlay_HUD.DEATHTIER = 0;
+      ModOverlay_HUD = _ModOverlay_HUD;
+      configManager.onUpdate("currentTier", (tier) => {
+        const js = `setTierByValue(${tier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("currentDeathTier", (deathTier) => {
+        const js = `setDeathTier(${deathTier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("honorScore", (honor) => {
+        const js = `setHonor(${honor});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("aidScore", (aid) => {
+        const js = `setAid(${aid});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+    }
+  });
+
+  // src/overlay/OverlayManager.ts
+  var OverlayManager;
+  var init_OverlayManager = __esm({
+    "src/overlay/OverlayManager.ts"() {
+      init_frida_java_bridge();
+      init_ConfigManager();
+      init_ModOverlay_HUD();
+      OverlayManager = class _OverlayManager {
+        constructor() {
+          // Your testing device resolution (set these to YOUR device)
+          this.BASE_WIDTH = 2400;
+          this.BASE_HEIGHT = 1080;
+          // Will be filled during initialize()
+          this.deviceWidth = this.BASE_WIDTH;
+          this.deviceHeight = this.BASE_HEIGHT;
+          this.overlays = {};
+          this.pendingMessages = {};
+          this.htmlReady = {};
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _OverlayManager();
+          return this.instance;
+        }
+        initialize(context) {
+          this.context = context;
+        }
+        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
+          Logger(`[Overlay] createOverlay START for "${name}"`);
+          const self = this;
+          return new Promise((resolve, reject) => {
+            frida_java_bridge_default.scheduleOnMainThread(() => {
+              try {
+                Logger("Here 1 \u2014 Begin WebView setup");
+                const WebView = frida_java_bridge_default.use("android.webkit.WebView");
+                const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
+                const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
+                const View = frida_java_bridge_default.use("android.view.View");
+                const webview = WebView.$new(self.context);
+                webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
+                webview.setClickable(false);
+                webview.setLongClickable(false);
+                webview.setFocusable(false);
+                webview.setFocusableInTouchMode(false);
+                webview.setBackgroundColor(0);
+                Logger("Here 2 \u2014 WebView created");
+                const settings = webview.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setUseWideViewPort(true);
+                settings.setLoadWithOverviewMode(true);
+                Logger("Here 3 \u2014 WebView settings applied");
+                const layout = FrameLayout.$new(self.context);
+                const flParams = FrameLayoutParams.$new(-1, -1);
+                layout.addView(webview, flParams);
+                Logger("Here 4 \u2014 Layout created and WebView added");
+                const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
+                const activity = UnityPlayer.currentActivity.value;
+                const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
+                const WMLayoutParams = frida_java_bridge_default.use("android.view.WindowManager$LayoutParams");
+                const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
+                const Gravity = frida_java_bridge_default.use("android.view.Gravity");
+                const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
+                Logger("Here 5 \u2014 WindowManager acquired");
+                const lp = WMLayoutParams.$new(-1, -1, 0);
+                lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
+                lp.format.value = PixelFormat.TRANSLUCENT.value;
+                const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
+                const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
+                lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
+                lp.x.value = x;
+                lp.y.value = y;
+                Logger("Here 6 \u2014 LayoutParams positioned");
+                const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
+                const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
+                const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
+                const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
+                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
+                if (touchPassthrough) {
+                  lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                }
+                Logger("Here 7 \u2014 Flags applied");
+                lp.token.value = activity.getWindow().getDecorView().getWindowToken();
+                Logger("Here 8 \u2014 Token assigned, calling addView\u2026");
+                const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
+                ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
+                Logger("Here 9 \u2014 addView succeeded");
+                try {
+                  layout.setZ(layer);
+                  Logger("Here 10 \u2014 Z-layer applied");
+                } catch (e) {
+                  Logger("Here 10 \u2014 Z-layer failed but safe");
+                }
+                const JSBridge = frida_java_bridge_default.registerClass({
+                  name: "com.overlay.JSBridge_" + name,
+                  methods: {
+                    sendToMod: {
+                      returnType: "void",
+                      argumentTypes: ["java.lang.String"],
+                      implementation: function(jsonString) {
+                        try {
+                          const data = JSON.parse(jsonString);
+                          if (data.type === "READY") {
+                            self.onHtmlReady(data.overlay);
+                          }
+                          if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
+                            const js = `initStats(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
+                            _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                          }
+                        } catch (e) {
+                          Logger("[Overlay] Bridge Error: " + e);
+                        }
+                      }
+                    },
+                    resizeOverlay: {
+                      returnType: "void",
+                      argumentTypes: ["int", "int"],
+                      implementation: function(w, h) {
+                        _OverlayManager.getInstance().resizeWindow(name, w, h);
+                      }
+                    }
+                  }
+                });
+                webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
+                Logger("Here 11 \u2014 JSBridge added");
+                const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
+                const URL = frida_java_bridge_default.use("java.net.URL");
+                const Scanner = frida_java_bridge_default.use("java.util.Scanner");
+                const Pattern = frida_java_bridge_default.use("java.util.regex.Pattern");
+                const RunnableImpl = frida_java_bridge_default.registerClass({
+                  name: "com.overlay.RunnableFetch_" + name,
+                  implements: [frida_java_bridge_default.use("java.lang.Runnable")],
+                  methods: {
+                    run: function() {
+                      try {
+                        const u = URL.$new(url);
+                        const stream = u.openStream();
+                        const scanner = Scanner.$new(stream, "UTF-8");
+                        scanner.useDelimiter(Pattern.quote("\\A"));
+                        const html = scanner.hasNext() ? scanner.next() : "";
+                        scanner.close();
+                        frida_java_bridge_default.scheduleOnMainThread(() => {
+                          webview.loadDataWithBaseURL(
+                            "file:///android_asset/",
+                            html,
+                            "text/html; charset=UTF-8",
+                            "UTF-8",
+                            null
+                          );
+                        });
+                      } catch (e) {
+                        Logger("[Overlay] HTML fetch error: " + e);
+                      }
+                    }
+                  }
+                });
+                Thread2.$new(RunnableImpl.$new()).start();
+                Logger("Here 12 \u2014 HTML fetch thread started");
+                self.overlays[name] = {
+                  name,
+                  webview,
+                  layout,
+                  windowManager: wm,
+                  windowLayoutParams: lp
+                };
+                Logger("Here 13 \u2014 Overlay stored");
+                resolve();
+              } catch (e) {
+                Logger(`[Overlay] ERROR in createOverlay for "${name}": ${e}`);
+                reject(e);
+              }
+            });
+          });
+        }
+        resizeWindow(name, width, height) {
+          const overlay = this.overlays[name];
+          if (!overlay) return;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              overlay.windowLayoutParams.width = width;
+              overlay.windowLayoutParams.height = height;
+              overlay.windowManager.updateViewLayout(
+                overlay.layout,
+                overlay.windowLayoutParams
+              );
+              Logger(`[Overlay] Window resized for "${name}" to ${width}x${height}`);
+            } catch (e) {
+              Logger(`[Overlay] resizeWindow ERROR for "${name}": ${e}`);
+            }
+          });
+        }
+        // Scale X from base device → current device
+        scaleX(baseX) {
+          return Math.round(baseX * (this.deviceWidth / this.BASE_WIDTH));
+        }
+        // Scale Y from base device → current device
+        scaleY(baseY) {
+          return Math.round(baseY * (this.deviceHeight / this.BASE_HEIGHT));
+        }
+        getOverlay(name) {
+          return this.overlays[name];
+        }
+        sendToHtml(id, js) {
+          const overlay = this.overlays[id];
+          if (!overlay || !overlay.webview) return;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              overlay.webview.evaluateJavascript(js, null);
+            } catch (e) {
+              Logger(`[Overlay] evaluateJavascript error: ${e}`);
+            }
+          });
+        }
+        onHtmlReady(id) {
+          this.htmlReady[id] = true;
+          Logger(`[Overlay] ${id} signaled READY. Flushing ${this.pendingMessages[id]?.length || 0} messages.`);
+          (this.pendingMessages[id] || []).forEach((js) => {
+            this.sendToHtml(id, js);
+          });
+          this.pendingMessages[id] = [];
         }
       };
     }
@@ -18371,78 +18449,6 @@ std_string_c_str (StdString * self)
         ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
         ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
       ]);
-    }
-  });
-
-  // src/overlay/ModOverlay_HUD.ts
-  var _ModOverlay_HUD, ModOverlay_HUD;
-  var init_ModOverlay_HUD = __esm({
-    "src/overlay/ModOverlay_HUD.ts"() {
-      init_ConfigManager();
-      init_playerWolfStore();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _ModOverlay_HUD = class _ModOverlay_HUD {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
-            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _ModOverlay_HUD.OVERLAY_NAME,
-              Object.keys({
-                "WolfOnline_Map_Snow": true,
-                "WolfOnline_Map_Snow_Guardian": true,
-                "WolfOnline_Map_Mountain": true,
-                "WolfOnline_Map_Mountain_Guardian": true,
-                "WolfOnline_Map_Wild": true,
-                "WolfOnline_Map_Wild_Guardian": true,
-                "WolfOnline_Map_Lava": true,
-                "WolfOnline_Map_Fish": true,
-                "WolfOnline_Map_BlackTiger": true,
-                "WolfOnline_Map_Wild_Dog": true,
-                "WolfOnline_Map_Field": true,
-                "WolfOnline_Map_Hellgate_0": true,
-                "WolfOnline_Map_WolfAndDino": true
-              }),
-              () => isPlayerActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-            _ModOverlay_HUD.TIER = configManager.get("currentTier");
-            _ModOverlay_HUD.AID = configManager.get("aidScore");
-            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
-            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
-          })();
-        }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        bannerMessage(message, negativeAffect = false) {
-          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
-          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
-        }
-      };
-      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
-      _ModOverlay_HUD.TIER = 0;
-      _ModOverlay_HUD.AID = 0;
-      _ModOverlay_HUD.HONOR = 0;
-      _ModOverlay_HUD.DEATHTIER = 0;
-      ModOverlay_HUD = _ModOverlay_HUD;
-      configManager.onUpdate("currentTier", (tier) => {
-        const js = `setTierByValue(${tier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("currentDeathTier", (deathTier) => {
-        const js = `setDeathTier(${deathTier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("honorScore", (honor) => {
-        const js = `setHonor(${honor});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("aidScore", (aid) => {
-        const js = `setAid(${aid});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
     }
   });
 

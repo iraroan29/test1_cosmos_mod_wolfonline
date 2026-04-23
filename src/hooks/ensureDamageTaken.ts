@@ -1,4 +1,5 @@
 import { configManager } from "../config/ConfigManager";
+import { ModOverlay_HUD } from "../overlay/ModOverlay_HUD";
 
 export function ensureDamageTaken() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -25,8 +26,9 @@ export function ensureDamageTaken() {
         if(dmgHp <= 0){
             let roll = Math.floor(Math.random() * 101); // 0 -> 100
             Logger("[*] Resurrection Roll >> " + roll.toString());
-            if(roll <= 100){//configManager.get('deathTierInfo').resurrection){
+            if(roll <= configManager.get('deathTierInfo').resurrection){
                 // Reset hp to max and don't get damage, sill counts towards death
+                ModOverlay_HUD.actionMessage("Resurrected!")
                 configManager.incrementScore('deathScore');
                 this.field<number>("hp").value = maxHp;
                 return;

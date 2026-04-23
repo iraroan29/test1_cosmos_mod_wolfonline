@@ -1,4 +1,5 @@
 import { configManager } from "../config/ConfigManager";
+import { ModOverlay_HUD } from "../overlay/ModOverlay_HUD";
 
 export function multiAttack() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -21,6 +22,10 @@ export function multiAttack() {
         if(roll <= multiHit.twoHits) hits = 2;
         if(roll <= multiHit.threeHits) hits = 3;
         if(roll <= multiHit.fiveHits) hits = 5;
+
+        if(hits > 1){
+            ModOverlay_HUD.actionMessage(`Multi-Hit x${hits}!`)
+        }
 
         for(let i = 0; i < hits; i++){
             this.method("Send_Damage").invoke(hunted);

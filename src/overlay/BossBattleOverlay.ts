@@ -24,9 +24,4 @@ export class BossBattleOverlay {
         })();
     }
 
-    // Optional: TS → HTML health update (HTML handles visuals)
-    updateHealth(current: number, max: number) {
-        const js = `updateHealth(${current}, ${max});`;
-        OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
-    }
 }

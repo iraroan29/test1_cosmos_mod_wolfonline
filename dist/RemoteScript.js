@@ -17576,350 +17576,6 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/hooks/ensureDamageTaken.ts
-  function ensureDamageTaken() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for ensureDamageTaken, retrying...");
-      setTimeout(ensureDamageTaken, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const Player_Wolf = AssemblyC.class("Player_Wolf");
-    Player_Wolf.method("Damage").implementation = function(damageAmount) {
-      const hp = this.field("hp").value;
-      if (hp < 0) {
-        this.field("hp").value = 1;
-        return this.method("Damage").invoke(damageAmount);
-      }
-      const dmgHp = hp - Math.min(4.75, damageAmount);
-      const maxHp = this.field("hpmax").value;
-      if (dmgHp <= 0) {
-        let roll = Math.floor(Math.random() * 101);
-        Logger("[*] Resurrection Roll >> " + roll.toString());
-        if (roll <= 100) {
-          configManager.incrementScore("deathScore");
-          this.field("hp").value = maxHp;
-          return;
-        }
-      }
-      return this.method("Damage").invoke(damageAmount);
-    };
-    Logger("[+] ensureDamageTaken successfully initialized!");
-  }
-  var init_ensureDamageTaken = __esm({
-    "src/hooks/ensureDamageTaken.ts"() {
-      init_ConfigManager();
-    }
-  });
-
-  // src/hooks/death.ts
-  function deathCounter() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for deathCounter, retrying...");
-      setTimeout(deathCounter, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const RPC_Damage = AssemblyC.class("RPC_Damage");
-    RPC_Damage.method("Last_Damage").implementation = function() {
-      configManager.incrementScore("deathScore");
-      configManager.decrementScore("honorScore", configManager.get("deathTierInfo").honorReduction);
-      return this.method("Last_Damage").invoke();
-    };
-    Logger("[+] deathCounter successfully initialized!");
-  }
-  var init_death = __esm({
-    "src/hooks/death.ts"() {
-      init_ConfigManager();
-    }
-  });
-
-  // src/hooks/multi_attack.ts
-  function multiAttack() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for multiAttack, retrying...");
-      setTimeout(multiAttack, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const RPC_Damage = AssemblyC.class("RPC_Damage");
-    RPC_Damage.method("Send_Damage").implementation = function(hunted) {
-      let hits = 1;
-      const multiHit = configManager.get("multiHit");
-      let roll = Math.floor(Math.random() * 101);
-      if (roll <= multiHit.twoHits) hits = 2;
-      if (roll <= multiHit.threeHits) hits = 3;
-      if (roll <= multiHit.fiveHits) hits = 5;
-      for (let i = 0; i < hits; i++) {
-        this.method("Send_Damage").invoke(hunted);
-      }
-    };
-    Logger("[+] multiAttack successfully initialized!");
-  }
-  var init_multi_attack = __esm({
-    "src/hooks/multi_attack.ts"() {
-      init_ConfigManager();
-    }
-  });
-
-  // src/overlay/BossBattleOverlay.ts
-  var _BossBattleOverlay, BossBattleOverlay;
-  var init_BossBattleOverlay = __esm({
-    "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _BossBattleOverlay = class _BossBattleOverlay {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
-            Logger("[BossOverlay] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _BossBattleOverlay.OVERLAY_NAME,
-              Object.keys(BossRegistry.bossScenes),
-              () => isBossActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          })();
-        }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        updateHealth(current, max) {
-          const js = `updateHealth(${current}, ${max});`;
-          OverlayManager.getInstance().sendToHtml(_BossBattleOverlay.OVERLAY_NAME, js);
-        }
-      };
-      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
-      BossBattleOverlay = _BossBattleOverlay;
-    }
-  });
-
-  // src/helpers/bossRegistry.ts
-  function isBossActive() {
-    return boss !== null;
-  }
-  var boss, bossHp, bossMaxHp, BossRegistry;
-  var init_bossRegistry = __esm({
-    "src/helpers/bossRegistry.ts"() {
-      init_BossBattleOverlay();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      boss = null;
-      bossHp = 0;
-      bossMaxHp = 0;
-      BossRegistry = {
-        // Maps that have bosses
-        bossScenes: {
-          "WolfOnline_Map_Lava": true,
-          "WolfOnline_Map_Wild_Guardian": true,
-          "WolfOnline_Map_Mountain_Guardian": true,
-          "WolfOnline_Map_Snow_Guardian": true
-        },
-        bossCorrectMap: {
-          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
-          "Dragon_High": "WolfOnline_Map_Lava",
-          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
-          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
-        },
-        /** Called when boss spawns */
-        setBoss(obj, sceneName) {
-          Logger("got into setBoss");
-          boss = obj;
-          Logger("set the boss");
-          bossMaxHp = obj.field("health_Max").value;
-          bossHp = obj.field("health").value;
-          Logger("After setting boss stats 32523");
-          OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
-          );
-          Logger("Made it past sendToHtml");
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-          );
-          Logger("Made it past overly visibility update");
-        },
-        /** Called when boss dies */
-        clearBoss() {
-          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
-          boss = null;
-          bossHp = 0;
-          bossMaxHp = 0;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
-          );
-        },
-        /** HTML calls this when damage is dealt */
-        dealDamage(amount, critHit) {
-          if (!boss) return;
-          bossHp -= amount;
-          if (bossHp < 0) bossHp = 0;
-          OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `dealDamage(${amount}, ${critHit});`
-          );
-        },
-        /** Returns true if this scene has a boss */
-        hasBossForScene(scene) {
-          return this.bossScenes.hasOwnProperty(scene);
-        },
-        /** Returns true if boss exists AND scene has a boss */
-        isBossActive(scene) {
-          Logger("Boss active? " + BossRegistry.isBossActive(scene));
-          Logger("boss value: " + boss);
-          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
-          return this.hasBossForScene(scene) && boss !== null;
-        }
-      };
-    }
-  });
-
-  // src/overlay/SceneOverlayManager.ts
-  var SceneOverlayManager;
-  var init_SceneOverlayManager = __esm({
-    "src/overlay/SceneOverlayManager.ts"() {
-      init_frida_java_bridge();
-      init_bossRegistry();
-      init_OverlayManager();
-      init_playerWolfStore();
-      SceneOverlayManager = class _SceneOverlayManager {
-        constructor() {
-          this.initialized = false;
-          this.lastScene = "";
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _SceneOverlayManager();
-          return this.instance;
-        }
-        initialize() {
-          if (this.initialized) return;
-          this.initialized = true;
-          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-          if (!core) {
-            Logger("[!] Unity not ready for SceneOverlayManager");
-            return;
-          }
-          const UnityCoreImage = core.image;
-          const AssemblyC = assemblyC.image;
-          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
-          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
-          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
-            const sceneName = scene.method("get_name").invoke().content;
-            _SceneOverlayManager.currentScene = sceneName;
-            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            return this.method("Internal_SceneLoaded").invoke(scene, mode);
-          };
-          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
-            BossRegistry.clearBoss();
-            SharedState.realBody = null;
-            setPlayer(null);
-            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
-          };
-          Logger("[*] SceneOverlayManager - Scene hooks installed");
-        }
-        registerOverlayScenes(overlayName, scenes, condition) {
-          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
-          if (overlay) {
-            overlay.scenes = scenes;
-            overlay.condition = condition || null;
-          }
-          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
-        }
-        onSceneChanged(sceneName) {
-          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
-          this.lastScene = sceneName;
-          const overlayManager = OverlayManager.getInstance();
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            Object.values(overlayManager["overlays"]).forEach((overlay) => {
-              if (!overlay.scenes) return;
-              const sceneMatch = overlay.scenes.includes(sceneName);
-              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-              const shouldShow = sceneMatch && conditionMatch;
-              overlay.layout.setVisibility(shouldShow ? 0 : 4);
-            });
-          });
-        }
-      };
-    }
-  });
-
-  // src/overlay/ModOverlay_HUD.ts
-  var _ModOverlay_HUD, ModOverlay_HUD;
-  var init_ModOverlay_HUD = __esm({
-    "src/overlay/ModOverlay_HUD.ts"() {
-      init_ConfigManager();
-      init_playerWolfStore();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _ModOverlay_HUD = class _ModOverlay_HUD {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
-            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _ModOverlay_HUD.OVERLAY_NAME,
-              Object.keys({
-                "WolfOnline_Map_Snow": true,
-                "WolfOnline_Map_Snow_Guardian": true,
-                "WolfOnline_Map_Mountain": true,
-                "WolfOnline_Map_Mountain_Guardian": true,
-                "WolfOnline_Map_Wild": true,
-                "WolfOnline_Map_Wild_Guardian": true,
-                "WolfOnline_Map_Lava": true,
-                "WolfOnline_Map_Fish": true,
-                "WolfOnline_Map_BlackTiger": true,
-                "WolfOnline_Map_Wild_Dog": true,
-                "WolfOnline_Map_Field": true,
-                "WolfOnline_Map_Hellgate_0": true,
-                "WolfOnline_Map_WolfAndDino": true
-              }),
-              () => isPlayerActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-            _ModOverlay_HUD.TIER = configManager.get("currentTier");
-            _ModOverlay_HUD.AID = configManager.get("aidScore");
-            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
-            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
-          })();
-        }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        bannerMessage(message, negativeAffect = false) {
-          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
-          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
-        }
-      };
-      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
-      _ModOverlay_HUD.TIER = 0;
-      _ModOverlay_HUD.AID = 0;
-      _ModOverlay_HUD.HONOR = 0;
-      _ModOverlay_HUD.DEATHTIER = 0;
-      ModOverlay_HUD = _ModOverlay_HUD;
-      configManager.onUpdate("currentTier", (tier) => {
-        const js = `setTierByValue(${tier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("currentDeathTier", (deathTier) => {
-        const js = `setDeathTier(${deathTier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("honorScore", (honor) => {
-        const js = `setHonor(${honor});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("aidScore", (aid) => {
-        const js = `setAid(${aid});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-    }
-  });
-
   // src/overlay/OverlayManager.ts
   var OverlayManager;
   var init_OverlayManager = __esm({
@@ -18141,6 +17797,382 @@ std_string_c_str (StdString * self)
           this.pendingMessages[id] = [];
         }
       };
+    }
+  });
+
+  // src/overlay/BossBattleOverlay.ts
+  var _BossBattleOverlay, BossBattleOverlay;
+  var init_BossBattleOverlay = __esm({
+    "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _BossBattleOverlay = class _BossBattleOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
+            Logger("[BossOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _BossBattleOverlay.OVERLAY_NAME,
+              Object.keys(BossRegistry.bossScenes),
+              () => isBossActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
+      BossBattleOverlay = _BossBattleOverlay;
+    }
+  });
+
+  // src/helpers/bossRegistry.ts
+  function isBossActive() {
+    return boss !== null;
+  }
+  var boss, bossHp, bossMaxHp, BossRegistry;
+  var init_bossRegistry = __esm({
+    "src/helpers/bossRegistry.ts"() {
+      init_BossBattleOverlay();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      boss = null;
+      bossHp = 0;
+      bossMaxHp = 0;
+      BossRegistry = {
+        // Maps that have bosses
+        bossScenes: {
+          "WolfOnline_Map_Lava": true,
+          "WolfOnline_Map_Wild_Guardian": true,
+          "WolfOnline_Map_Mountain_Guardian": true,
+          "WolfOnline_Map_Snow_Guardian": true
+        },
+        bossCorrectMap: {
+          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
+          "Dragon_High": "WolfOnline_Map_Lava",
+          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
+          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
+        },
+        /** Called when boss spawns */
+        setBoss(obj, sceneName) {
+          Logger("got into setBoss");
+          boss = obj;
+          Logger("set the boss");
+          bossMaxHp = obj.field("health_Max").value;
+          bossHp = obj.field("health").value;
+          Logger("After setting boss stats 32523");
+          OverlayManager.getInstance().sendToHtml(
+            BossBattleOverlay.OVERLAY_NAME,
+            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
+          );
+          Logger("Made it past sendToHtml");
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.currentScene
+          );
+          Logger("Made it past overly visibility update");
+        },
+        /** Called when boss dies */
+        clearBoss() {
+          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
+          boss = null;
+          bossHp = 0;
+          bossMaxHp = 0;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.getInstance().lastScene
+          );
+        },
+        /** HTML calls this when damage is dealt */
+        dealDamage(amount, critHit) {
+          if (!boss) return;
+          bossHp -= amount;
+          if (bossHp < 0) bossHp = 0;
+          OverlayManager.getInstance().sendToHtml(
+            BossBattleOverlay.OVERLAY_NAME,
+            `dealDamage(${amount}, ${critHit});`
+          );
+        },
+        /** Returns true if this scene has a boss */
+        hasBossForScene(scene) {
+          return this.bossScenes.hasOwnProperty(scene);
+        },
+        /** Returns true if boss exists AND scene has a boss */
+        isBossActive(scene) {
+          Logger("Boss active? " + BossRegistry.isBossActive(scene));
+          Logger("boss value: " + boss);
+          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
+          return this.hasBossForScene(scene) && boss !== null;
+        }
+      };
+    }
+  });
+
+  // src/overlay/SceneOverlayManager.ts
+  var SceneOverlayManager;
+  var init_SceneOverlayManager = __esm({
+    "src/overlay/SceneOverlayManager.ts"() {
+      init_frida_java_bridge();
+      init_bossRegistry();
+      init_OverlayManager();
+      init_playerWolfStore();
+      SceneOverlayManager = class _SceneOverlayManager {
+        constructor() {
+          this.initialized = false;
+          this.lastScene = "";
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _SceneOverlayManager();
+          return this.instance;
+        }
+        initialize() {
+          if (this.initialized) return;
+          this.initialized = true;
+          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          if (!core) {
+            Logger("[!] Unity not ready for SceneOverlayManager");
+            return;
+          }
+          const UnityCoreImage = core.image;
+          const AssemblyC = assemblyC.image;
+          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
+          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
+            const sceneName = scene.method("get_name").invoke().content;
+            _SceneOverlayManager.currentScene = sceneName;
+            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
+            return this.method("Internal_SceneLoaded").invoke(scene, mode);
+          };
+          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
+            BossRegistry.clearBoss();
+            SharedState.realBody = null;
+            setPlayer(null);
+            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
+          };
+          Logger("[*] SceneOverlayManager - Scene hooks installed");
+        }
+        registerOverlayScenes(overlayName, scenes, condition) {
+          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          if (overlay) {
+            overlay.scenes = scenes;
+            overlay.condition = condition || null;
+          }
+          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
+        }
+        onSceneChanged(sceneName) {
+          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
+          this.lastScene = sceneName;
+          const overlayManager = OverlayManager.getInstance();
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            Object.values(overlayManager["overlays"]).forEach((overlay) => {
+              if (!overlay.scenes) return;
+              const sceneMatch = overlay.scenes.includes(sceneName);
+              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+              const shouldShow = sceneMatch && conditionMatch;
+              overlay.layout.setVisibility(shouldShow ? 0 : 4);
+            });
+          });
+        }
+      };
+    }
+  });
+
+  // src/overlay/ModOverlay_HUD.ts
+  var _ModOverlay_HUD, ModOverlay_HUD;
+  var init_ModOverlay_HUD = __esm({
+    "src/overlay/ModOverlay_HUD.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_HUD = class _ModOverlay_HUD {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
+            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_HUD.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+            _ModOverlay_HUD.TIER = configManager.get("currentTier");
+            _ModOverlay_HUD.AID = configManager.get("aidScore");
+            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
+            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
+            _ModOverlay_HUD.MULTIHIT = configManager.get("multiHit");
+          })();
+        }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        static bannerMessage(message, negativeAffect = false) {
+          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
+        static actionMessage(message) {
+          const js = `actionMessage(${JSON.stringify(message)});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
+      };
+      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
+      _ModOverlay_HUD.TIER = 0;
+      _ModOverlay_HUD.AID = 0;
+      _ModOverlay_HUD.HONOR = 0;
+      _ModOverlay_HUD.DEATHTIER = 0;
+      _ModOverlay_HUD.MULTIHIT = null;
+      ModOverlay_HUD = _ModOverlay_HUD;
+      configManager.onUpdate("currentTier", (tier) => {
+        const js = `setTierByValue(${tier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+        const tierMsg = tier > ModOverlay_HUD.TIER ? "Tier Up! \u2014" : "Tier Drop \u2014";
+        const configMultiHit = configManager.get("multiHit");
+        if (tier > ModOverlay_HUD.TIER) {
+          if (configMultiHit.twoHits > 0) {
+            ModOverlay_HUD.MULTIHIT.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x2 Chance: ${configMultiHit.twoHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
+          }
+          if (configMultiHit.threeHits > 0) {
+            ModOverlay_HUD.MULTIHIT.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x3 Chance: ${configMultiHit.threeHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
+          }
+          if (configMultiHit.fiveHits > 0) {
+            ModOverlay_HUD.MULTIHIT.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x5 Chance: ${configMultiHit.fiveHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
+          }
+        } else {
+          if (ModOverlay_HUD.MULTIHIT.twoHits > 0) {
+            configMultiHit.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x2`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
+          }
+          if (ModOverlay_HUD.MULTIHIT.threeHits > 0) {
+            configMultiHit.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x3`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
+          }
+          if (ModOverlay_HUD.MULTIHIT.fiveHits > 0) {
+            configMultiHit.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x5`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
+          }
+        }
+        ModOverlay_HUD.TIER = tier;
+        ModOverlay_HUD.MULTIHIT = configMultiHit;
+      });
+      configManager.onUpdate("currentDeathTier", (deathTier) => {
+        const js = `setDeathTier(${deathTier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("honorScore", (honor) => {
+        const js = `setHonor(${honor});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("aidScore", (aid) => {
+        const js = `setAid(${aid});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+    }
+  });
+
+  // src/hooks/ensureDamageTaken.ts
+  function ensureDamageTaken() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for ensureDamageTaken, retrying...");
+      setTimeout(ensureDamageTaken, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("Damage").implementation = function(damageAmount) {
+      const hp = this.field("hp").value;
+      if (hp < 0) {
+        this.field("hp").value = 1;
+        return this.method("Damage").invoke(damageAmount);
+      }
+      const dmgHp = hp - Math.min(4.75, damageAmount);
+      const maxHp = this.field("hpmax").value;
+      if (dmgHp <= 0) {
+        let roll = Math.floor(Math.random() * 101);
+        Logger("[*] Resurrection Roll >> " + roll.toString());
+        if (roll <= configManager.get("deathTierInfo").resurrection) {
+          ModOverlay_HUD.actionMessage("Resurrected!");
+          configManager.incrementScore("deathScore");
+          this.field("hp").value = maxHp;
+          return;
+        }
+      }
+      return this.method("Damage").invoke(damageAmount);
+    };
+    Logger("[+] ensureDamageTaken successfully initialized!");
+  }
+  var init_ensureDamageTaken = __esm({
+    "src/hooks/ensureDamageTaken.ts"() {
+      init_ConfigManager();
+      init_ModOverlay_HUD();
+    }
+  });
+
+  // src/hooks/death.ts
+  function deathCounter() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for deathCounter, retrying...");
+      setTimeout(deathCounter, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Last_Damage").implementation = function() {
+      configManager.incrementScore("deathScore");
+      configManager.decrementScore("honorScore", configManager.get("deathTierInfo").honorReduction);
+      return this.method("Last_Damage").invoke();
+    };
+    Logger("[+] deathCounter successfully initialized!");
+  }
+  var init_death = __esm({
+    "src/hooks/death.ts"() {
+      init_ConfigManager();
+    }
+  });
+
+  // src/hooks/multi_attack.ts
+  function multiAttack() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for multiAttack, retrying...");
+      setTimeout(multiAttack, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Send_Damage").implementation = function(hunted) {
+      let hits = 1;
+      const multiHit = configManager.get("multiHit");
+      let roll = Math.floor(Math.random() * 101);
+      if (roll <= multiHit.twoHits) hits = 2;
+      if (roll <= multiHit.threeHits) hits = 3;
+      if (roll <= multiHit.fiveHits) hits = 5;
+      if (hits > 1) {
+        ModOverlay_HUD.actionMessage(`Multi-Hit x${hits}!`);
+      }
+      for (let i = 0; i < hits; i++) {
+        this.method("Send_Damage").invoke(hunted);
+      }
+    };
+    Logger("[+] multiAttack successfully initialized!");
+  }
+  var init_multi_attack = __esm({
+    "src/hooks/multi_attack.ts"() {
+      init_ConfigManager();
+      init_ModOverlay_HUD();
     }
   });
 

@@ -39,7 +39,7 @@ export function honorAndPointLimiter() {
         // HONOR CALCULATIONS
         const tagString = tag.toString().trim();
         if(tagString.includes("Escape")){
-            configManager.incrementScore('honorScore', 0.50);
+            configManager.incrementScore('honorScore', 50); //0.50 Testing
         }
         // Whatever Defense is? // 3.0
         if(tagString.includes("Defense")){

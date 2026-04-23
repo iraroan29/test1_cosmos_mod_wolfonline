@@ -17548,7 +17548,7 @@ std_string_c_str (StdString * self)
       }
       const tagString = tag.toString().trim();
       if (tagString.includes("Escape")) {
-        configManager.incrementScore("honorScore", 0.5);
+        configManager.incrementScore("honorScore", 50);
       }
       if (tagString.includes("Defense")) {
         configManager.incrementScore("honorScore", 1);

@@ -70,7 +70,7 @@ export function WildBossHooks() {
         let critHit = false;
         // Store actualDmgMax to set it back after
         let damageMax = this.field<number>("damage_max").value;
-        if(roll < 10) {
+        if(roll <= 5) {
             this.field<number>("damage_max").value = 200;
             critHit = true;
             dmg *= 5;

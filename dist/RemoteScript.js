@@ -18220,10 +18220,10 @@ std_string_c_str (StdString * self)
       let dmg = damage;
       let critHit = false;
       let damageMax = this.field("damage_max").value;
-      if (roll < 80) {
-        this.field("damage_max").value = 5e3;
+      if (roll <= 10) {
+        this.field("damage_max").value = 200;
         critHit = true;
-        dmg *= 500;
+        dmg *= 5;
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);
@@ -18427,7 +18427,7 @@ std_string_c_str (StdString * self)
       let dmg = damage;
       let critHit = false;
       let damageMax = this.field("damage_max").value;
-      if (roll < 10) {
+      if (roll <= 5) {
         this.field("damage_max").value = 200;
         critHit = true;
         dmg *= 5;

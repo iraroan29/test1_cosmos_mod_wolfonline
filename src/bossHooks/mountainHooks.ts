@@ -70,10 +70,10 @@ export function MountainBossHooks() {
         let critHit = false;
         // Store actualDmgMax to set it back after
         let damageMax = this.field<number>("damage_max").value;
-        if(roll < 80) { // Temp, change back to 10% latter
-            this.field<number>("damage_max").value = 5000;
+        if(roll <= 10) { 
+            this.field<number>("damage_max").value = 200;
             critHit = true;
-            dmg *= 500;
+            dmg *= 5;
         }
         this.method("Damage").invoke(dmg);
         BossRegistry.dealDamage(this.field<number>("health").value, critHit);

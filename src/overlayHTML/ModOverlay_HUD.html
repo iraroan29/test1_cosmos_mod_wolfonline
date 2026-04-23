@@ -468,15 +468,15 @@ function setTierByValue(v) {
 }
 
 function setHonor(v) {
-  document.getElementById("honor-value").textContent = v;
+  document.getElementById("honor-value").textContent = Number(v).toFixed(2);
 }
 function setAid(v) {
-  document.getElementById("aid-value").textContent = v;
+  document.getElementById("aid-value").textContent = Number(v).toFixed(2);
 }
 function setDeathTier(v) {
   const row = document.getElementById("deathtier-row");
   row.style.display = v > 0 ? "block" : "none";
-  document.getElementById("deathtier-value").textContent = v;
+  document.getElementById("deathtier-value").textContent = Number(v).toFixed(0);
 }
 
 /* HUD‑only behavior */

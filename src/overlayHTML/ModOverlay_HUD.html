@@ -105,7 +105,7 @@ html, body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(var(--galaxy-rgb), 0.22);
+  background: rgba(var(--galaxy-rgb), 0.4);
   z-index: 0;
 }
 
@@ -463,7 +463,7 @@ function setTierByValue(v) {
   root.style.setProperty("--text-main", darken(t.main, 0.35));
   root.style.setProperty("--text-muted", darken(t.main, 0.55));
 
-  document.getElementById("tier-value").textContent = tierMap[v];
+  document.getElementById("tier-value").textContent = v > 0 ? tierMap[v] : "";
   menuBtn.style.display = v === 0 ? "none" : "block";
 }
 

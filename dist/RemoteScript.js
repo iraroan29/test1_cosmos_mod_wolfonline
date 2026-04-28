@@ -17700,8 +17700,8 @@ std_string_c_str (StdString * self)
                       returnType: "void",
                       argumentTypes: ["java.lang.String"],
                       implementation: function(jsonString) {
+                        Logger("requestDeviceSize called");
                         try {
-                          Logger(`[****]requestDeviceSize called: ${counter}`);
                           counter++;
                           const data = JSON.parse(jsonString);
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();

@@ -212,8 +212,8 @@ export class OverlayManager {
                                 argumentTypes: ['java.lang.String'],
                                 implementation: function (jsonString: string) {
 
+                                        Logger("requestDeviceSize called")
                                     try {
-                                        Logger(`[****]requestDeviceSize called: ${counter}`)
                                         counter++;
                                         const data = JSON.parse(jsonString);
 

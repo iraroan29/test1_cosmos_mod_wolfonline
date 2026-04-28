@@ -16,7 +16,7 @@ export class NameGenOverlay {
             SceneOverlayManager.getInstance().registerOverlayScenes(
                 NameGenOverlay.OVERLAY_NAME,
                 Object.keys({
-                    "WolfOnline_Map_Select_Wolf": true
+                    "WolfOnline_Select_Wolf": true
                 })
             );
 

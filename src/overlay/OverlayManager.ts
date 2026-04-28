@@ -12,6 +12,8 @@ export enum OverlayLayer {
     DEBUG = 40
 }
 
+let counter = 0;
+
 export class OverlayManager {
     private static instance: OverlayManager;
     private overlays: Record<string, any> = {};
@@ -211,6 +213,8 @@ export class OverlayManager {
                                 implementation: function (jsonString: string) {
 
                                     try {
+                                        Logger(`requestDeviceSize called: ${counter}`)
+                                        counter++;
                                         const data = JSON.parse(jsonString);
 
                                         // Get device resolution in Java
@@ -287,7 +291,7 @@ export class OverlayManager {
                         windowLayoutParams: lp
                     };
 
-                    Logger("Here 13 — Overlay stored");
+                    // Logger("Here 13 — Overlay stored");
 
                     resolve();
 
@@ -348,16 +352,12 @@ export class OverlayManager {
 
         Java.scheduleOnMainThread(() => {
             try {
-                Logger("geo 1");
                 const lp = overlay.windowLayoutParams;
-                Logger("geo 2");
 
                 lp.x.value = x;
                 lp.y.value = y;
                 lp.width.value = width;
                 lp.height.value = height;
-
-                Logger("geo 3");
 
                 const ViewManager = Java.use("android.view.ViewManager");
                 ViewManager.updateViewLayout

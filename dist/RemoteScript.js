@@ -17577,12 +17577,13 @@ std_string_c_str (StdString * self)
   });
 
   // src/overlay/OverlayManager.ts
-  var OverlayManager;
+  var counter, OverlayManager;
   var init_OverlayManager = __esm({
     "src/overlay/OverlayManager.ts"() {
       init_frida_java_bridge();
       init_ConfigManager();
       init_ModOverlay_HUD();
+      counter = 0;
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -17700,6 +17701,8 @@ std_string_c_str (StdString * self)
                       argumentTypes: ["java.lang.String"],
                       implementation: function(jsonString) {
                         try {
+                          Logger(`requestDeviceSize called: ${counter}`);
+                          counter++;
                           const data = JSON.parse(jsonString);
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
@@ -17753,7 +17756,6 @@ std_string_c_str (StdString * self)
                   windowManager: wm,
                   windowLayoutParams: lp
                 };
-                Logger("Here 13 \u2014 Overlay stored");
                 resolve();
               } catch (e) {
                 Logger(`[Overlay] ERROR in createOverlay for "${name}": ${e}`);
@@ -17801,14 +17803,11 @@ std_string_c_str (StdString * self)
           if (!overlay) return;
           frida_java_bridge_default.scheduleOnMainThread(() => {
             try {
-              Logger("geo 1");
               const lp = overlay.windowLayoutParams;
-              Logger("geo 2");
               lp.x.value = x;
               lp.y.value = y;
               lp.width.value = width;
               lp.height.value = height;
-              Logger("geo 3");
               const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
               ViewManager.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp);
               Logger(`[Overlay] Geometry updated for "${name}" \u2192 x=${x}, y=${y}, w=${width}, h=${height}`);

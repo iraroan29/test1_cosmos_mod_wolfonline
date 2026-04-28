@@ -39,7 +39,7 @@ html, body {
 #overlay {
   width: 100vw;
   height: 100vh;
-  background: rgba(20, 20, 24, 0.8);
+  background: transparent;
   padding: 2.6vmin;
 }
 
@@ -787,16 +787,24 @@ function sendOverlayGeometry() {
         r.height
     );
 }
+function getVisibleRect() {
+    if (generatorRoot.style.display !== "none") {
+        return generatorRoot.getBoundingClientRect();
+    } else {
+        return openBtn.getBoundingClientRect();
+    }
+}
+
 function sendOverlayGeometry() {
     requestAnimationFrame(() => {
-        const r = getOverlayRect();
+        const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
             JSON.stringify({ overlay: "NameGenOverlay" }),
-            r.x,
-            r.y,
-            r.width,
-            r.height
+            Math.round(r.left),
+            Math.round(r.top),
+            Math.round(r.width),
+            Math.round(r.height)
         );
     });
 }
@@ -804,7 +812,7 @@ function setGeneratorVisible(visible) {
     generatorRoot.style.display = visible ? "flex" : "none";
     openBtn.style.display = visible ? "none" : "block";
 
-    sendOverlayGeometry(); // now safe because it waits for reflow
+    sendOverlayGeometry();
 }
 openBtn.onclick = () => {
   setGeneratorVisible(true);

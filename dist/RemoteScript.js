@@ -17602,7 +17602,6 @@ std_string_c_str (StdString * self)
           return new Promise((resolve, reject) => {
             frida_java_bridge_default.scheduleOnMainThread(() => {
               try {
-                Logger("Here 1 \u2014 Begin WebView setup");
                 const WebView = frida_java_bridge_default.use("android.webkit.WebView");
                 const FrameLayout = frida_java_bridge_default.use("android.widget.FrameLayout");
                 const FrameLayoutParams = frida_java_bridge_default.use("android.widget.FrameLayout$LayoutParams");
@@ -17614,17 +17613,14 @@ std_string_c_str (StdString * self)
                 webview.setFocusable(false);
                 webview.setFocusableInTouchMode(false);
                 webview.setBackgroundColor(0);
-                Logger("Here 2 \u2014 WebView created");
                 const settings = webview.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
                 settings.setUseWideViewPort(true);
                 settings.setLoadWithOverviewMode(true);
-                Logger("Here 3 \u2014 WebView settings applied");
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
-                Logger("Here 4 \u2014 Layout created and WebView added");
                 const UnityPlayer = frida_java_bridge_default.use("com.unity3d.player.UnityPlayer");
                 const activity = UnityPlayer.currentActivity.value;
                 const WindowManager = frida_java_bridge_default.use("android.view.WindowManager");
@@ -17632,14 +17628,12 @@ std_string_c_str (StdString * self)
                 const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
                 const Gravity = frida_java_bridge_default.use("android.view.Gravity");
                 const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
-                Logger("Here 5 \u2014 WindowManager acquired");
                 const lp = WMLayoutParams.$new(-1, -1, 0);
                 lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                 lp.format.value = PixelFormat.TRANSLUCENT.value;
                 lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
                 lp.x.value = 0;
                 lp.y.value = 0;
-                Logger("Here 6 \u2014 LayoutParams positioned");
                 const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                 const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                 const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
@@ -17648,15 +17642,11 @@ std_string_c_str (StdString * self)
                 if (touchPassthrough) {
                   lp.flags.value |= FLAG_NOT_TOUCHABLE;
                 }
-                Logger("Here 7 \u2014 Flags applied");
                 lp.token.value = activity.getWindow().getDecorView().getWindowToken();
-                Logger("Here 8 \u2014 Token assigned, calling addView\u2026");
                 const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
                 ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
-                Logger("Here 9 \u2014 addView succeeded");
                 try {
                   layout.setZ(layer);
-                  Logger("Here 10 \u2014 Z-layer applied");
                 } catch (e) {
                   Logger("Here 10 \u2014 Z-layer failed but safe");
                 }
@@ -17713,7 +17703,6 @@ std_string_c_str (StdString * self)
                   }
                 });
                 webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
-                Logger("Here 11 \u2014 JSBridge added");
                 const Thread2 = frida_java_bridge_default.use("java.lang.Thread");
                 const URL = frida_java_bridge_default.use("java.net.URL");
                 const Scanner = frida_java_bridge_default.use("java.util.Scanner");
@@ -17746,7 +17735,6 @@ std_string_c_str (StdString * self)
                   }
                 });
                 Thread2.$new(RunnableImpl.$new()).start();
-                Logger("Here 12 \u2014 HTML fetch thread started");
                 self.overlays[name] = {
                   name,
                   webview,

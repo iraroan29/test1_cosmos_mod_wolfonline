@@ -46,7 +46,7 @@ export class OverlayManager {
         return new Promise((resolve, reject) => {
             Java.scheduleOnMainThread(() => {
                 try {
-                    Logger("Here 1 — Begin WebView setup");
+                    // Logger("Here 1 — Begin WebView setup");
 
                     // ---------------------------------------------------------
                     // 1. WebView + Layout (same as old working version)
@@ -64,7 +64,7 @@ export class OverlayManager {
                     webview.setFocusableInTouchMode(false);
                     webview.setBackgroundColor(0x00000000);
 
-                    Logger("Here 2 — WebView created");
+                    // Logger("Here 2 — WebView created");
 
                     const settings = webview.getSettings();
                     settings.setJavaScriptEnabled(true);
@@ -72,13 +72,13 @@ export class OverlayManager {
                     settings.setUseWideViewPort(true);
                     settings.setLoadWithOverviewMode(true);
 
-                    Logger("Here 3 — WebView settings applied");
+                    // Logger("Here 3 — WebView settings applied");
 
                     const layout = FrameLayout.$new(self.context);
                     const flParams = FrameLayoutParams.$new(-1, -1);
                     layout.addView(webview, flParams);
 
-                    Logger("Here 4 — Layout created and WebView added");
+                    // Logger("Here 4 — Layout created and WebView added");
 
                     // ---------------------------------------------------------
                     // 2. WindowManager (same as old working version)
@@ -93,7 +93,7 @@ export class OverlayManager {
 
                     const wm = Java.cast(activity.getSystemService("window"), WindowManager);
 
-                    Logger("Here 5 — WindowManager acquired");
+                    // Logger("Here 5 — WindowManager acquired");
 
                     // ---------------------------------------------------------
                     // 3. LayoutParams (EXACT constructor your old version used)
@@ -108,7 +108,7 @@ export class OverlayManager {
                     lp.x.value = 0;
                     lp.y.value = 0;
 
-                    Logger("Here 6 — LayoutParams positioned");
+                    // Logger("Here 6 — LayoutParams positioned");
 
                     // ---------------------------------------------------------
                     // 4. Flags (old working order)
@@ -127,14 +127,14 @@ export class OverlayManager {
                         lp.flags.value |= FLAG_NOT_TOUCHABLE;
                     }
 
-                    Logger("Here 7 — Flags applied");
+                    // Logger("Here 7 — Flags applied");
 
                     // ---------------------------------------------------------
                     // 5. Token (old working timing)
                     // ---------------------------------------------------------
                     lp.token.value = activity.getWindow().getDecorView().getWindowToken();
 
-                    Logger("Here 8 — Token assigned, calling addView…");
+                    // Logger("Here 8 — Token assigned, calling addView…");
 
                     // ---------------------------------------------------------
                     // 6. addView (EXACT old working call)
@@ -144,14 +144,14 @@ export class OverlayManager {
                         .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
                         .call(wm, layout, lp);
 
-                    Logger("Here 9 — addView succeeded");
+                    // Logger("Here 9 — addView succeeded");
 
                     // ---------------------------------------------------------
                     // 7. Z-layer AFTER attach
                     // ---------------------------------------------------------
                     try {
                         layout.setZ(layer);
-                        Logger("Here 10 — Z-layer applied");
+                        // Logger("Here 10 — Z-layer applied");
                     } catch (e) {
                         Logger("Here 10 — Z-layer failed but safe");
                     }
@@ -224,7 +224,7 @@ export class OverlayManager {
 
                     webview.addJavascriptInterface(JSBridge.$new(), "AndroidBridge");
 
-                    Logger("Here 11 — JSBridge added");
+                    // Logger("Here 11 — JSBridge added");
 
                     // ---------------------------------------------------------
                     // 9. Load HTML (old working timing)
@@ -266,7 +266,7 @@ export class OverlayManager {
 
                     Thread.$new(RunnableImpl.$new()).start();
 
-                    Logger("Here 12 — HTML fetch thread started");
+                    // Logger("Here 12 — HTML fetch thread started");
 
                     // ---------------------------------------------------------
                     // 10. Store overlay reference

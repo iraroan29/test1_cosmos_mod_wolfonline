@@ -340,18 +340,21 @@ export class OverlayManager {
 
         Java.scheduleOnMainThread(() => {
             try {
+                
+                Logger("geo 1");
                 const lp = overlay.windowLayoutParams;
-
+                Logger("geo 2");
                 lp.x.value = x;
                 lp.y.value = y;
                 lp.width.value = width;
                 lp.height.value = height;
 
+                Logger("geo 3");
                 overlay.windowManager.updateViewLayout(
                     overlay.layout,
                     lp
                 );
-
+                
                 Logger(`[Overlay] Geometry updated for "${name}" → x=${x}, y=${y}, w=${width}, h=${height}`);
             } catch (e) {
                 Logger(`[Overlay1] updateWindowGeometry ERROR for "${name}": ${e}`);

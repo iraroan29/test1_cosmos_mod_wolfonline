@@ -17802,11 +17802,14 @@ std_string_c_str (StdString * self)
           if (!overlay) return;
           frida_java_bridge_default.scheduleOnMainThread(() => {
             try {
+              Logger("geo 1");
               const lp = overlay.windowLayoutParams;
+              Logger("geo 2");
               lp.x.value = x;
               lp.y.value = y;
               lp.width.value = width;
               lp.height.value = height;
+              Logger("geo 3");
               overlay.windowManager.updateViewLayout(
                 overlay.layout,
                 lp

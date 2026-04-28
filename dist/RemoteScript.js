@@ -17803,10 +17803,10 @@ std_string_c_str (StdString * self)
           frida_java_bridge_default.scheduleOnMainThread(() => {
             try {
               const lp = overlay.windowLayoutParams;
-              lp.x = x;
-              lp.y = y;
-              lp.width = width;
-              lp.height = height;
+              lp.x.value = x;
+              lp.y.value = y;
+              lp.width.value = width;
+              lp.height.value = height;
               overlay.windowManager.updateViewLayout(
                 overlay.layout,
                 lp

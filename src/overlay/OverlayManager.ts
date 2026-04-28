@@ -334,7 +334,7 @@ export class OverlayManager {
         });
     }
 
-    updateWindowGeometry(name: string, x: number, y: number, width: number, height: number) {
+    updateWindowGeometry(name, x, y, width, height) {
         const overlay = this.overlays[name];
         if (!overlay) return;
 
@@ -342,10 +342,10 @@ export class OverlayManager {
             try {
                 const lp = overlay.windowLayoutParams;
 
-                lp.x = x;
-                lp.y = y;
-                lp.width = width;
-                lp.height = height;
+                lp.x.value = x;
+                lp.y.value = y;
+                lp.width.value = width;
+                lp.height.value = height;
 
                 overlay.windowManager.updateViewLayout(
                     overlay.layout,
@@ -358,7 +358,7 @@ export class OverlayManager {
             }
         });
     }
-    
+        
     getOverlay(name: string) {
         return this.overlays[name];
     }

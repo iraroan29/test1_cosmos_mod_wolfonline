@@ -17701,7 +17701,7 @@ std_string_c_str (StdString * self)
                       argumentTypes: ["java.lang.String"],
                       implementation: function(jsonString) {
                         try {
-                          Logger(`requestDeviceSize called: ${counter}`);
+                          Logger(`[****]requestDeviceSize called: ${counter}`);
                           counter++;
                           const data = JSON.parse(jsonString);
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();

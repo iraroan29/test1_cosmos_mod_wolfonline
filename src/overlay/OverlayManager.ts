@@ -213,7 +213,7 @@ export class OverlayManager {
                                 implementation: function (jsonString: string) {
 
                                     try {
-                                        Logger(`requestDeviceSize called: ${counter}`)
+                                        Logger(`[****]requestDeviceSize called: ${counter}`)
                                         counter++;
                                         const data = JSON.parse(jsonString);
 

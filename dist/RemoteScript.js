@@ -17813,7 +17813,7 @@ std_string_c_str (StdString * self)
               );
               Logger(`[Overlay] Geometry updated for "${name}" \u2192 x=${x}, y=${y}, w=${width}, h=${height}`);
             } catch (e) {
-              Logger(`[Overlay] updateWindowGeometry ERROR for "${name}": ${e}`);
+              Logger(`[Overlay1] updateWindowGeometry ERROR for "${name}": ${e}`);
             }
           });
         }

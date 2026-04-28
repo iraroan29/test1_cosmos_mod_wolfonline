@@ -791,22 +791,45 @@ function sendOverlayGeometry() {
 }
 function getVisibleRect() {
     if (generatorRoot.style.display !== "none") {
-        return generatorRoot.getBoundingClientRect();
+        return {
+            x: 0,
+            y: 0,
+            width: generatorRoot.offsetWidth,
+            height: generatorRoot.offsetHeight
+        };
     } else {
-        return openBtn.getBoundingClientRect();
+        return {
+            x: 0,
+            y: 0,
+            width: openBtn.offsetWidth,
+            height: openBtn.offsetHeight
+        };
     }
 }
 
+// function sendOverlayGeometry() {
+//     requestAnimationFrame(() => {
+//         const r = getVisibleRect();
+
+//         AndroidBridge.redrawOverlay(
+//             JSON.stringify({ overlay: "NameGenOverlay" }),
+//             Math.round(r.left),
+//             Math.round(r.top),
+//             Math.round(r.width),
+//             Math.round(r.height)
+//         );
+//     });
+// }
 function sendOverlayGeometry() {
     requestAnimationFrame(() => {
         const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
             JSON.stringify({ overlay: "NameGenOverlay" }),
-            Math.round(r.left),
-            Math.round(r.top),
-            Math.round(r.width),
-            Math.round(r.height)
+            0, // x always 0 inside HTML
+            0, // y always 0 inside HTML
+            r.width,
+            r.height
         );
     });
 }

@@ -18527,6 +18527,34 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/NameGenOverlay.ts
+  var _NameGenOverlay, NameGenOverlay;
+  var init_NameGenOverlay = __esm({
+    "src/overlay/NameGenOverlay.ts"() {
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _NameGenOverlay = class _NameGenOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_NameGenOverlay.OVERLAY_NAME, url, false, 38 /* MENU */);
+            Logger("[NameGenOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _NameGenOverlay.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Select_Wolf": true
+              })
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _NameGenOverlay.OVERLAY_NAME = "NameGenOverlay";
+      NameGenOverlay = _NameGenOverlay;
+    }
+  });
+
   // src/RemoteScript.ts
   var require_RemoteScript = __commonJS({
     "src/RemoteScript.ts"() {
@@ -18553,6 +18581,7 @@ std_string_c_str (StdString * self)
       init_wildHooks();
       init_inputid();
       init_ModOverlay_HUD();
+      init_NameGenOverlay();
       var Log = null;
       globalThis.Logger = function(message) {
         if (Log) {
@@ -18604,6 +18633,7 @@ std_string_c_str (StdString * self)
           DragonBossHooks();
           SnowBossHooks();
           WildBossHooks();
+          new NameGenOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/NameGenOverlay.html");
           new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");
           new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
           Logger("    ------------");

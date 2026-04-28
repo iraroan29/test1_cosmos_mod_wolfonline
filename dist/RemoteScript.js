@@ -17809,13 +17809,11 @@ std_string_c_str (StdString * self)
               lp.width.value = width;
               lp.height.value = height;
               Logger("geo 3");
-              overlay.windowManager.updateViewLayout(
-                overlay.layout,
-                lp
-              );
+              const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
+              ViewManager.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp);
               Logger(`[Overlay] Geometry updated for "${name}" \u2192 x=${x}, y=${y}, w=${width}, h=${height}`);
             } catch (e) {
-              Logger(`[Overlay2] updateWindowGeometry ERROR for "${name}": ${e}`);
+              Logger(`[Overlay1] updateWindowGeometry ERROR for "${name}": ${e}`);
             }
           });
         }

@@ -348,24 +348,25 @@ export class OverlayManager {
 
         Java.scheduleOnMainThread(() => {
             try {
-                
                 Logger("geo 1");
                 const lp = overlay.windowLayoutParams;
                 Logger("geo 2");
+
                 lp.x.value = x;
                 lp.y.value = y;
                 lp.width.value = width;
                 lp.height.value = height;
 
                 Logger("geo 3");
-                overlay.windowManager.updateViewLayout(
-                    overlay.layout,
-                    lp
-                );
-                
+
+                const ViewManager = Java.use("android.view.ViewManager");
+                ViewManager.updateViewLayout
+                    .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
+                    .call(overlay.windowManager, overlay.layout, lp);
+
                 Logger(`[Overlay] Geometry updated for "${name}" → x=${x}, y=${y}, w=${width}, h=${height}`);
             } catch (e) {
-                Logger(`[Overlay2] updateWindowGeometry ERROR for "${name}": ${e}`);
+                Logger(`[Overlay1] updateWindowGeometry ERROR for "${name}": ${e}`);
             }
         });
     }

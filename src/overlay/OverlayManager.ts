@@ -2,6 +2,7 @@ import Java from 'frida-java-bridge'
 import { configManager } from '../config/ConfigManager';
 import { ModOverlay_HUD } from './ModOverlay_HUD';
 import { BossBattleOverlay } from './BossBattleOverlay';
+import { NameGenOverlay } from './NameGenOverlay';
 
 export enum OverlayLayer {
     BACKGROUND = 0,
@@ -12,14 +13,6 @@ export enum OverlayLayer {
 }
 
 export class OverlayManager {
-    // Your testing device resolution (set these to YOUR device)
-    private BASE_WIDTH = 2400;
-    private BASE_HEIGHT = 1080;
-
-    // Will be filled during initialize()
-    private deviceWidth: number = this.BASE_WIDTH;
-    private deviceHeight: number = this.BASE_HEIGHT;
-
     private static instance: OverlayManager;
     private overlays: Record<string, any> = {};
     private context: any;
@@ -44,9 +37,7 @@ export class OverlayManager {
         name: string,
         url: string,
         touchPassthrough: boolean = true,
-        layer: OverlayLayer = OverlayLayer.HUD,
-        baseX: number = 0,
-        baseY: number = 0
+        layer: OverlayLayer = OverlayLayer.HUD
     ): Promise<void> {
 
         Logger(`[Overlay] createOverlay START for "${name}"`);
@@ -113,13 +104,9 @@ export class OverlayManager {
                     lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                     lp.format.value = PixelFormat.TRANSLUCENT.value;
 
-                    // Positioning (scaled)
-                    const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
-                    const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
-
                     lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
-                    lp.x.value = x;
-                    lp.y.value = y;
+                    lp.x.value = 0;
+                    lp.y.value = 0;
 
                     Logger("Here 6 — LayoutParams positioned");
 
@@ -194,12 +181,42 @@ export class OverlayManager {
                                     }
                                 }
                             },
-
-                            resizeOverlay: {
+                            redrawOverlay: {
                                 returnType: 'void',
-                                argumentTypes: ['int', 'int'],
-                                implementation: function (w: number, h: number) {
-                                    OverlayManager.getInstance().resizeWindow(name, w, h);
+                                argumentTypes: ['java.lang.String', 'int', 'int', 'int', 'int'],
+                                implementation: function (jsonString: string, x: number, y: number, w: number, h: number) {
+                                    try {
+                                        const data = JSON.parse(jsonString);
+                                        const mgr = OverlayManager.getInstance();
+
+                                        // Atomic update: move + resize in one main-thread block
+                                        mgr.updateWindowGeometry(data.overlay, x, y, w, h);
+                                    }
+                                    catch (e) {
+                                        Logger("[Overlay] Bridge Error redrawOverlay: " + e);
+                                    }
+                                }
+                            },
+                            requestDeviceSize: {
+                                returnType: 'void',
+                                argumentTypes: ['java.lang.String'],
+                                implementation: function (jsonString: string) {
+
+                                    try {
+                                        const data = JSON.parse(jsonString);
+
+                                        // Get device resolution in Java
+                                        const dm = Java.use("android.content.res.Resources").getSystem().getDisplayMetrics();
+                                        const width = dm.widthPixels.value;
+                                        const height = dm.heightPixels.value;
+
+                                        // Send JS call to HTML
+                                        const js = `setSize(${width}, ${height});`;
+                                        OverlayManager.getInstance().sendToHtml(data.overlay, js);
+                                    }
+                                    catch (e) {
+                                        Logger("[Overlay] Bridge Error requestDeviceSize: " + e);
+                                    }
                                 }
                             }
                         }
@@ -296,14 +313,50 @@ export class OverlayManager {
         });
     }
 
-    // Scale X from base device → current device
-    private scaleX(baseX: number): number {
-        return Math.round(baseX * (this.deviceWidth / this.BASE_WIDTH));
+    moveWindow(name: string, x: number, y: number) {
+        const overlay = this.overlays[name];
+        if (!overlay) return;
+
+        Java.scheduleOnMainThread(() => {
+            try {
+                overlay.windowLayoutParams.x = x;
+                overlay.windowLayoutParams.y = y;
+
+                overlay.windowManager.updateViewLayout(
+                    overlay.layout,
+                    overlay.windowLayoutParams
+                );
+
+                Logger(`[Overlay] Window moved for "${name}" to x=${x}, y=${y}`);
+            } catch (e) {
+                Logger(`[Overlay] moveWindow ERROR for "${name}": ${e}`);
+            }
+        });
     }
 
-    // Scale Y from base device → current device
-    private scaleY(baseY: number): number {
-        return Math.round(baseY * (this.deviceHeight / this.BASE_HEIGHT));
+    updateWindowGeometry(name: string, x: number, y: number, width: number, height: number) {
+        const overlay = this.overlays[name];
+        if (!overlay) return;
+
+        Java.scheduleOnMainThread(() => {
+            try {
+                const lp = overlay.windowLayoutParams;
+
+                lp.x = x;
+                lp.y = y;
+                lp.width = width;
+                lp.height = height;
+
+                overlay.windowManager.updateViewLayout(
+                    overlay.layout,
+                    lp
+                );
+
+                Logger(`[Overlay] Geometry updated for "${name}" → x=${x}, y=${y}, w=${width}, h=${height}`);
+            } catch (e) {
+                Logger(`[Overlay] updateWindowGeometry ERROR for "${name}": ${e}`);
+            }
+        });
     }
     
     getOverlay(name: string) {

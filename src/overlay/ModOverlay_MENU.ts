@@ -9,7 +9,7 @@ export class ModOverlay_MENU {
 
     constructor(url: string) {
         (async () => {
-            await OverlayManager.getInstance().createOverlay(ModOverlay_MENU.OVERLAY_NAME, url, false, OverlayLayer.MENU, 200, 200);
+            await OverlayManager.getInstance().createOverlay(ModOverlay_MENU.OVERLAY_NAME, url, false, OverlayLayer.MENU);
 
             Logger("[ModOverlay MENU] Overlay created, now registering scenes");
 

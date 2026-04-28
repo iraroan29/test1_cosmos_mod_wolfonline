@@ -17585,12 +17585,6 @@ std_string_c_str (StdString * self)
       init_ModOverlay_HUD();
       OverlayManager = class _OverlayManager {
         constructor() {
-          // Your testing device resolution (set these to YOUR device)
-          this.BASE_WIDTH = 2400;
-          this.BASE_HEIGHT = 1080;
-          // Will be filled during initialize()
-          this.deviceWidth = this.BASE_WIDTH;
-          this.deviceHeight = this.BASE_HEIGHT;
           this.overlays = {};
           this.pendingMessages = {};
           this.htmlReady = {};
@@ -17602,7 +17596,7 @@ std_string_c_str (StdString * self)
         initialize(context) {
           this.context = context;
         }
-        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */, baseX = 0, baseY = 0) {
+        createOverlay(name, url, touchPassthrough = true, layer = 10 /* HUD */) {
           Logger(`[Overlay] createOverlay START for "${name}"`);
           const self = this;
           return new Promise((resolve, reject) => {
@@ -17642,11 +17636,9 @@ std_string_c_str (StdString * self)
                 const lp = WMLayoutParams.$new(-1, -1, 0);
                 lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                 lp.format.value = PixelFormat.TRANSLUCENT.value;
-                const x = self.deviceWidth ? self.scaleX(baseX) : baseX;
-                const y = self.deviceHeight ? self.scaleY(baseY) : baseY;
                 lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;
-                lp.x.value = x;
-                lp.y.value = y;
+                lp.x.value = 0;
+                lp.y.value = 0;
                 Logger("Here 6 \u2014 LayoutParams positioned");
                 const FLAG_NOT_FOCUSABLE = WMLayoutParams.FLAG_NOT_FOCUSABLE.value;
                 const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
@@ -17689,11 +17681,33 @@ std_string_c_str (StdString * self)
                         }
                       }
                     },
-                    resizeOverlay: {
+                    redrawOverlay: {
                       returnType: "void",
-                      argumentTypes: ["int", "int"],
-                      implementation: function(w, h) {
-                        _OverlayManager.getInstance().resizeWindow(name, w, h);
+                      argumentTypes: ["java.lang.String", "int", "int", "int", "int"],
+                      implementation: function(jsonString, x, y, w, h) {
+                        try {
+                          const data = JSON.parse(jsonString);
+                          const mgr = _OverlayManager.getInstance();
+                          mgr.updateWindowGeometry(data.overlay, x, y, w, h);
+                        } catch (e) {
+                          Logger("[Overlay] Bridge Error redrawOverlay: " + e);
+                        }
+                      }
+                    },
+                    requestDeviceSize: {
+                      returnType: "void",
+                      argumentTypes: ["java.lang.String"],
+                      implementation: function(jsonString) {
+                        try {
+                          const data = JSON.parse(jsonString);
+                          const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
+                          const width = dm.widthPixels.value;
+                          const height = dm.heightPixels.value;
+                          const js = `setSize(${width}, ${height});`;
+                          _OverlayManager.getInstance().sendToHtml(data.overlay, js);
+                        } catch (e) {
+                          Logger("[Overlay] Bridge Error requestDeviceSize: " + e);
+                        }
                       }
                     }
                   }
@@ -17766,13 +17780,42 @@ std_string_c_str (StdString * self)
             }
           });
         }
-        // Scale X from base device → current device
-        scaleX(baseX) {
-          return Math.round(baseX * (this.deviceWidth / this.BASE_WIDTH));
+        moveWindow(name, x, y) {
+          const overlay = this.overlays[name];
+          if (!overlay) return;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              overlay.windowLayoutParams.x = x;
+              overlay.windowLayoutParams.y = y;
+              overlay.windowManager.updateViewLayout(
+                overlay.layout,
+                overlay.windowLayoutParams
+              );
+              Logger(`[Overlay] Window moved for "${name}" to x=${x}, y=${y}`);
+            } catch (e) {
+              Logger(`[Overlay] moveWindow ERROR for "${name}": ${e}`);
+            }
+          });
         }
-        // Scale Y from base device → current device
-        scaleY(baseY) {
-          return Math.round(baseY * (this.deviceHeight / this.BASE_HEIGHT));
+        updateWindowGeometry(name, x, y, width, height) {
+          const overlay = this.overlays[name];
+          if (!overlay) return;
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            try {
+              const lp = overlay.windowLayoutParams;
+              lp.x = x;
+              lp.y = y;
+              lp.width = width;
+              lp.height = height;
+              overlay.windowManager.updateViewLayout(
+                overlay.layout,
+                lp
+              );
+              Logger(`[Overlay] Geometry updated for "${name}" \u2192 x=${x}, y=${y}, w=${width}, h=${height}`);
+            } catch (e) {
+              Logger(`[Overlay] updateWindowGeometry ERROR for "${name}": ${e}`);
+            }
+          });
         }
         getOverlay(name) {
           return this.overlays[name];

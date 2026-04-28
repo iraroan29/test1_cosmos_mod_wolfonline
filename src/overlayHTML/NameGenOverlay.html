@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Gradient Name Generator</title>
+
+<style>
+/* =========================
+ THEME VARIABLES (HUD-COMPAT)
+========================= */
+:root {
+  --galaxy-main: #751d95;
+  --galaxy-accent: #b785f3;
+  --galaxy-rgb: 76,29,149;
+  --text-main: #1f1028;
+  --text-muted: #3d2a52;
+}
+
+/* =========================
+ RESET
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+/* =========================
+ OVERLAY
+========================= */
+#overlay {
+  width: 100vw;
+  height: 100vh;
+  background: rgba(20, 20, 24, 0.8);
+  padding: 2.6vmin;
+}
+
+/* =========================
+ GLASS PANEL (HUD STYLE)
+========================= */
+.panel {
+  position: relative;
+  height: 100%;
+  border-radius: 2.2vmin;
+  padding: 3vmin;
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+}
+
+/* Glass layer ONLY */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  /* ✅ Neutral grey glass background */
+  background: linear-gradient(
+    to right,
+    rgba(90, 90, 90, 0.85),
+    rgba(65, 65, 65, 0.85)
+  );
+
+  box-shadow:
+    0 0.6vmin 2.2vmin rgba(0,0,0,0.45);
+
+  z-index: 0;
+}
+
+
+/* Foreground content */
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+ HEADER
+========================= */
+.header {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: clamp(1.3rem, 2.5vmin, 1.9rem);
+  margin-bottom: 2vmin;
+}
+
+/* =========================
+ FIELDS
+========================= */
+label {
+  font-size: clamp(0.95rem, 1.6vmin, 1.15rem);
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 1.6vmin;
+  margin-bottom: 0.6vmin;
+  letter-spacing: 0.04em;
+}
+
+.label-note {
+  font-size: clamp(0.75rem, 1.3vmin, 0.9rem);
+  margin-top: 0.4vmin;
+  margin-bottom: 0.8vmin;
+  line-height: 1.35;
+  opacity: 1;
+}
+
+input[type="text"] {
+  padding: 0.9vmin;
+  border-radius: 0.8vmin;
+  border: none;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+/* =========================
+ CHECKPOINTS (AUTO-SCROLL AT PREVIEW GAP)
+========================= */
+.checkpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 1vmin;
+
+  width: 33%;
+  max-width: 33%;
+
+  max-height: calc(100% - 2.5vmin);
+  overflow-y: auto;
+  overflow-x: visible;
+
+  padding-left: 1.4vmin;   /* ✅ NEW: prevents left shadow clipping */
+  padding-right: 0.6vmin;  /* existing scrollbar spacing */
+}
+
+.checkpoints::-webkit-scrollbar {
+  width: 0.6vmin;
+}
+
+.checkpoints::-webkit-scrollbar-thumb {
+  background: rgba(var(--galaxy-rgb), 0.6);
+  border-radius: 999px;
+}
+
+.checkpoints::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.25);
+}
+
+/* One checkpoint row */
+.checkpoint {
+  display: flex;
+  align-items: center;
+  gap: 1vmin;
+  padding: 1.1vmin 1.4vmin;
+  border-radius: 999px;
+
+  /* ✅ Neutral dark-grey bubble */
+  background: linear-gradient(
+    to right,
+    rgba(70, 70, 70, 0.95),
+    rgba(55, 55, 55, 0.95)
+  );
+
+  box-shadow:
+    0 0.4vmin 1.2vmin rgba(0, 0, 0, 0.55);
+}
+
+
+/* Color swatch (clickable picker) */
+.checkpoint input[type="color"] {
+  width: 3.4vmin;
+  height: 3.4vmin;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* Hex input */
+.checkpoint .hex-input {
+  width: 9vmin;
+  padding: 0.5vmin 0.9vmin;
+  border-radius: 999px;
+  border: none;
+
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+
+  font-family: monospace;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.checkpoint .hex-input:focus {
+  outline: none;
+  box-shadow: 0 0 0.8vmin rgba(var(--galaxy-rgb), 0.75);
+}
+
+/* Remove button */
+.checkpoint button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+/* =========================
+ PREVIEW
+========================= */
+.preview {
+  margin-top: 1.2vmin;
+  padding: 1.6vmin;
+  border-radius: 0.9vmin;
+
+  background: #303030; /* ✅ true black, not themed */
+  transition: background-color 150ms ease;
+
+  font-size: clamp(1.1rem, 2.4vmin, 1.8rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+  white-space: nowrap;
+}
+.preview span {
+  text-shadow:
+    0 0 0.35vmin #000;
+}
+
+/* =========================
+ FOOTER
+========================= */
+.footer {
+  margin-top: 2.5vmin;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.6vmin;
+}
+
+.footer button {
+  padding: 0.9vmin 2.6vmin;
+  border-radius: 999px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.footer .use {
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  color: #000;
+}
+
+.footer .cancel {
+  background: rgba(0,0,0,0.35);
+  color: #bbb;
+}
+
+.gradient-vivid-text {
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* Subtle glow like HUD text */
+  text-shadow:
+    0 0.2vmin 0.35vmin rgba(0, 0, 0, 0.2),
+    0 0 0.9vmin rgba(var(--galaxy-rgb), 0.2);
+}
+
+/* =========================
+ OPEN GENERATOR BUTTON
+========================= */
+.open-generator-btn {
+  padding: 1.1vmin 3.2vmin;
+  border-radius: 999px;
+  border: none;
+  
+  font-weight: 700;
+
+  cursor: pointer;
+
+  background: linear-gradient(
+    to right,
+    var(--galaxy-main),
+    var(--galaxy-accent)
+  );
+  color: #000;
+
+  box-shadow:
+    0 0.6vmin 1.8vmin rgba(0,0,0,0.4),
+    0 0 2.4vmin rgba(var(--galaxy-rgb), 0.45);
+
+  /* ❗ no positioning here on purpose */
+}
+#openGeneratorBtn {
+  position: absolute;
+  top: 3vmin;
+  left: 25%;
+}
+
+
+
+/* =========================
+ CONTENT LAYOUT
+========================= */
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* =========================
+ CHECKPOINTS (VERTICAL STACK)
+========================= */
+.checkpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 1vmin;
+  margin-bottom: 2vmin;
+}
+
+/* =========================
+ PREVIEW BLOCK
+========================= */
+.preview-block {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto; /* ✅ pushes preview block to bottom */
+}
+
+/* Visual output should sit above footer */
+.preview {
+  margin-top: 1.2vmin;
+}
+
+/* =========================
+ CHECKPOINT ROW (2 COLUMNS)
+========================= */
+.checkpoint-row {
+  display: flex;
+  gap: 2vmin;
+  align-items: flex-start;
+}
+
+/* =========================
+ PRESET PANEL
+========================= */
+.preset-panel {
+  width: 33%;
+  max-width: 33%;
+  display: flex;
+  flex-direction: column;
+}
+
+.preset-title {
+  font-size: clamp(0.9rem, 1.5vmin, 1.05rem);
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.8vmin;
+}
+.preset-list {
+  max-height: calc(100% - 1.5vmin);
+  overflow-y: auto;
+  overflow-x: visible;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vmin;
+
+  padding-left: 1.4vmin;   /* ✅ NEW: prevents left shadow clipping */
+  padding-right: 0.6vmin;  /* ✅ space for scrollbar */
+}
+
+
+.preset-list::-webkit-scrollbar {
+  width: 0.6vmin;
+}
+.preset-list::-webkit-scrollbar-thumb {
+  background: rgba(var(--galaxy-rgb), 0.5);
+  border-radius: 999px;
+}
+
+/* =========================
+ PRESET ITEM
+========================= */
+.preset-item {
+  padding: 0.9vmin 1.2vmin;
+  border-radius: 1.2vmin;
+  cursor: pointer;
+
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow:
+    inset 0 0 0 0.15vmin rgba(var(--galaxy-rgb), 0.25),
+    0 0.4vmin 1.2vmin rgba(0,0,0,0.35);
+}
+
+.preset-item:hover {
+  background: rgba(0, 0, 0, 0.45);
+}
+.preset-name {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+  white-space: nowrap;
+}
+/* Black shadow for preset gradient text */
+.preset-name span {
+  text-shadow: 0 0 0.35vmin #000;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div id="overlay">
+  <button id="openGeneratorBtn" class="open-generator-btn">
+    Use Name Generator
+  </button>
+
+
+  <div id="generatorRoot" class="panel" style="display: none;">
+
+    <div class="header gradient-vivid-text">Gradient Name Generator</div>
+
+    <label>Input Name</label>
+    <input id="textInput" type="text" value="Cosmos Mod by Apricity!" maxlength="50" />
+
+    <div class="content">
+
+    <label>Gradient Color Checkpoints</label>
+      <div class="checkpoint-row">
+        <div id="checkpoints" class="checkpoints"></div>
+
+        <div class="preset-panel">
+          <div class="preset-title">Presets</div>
+          <div id="presetList" class="preset-list"></div>
+        </div>
+      </div>
+      <div class="preview-block">
+          <label>Visual Output</label>
+          <div class="label-note gradient-vivid-text">
+          Some symbols may not be supported by the game. Unsupported characters may
+          be replaced or displayed differently depending on where the name is used.
+          </div>
+
+          <div id="preview" class="preview"></div>
+      </div>
+    </div>
+
+
+    <div class="footer">
+      <button class="use" id="useBtn">Use</button>
+      <button class="cancel" id="cancelBtn">Cancel</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PREDEFINED_GRADIENTS = [
+  {
+    name: "⋆｡°✩Solarized✩°｡⋆",
+    colors: ["#268BD2", "#2AA198", "#859900", "#B58900", "#CB4B16"]
+  },
+  {
+    name: "⋆｡°✩Vaporwave✩°｡⋆",
+    colors: ["#FF71CE", "#01CDFE", "#05FFA1", "#B967FF", "#B967FF", "#FFFB96"]
+  },
+  {
+    name: "⋆｡°✩Watermelon✩°｡⋆",
+    colors: ["#FF4F79", "#FF7F50", "#FFD27F", "#7FFF7F", "#4FFFAF"]
+  }
+];
+
+
+/* =========================
+ TIER SYSTEM (HUD EXACT)
+========================= */
+const tierMap = ["Nothing","Stardust","Nova","Pulsar","Nebula","SuperNova","Celestial"];
+const tiers = {
+  Nothing:   { main:"#7e7e7e", accent:"#7e7e7e", rgb:"102,102,102" },
+  Stardust: { main:"#39383b", accent:"#ecd577", rgb:"119,119,119" },
+  Nova:     { main:"#751d95", accent:"#b785f3", rgb:"76,29,149" },
+  Pulsar:   { main:"#5d3ddd", accent:"#60a5fa", rgb:"30,58,138" },
+  Nebula:   { main:"#7c3aed", accent:"#f472b6", rgb:"124,58,237" },
+  SuperNova:{ main:"#7dbece", accent:"#39df7c", rgb:"56,189,248" },
+  Celestial:{ main:"#ff593b", accent:"#ffe57b", rgb:"253,230,138" }
+};
+
+window.setTierByValue = function(v){
+  const t = tiers[tierMap[v]];
+
+  const root = document.documentElement;
+  root.style.setProperty("--galaxy-main", t.main);
+  root.style.setProperty("--galaxy-accent", t.accent);
+  root.style.setProperty("--galaxy-rgb", t.rgb);
+
+  /* ✅ THESE ARE THE MISSING PIECES */
+  root.style.setProperty("--text-main", darken(t.main, 0.35));
+  root.style.setProperty("--text-muted", darken(t.main, 0.55));
+}
+
+
+/* Default tier (Nova) */
+setTierByValue(0);
+
+/* =========================
+ GRADIENT ENGINE
+========================= */
+const input = document.getElementById("textInput");
+const preview = document.getElementById("preview");
+const container = document.getElementById("checkpoints");
+
+let checkpoints = ["#268BD2", "#2AA198", "#859900", "#B58900", "#CB4B16"];
+
+const maxCheckpoints = () =>
+  Math.max(2, Math.round(input.value.length / 1));
+
+function clamp() {
+  checkpoints = checkpoints.slice(0, maxCheckpoints());
+  if (checkpoints.length < 2) checkpoints.length = 2;
+}
+
+function hexToRgb(h) {
+  return [1,3,5].map(i => parseInt(h.substr(i,2),16));
+}
+
+function getLuminance(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function updatePreviewBackground() {
+  preview.style.background = getBackgroundForColors(checkpoints);
+}
+
+function getBackgroundForColors(colors) {
+  if (!colors || !colors.length) return "#444444";
+
+  const avgLuminance =
+    colors.reduce((sum, c) => sum + getLuminance(c), 0) / colors.length;
+
+  if (avgLuminance < 70) {
+    return "#F2F2F2";   // very dark colors → very light bg
+  } else if (avgLuminance < 110) {
+    return "#D6D6D6";   // dark colors → light gray
+  } else if (avgLuminance < 145) {
+    return "#777777";   // mixed → mid gray
+  } else if (avgLuminance < 185) {
+    return "#2A2A2A";   // light colors → dark gray
+  } else {
+    return "#000000";   // very light colors → black
+  }
+}
+
+
+
+function lerp(a,b,t) { return a + (b - a) * t; }
+
+function colorAt(i, len) {
+  if (len <= 2) return checkpoints[0];
+  const t = i / (len - 1);
+  const seg = 1 / (checkpoints.length - 1);
+  const idx = Math.min(checkpoints.length - 2, Math.floor(t / seg));
+  const lt = (t - idx * seg) / seg;
+  const a = hexToRgb(checkpoints[idx]);
+  const b = hexToRgb(checkpoints[idx + 1]);
+  return `rgb(${lerp(a[0],b[0],lt)},${lerp(a[1],b[1],lt)},${lerp(a[2],b[2],lt)})`;
+}
+
+function colorAtWithColors(colors, i, len) {
+  if (len <= 2) return colors[0];
+
+  const t = i / (len - 1);
+  const seg = 1 / (colors.length - 1);
+  const idx = Math.min(
+    colors.length - 2,
+    Math.floor(t / seg)
+  );
+  const lt = (t - idx * seg) / seg;
+
+  const a = hexToRgb(colors[idx]);
+  const b = hexToRgb(colors[idx + 1]);
+
+  return `rgb(
+    ${lerp(a[0], b[0], lt)},
+    ${lerp(a[1], b[1], lt)},
+    ${lerp(a[2], b[2], lt)}
+  )`;
+}
+
+function buildOutputString(text) {
+  let out = "";
+  for (let i = 0; i < text.length; i++) {
+    const c = colorAt(i, text.length)
+      .match(/\d+/g)
+      .map(v => (+v).toString(16).padStart(2,"0")).join("");
+    out += `[${c}]${text[i]}`;
+  }
+  return out;
+}
+
+const presetListEl = document.getElementById("presetList");
+
+function renderPresets() {
+  presetListEl.innerHTML = "";
+
+  PREDEFINED_GRADIENTS.forEach(preset => {
+    const item = document.createElement("div");
+    item.className = "preset-item";
+
+    // ✅ adaptive background (already correct)
+    item.style.background =
+      getBackgroundForColors(preset.colors);
+
+    const name = document.createElement("div");
+    name.className = "preset-name";
+    name.innerHTML = "";
+
+    const text = preset.name;
+    const len = text.length;
+
+    text.split("").forEach((ch, i) => {
+      const span = document.createElement("span");
+      span.textContent = ch;
+
+      // ✅ use preset colors (NOT global checkpoints)
+      span.style.color = colorAtWithColors(
+        preset.colors,
+        i,
+        len
+      );
+
+      name.appendChild(span);
+    });
+
+    item.appendChild(name);
+
+    item.onclick = () => {
+      checkpoints = preset.colors.slice();
+      render();
+    };
+
+    presetListEl.appendChild(item);
+  });
+}
+
+
+function render() {
+  clamp();
+  container.innerHTML = "";
+
+  checkpoints.forEach((c, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "checkpoint";
+
+    /* Color picker swatch */
+    const picker = document.createElement("input");
+    picker.type = "color";
+    picker.value = c;
+    picker.oninput = e => {
+        checkpoints[i] = e.target.value;
+        hex.value = e.target.value.toUpperCase();
+        render();
+    };
+
+    /* Hex input */
+    const hex = document.createElement("input");
+    hex.type = "text";
+    hex.className = "hex-input";
+    hex.value = c.toUpperCase();
+
+    hex.oninput = () => {
+        if (/^#?[0-9a-fA-F]{6}$/.test(hex.value)) {
+        const v = hex.value.startsWith("#")
+            ? hex.value
+            : "#" + hex.value;
+        checkpoints[i] = v;
+        picker.value = v;
+        render();
+        }
+    };
+
+    wrap.appendChild(picker);
+    wrap.appendChild(hex);
+
+    /* Remove button (if allowed) */
+    if (checkpoints.length > 2) {
+        const rm = document.createElement("button");
+        rm.textContent = "−";
+        rm.onclick = () => {
+        checkpoints.splice(i, 1);
+        render();
+        };
+        wrap.appendChild(rm);
+    }
+
+    container.appendChild(wrap);
+    });
+
+  if (checkpoints.length < maxCheckpoints()) {
+    const add = document.createElement("button");
+    add.textContent = "+";
+    add.onclick = () => {
+      checkpoints.push("#ffffff");
+      render();
+    };
+    container.appendChild(add);
+  }
+
+  preview.innerHTML = "";
+  [...input.value].forEach((ch,i) => {
+    const span = document.createElement("span");
+    span.textContent = ch;
+    span.style.color = colorAt(i, input.value.length);
+
+    preview.appendChild(span);
+  });
+
+  updatePreviewBackground();
+}
+
+input.oninput = () => {
+  if (input.value.length > 50) {
+    input.value = input.value.slice(0, 50);
+  }
+  render();
+};
+render();
+renderPresets();
+
+function darken(hex, factor = 0.45) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.floor(((n >> 16) & 255) * factor);
+  const g = Math.floor(((n >> 8) & 255) * factor);
+  const b = Math.floor((n & 255) * factor);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b)
+    .toString(16)
+    .slice(1)}`;
+}
+
+const openBtn = document.getElementById("openGeneratorBtn");
+const generatorRoot = document.getElementById("generatorRoot");
+
+function getOverlayRect() {
+    const el = document.getElementById("overlay");
+    const rect = el.getBoundingClientRect();
+
+    return {
+        x: Math.round(rect.left),
+        y: Math.round(rect.top),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height)
+    };
+}
+
+function sendOverlayGeometry() {
+    const r = getOverlayRect();
+
+    AndroidBridge.redrawOverlay(
+        JSON.stringify({ overlay: "NameGenOverlay" }),
+        r.x,
+        r.y,
+        r.width,
+        r.height
+    );
+}
+function sendOverlayGeometry() {
+    requestAnimationFrame(() => {
+        const r = getOverlayRect();
+
+        AndroidBridge.redrawOverlay(
+            JSON.stringify({ overlay: "NameGenOverlay" }),
+            r.x,
+            r.y,
+            r.width,
+            r.height
+        );
+    });
+}
+function setGeneratorVisible(visible) {
+    generatorRoot.style.display = visible ? "flex" : "none";
+    openBtn.style.display = visible ? "none" : "block";
+
+    sendOverlayGeometry(); // now safe because it waits for reflow
+}
+openBtn.onclick = () => {
+  setGeneratorVisible(true);
+};
+
+window.setSize = function (width, height) {
+  document.documentElement.style.width = width + "px";
+  document.documentElement.style.height = height + "px";
+  document.body.style.width = width + "px";
+  document.body.style.height = height + "px";
+};
+
+window.onload = () => {
+    if (window.Android?.requestDeviceSize) {
+        AndroidBridge.requestDeviceSize(JSON.stringify({
+            overlay: "NameGenOverlay"
+        }));
+    }
+
+    // After setSize() applies, measure again
+    requestAnimationFrame(sendOverlayGeometry);
+};
+
+
+/* =========================
+ ANDROID BRIDGE
+========================= */
+document.getElementById("useBtn").onclick = () => {
+  const result = buildOutputString(input.value);
+
+  // if (window.Android?.setGradientResult) {
+  //   window.Android.setGradientResult(result);
+  // }
+
+  setGeneratorVisible(false);
+};
+
+document.getElementById("cancelBtn").onclick = () => {
+  // if (window.Android?.cancelGradient) {
+  //   window.Android.cancelGradient();
+  // }
+
+  setGeneratorVisible(false);
+};
+
+</script>
+
+</body>
+</html>

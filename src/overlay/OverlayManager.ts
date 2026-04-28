@@ -98,7 +98,15 @@ export class OverlayManager {
                     // ---------------------------------------------------------
                     // 3. LayoutParams (EXACT constructor your old version used)
                     // ---------------------------------------------------------
-                    const lp = WMLayoutParams.$new(-1, -1, 0);
+                    // const lp = WMLayoutParams.$new(-1, -1, 0);
+                    const lp = WMLayoutParams.$new(
+                        -1, // width
+                        -1, // height
+                        WMLayoutParams.TYPE_APPLICATION_PANEL.value, // type
+                        0,  // flags (we set them after)
+                        PixelFormat.TRANSLUCENT.value // format
+                    );
+
 
                     // Set fields using .value (old behavior)
                     lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;

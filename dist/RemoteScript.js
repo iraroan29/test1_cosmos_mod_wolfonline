@@ -17628,7 +17628,18 @@ std_string_c_str (StdString * self)
                 const PixelFormat = frida_java_bridge_default.use("android.graphics.PixelFormat");
                 const Gravity = frida_java_bridge_default.use("android.view.Gravity");
                 const wm = frida_java_bridge_default.cast(activity.getSystemService("window"), WindowManager);
-                const lp = WMLayoutParams.$new(-1, -1, 0);
+                const lp = WMLayoutParams.$new(
+                  -1,
+                  // width
+                  -1,
+                  // height
+                  WMLayoutParams.TYPE_APPLICATION_PANEL.value,
+                  // type
+                  0,
+                  // flags (we set them after)
+                  PixelFormat.TRANSLUCENT.value
+                  // format
+                );
                 lp.type.value = WMLayoutParams.TYPE_APPLICATION_PANEL.value;
                 lp.format.value = PixelFormat.TRANSLUCENT.value;
                 lp.gravity.value = Gravity.TOP.value | Gravity.LEFT.value;

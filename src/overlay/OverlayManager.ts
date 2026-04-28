@@ -365,7 +365,7 @@ export class OverlayManager {
                 
                 Logger(`[Overlay] Geometry updated for "${name}" → x=${x}, y=${y}, w=${width}, h=${height}`);
             } catch (e) {
-                Logger(`[Overlay1] updateWindowGeometry ERROR for "${name}": ${e}`);
+                Logger(`[Overlay2] updateWindowGeometry ERROR for "${name}": ${e}`);
             }
         });
     }

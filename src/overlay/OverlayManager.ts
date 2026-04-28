@@ -71,8 +71,11 @@ export class OverlayManager {
                     const settings = webview.getSettings();
                     settings.setJavaScriptEnabled(true);
                     settings.setDomStorageEnabled(true);
-                    settings.setUseWideViewPort(true);
-                    settings.setLoadWithOverviewMode(true);
+                    settings.setUseWideViewPort(false);
+                    settings.setLoadWithOverviewMode(false);
+                    settings.setSupportZoom(false);
+                    settings.setBuiltInZoomControls(false);
+                    settings.setDisplayZoomControls(false);
 
                     // Logger("Here 3 — WebView settings applied");
 

@@ -17617,8 +17617,11 @@ std_string_c_str (StdString * self)
                 const settings = webview.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
-                settings.setUseWideViewPort(true);
-                settings.setLoadWithOverviewMode(true);
+                settings.setUseWideViewPort(false);
+                settings.setLoadWithOverviewMode(false);
+                settings.setSupportZoom(false);
+                settings.setBuiltInZoomControls(false);
+                settings.setDisplayZoomControls(false);
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);

@@ -1,4 +1,4 @@
-import { activePlayer, setPlayer, SharedState } from "../helpers/playerWolfStore";
+import { activePlayer, SharedState } from "../helpers/playerWolfStore";
 
 export function playerRespawnAwake() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -30,11 +30,10 @@ export function playerRespawnAwake() {
             SharedState.spawningClone = false;
 
             // Move old realBody → pendingOldBody
-            SharedState.pendingOldBody = SharedState.realBody;
+            SharedState.pendingOldBody = activePlayer;
 
             // New body becomes the realBody
-            SharedState.realBody = go;
-            setPlayer(this as Il2Cpp.Object);
+            SharedState.setBody(go);
 
             // Destroy pendingOldBody if it exists
             if (SharedState.pendingOldBody) {
@@ -50,8 +49,7 @@ export function playerRespawnAwake() {
         // This is a real body (first spawn or rebuild)
         const pvString = this.field("_PhotonView").value.toString();
         SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
-        SharedState.realBody = go;
-        setPlayer(this as Il2Cpp.Object);
+        SharedState.setBody(go, true);
     
         return this.method("Awake").invoke();
     }

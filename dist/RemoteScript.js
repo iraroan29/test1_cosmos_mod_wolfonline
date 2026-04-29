@@ -17284,464 +17284,106 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/helpers/playerWolfStore.ts
-  function isPlayerActive() {
-    return activePlayer !== null;
-  }
-  function setPlayer(obj) {
-    activePlayer = obj;
-  }
-  var activePlayer, SharedState;
-  var init_playerWolfStore = __esm({
-    "src/helpers/playerWolfStore.ts"() {
-      activePlayer = null;
-      SharedState = {
-        spawningClone: false,
-        pendingOldBody: null,
-        realBody: null,
-        wolfType: ""
-      };
-    }
-  });
-
-  // src/hooks/givePoints.ts
-  function makeObjectArray(items) {
-    return Il2Cpp.array(SystemObject, items);
-  }
-  function newSingle(value) {
-    const s = SingleClass.new();
-    s.field("m_value").value = value;
-    return s;
-  }
-  function isMe(theAttacked) {
-    const attackedGO = theAttacked.method("get_gameObject").invoke();
-    if (SharedState.realBody && !attackedGO.equals(SharedState.realBody)) {
-      return false;
-    }
-    const hasPlayerWolf = attackedGO.method("GetComponent").inflate(PlayerWolf).invoke();
-    if (!hasPlayerWolf) return false;
-    const attackedTransform = attackedGO.method("get_transform").invoke();
-    const attackedTransformRoot = attackedTransform.method("get_root").invoke();
-    const attackedView = attackedTransformRoot.method("GetComponent").inflate(PhotonView).invoke();
-    return attackedView.method("get_isMine").invoke();
-  }
-  function isOnCooldown() {
-    if (!cooldownActive) return false;
-    const now = Date.now();
-    if (now >= cooldownEndTime) {
-      cooldownActive = false;
-      return false;
-    }
-    return true;
-  }
-  function givePoints() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-    if (!assemblyC || !coreAssembly) {
-      Logger("[!] Assembly-CSharp not ready for givePoints, retrying...");
-      setTimeout(givePoints, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const UnityCore = coreAssembly.image;
-    const RPC_Damage = AssemblyC.class("RPC_Damage");
-    PhotonView = AssemblyC.class("PhotonView");
-    PlayerWolf = AssemblyC.class("Player_Wolf");
-    GameObject = UnityCore.class("UnityEngine.GameObject");
-    SystemObject = Il2Cpp.corlib.class("System.Object");
-    SingleClass = Il2Cpp.corlib.class("System.Single");
-    RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
-      hunter = hunter;
-      if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
-        return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
-      }
-      cooldownActive = true;
-      const COOLDOWN_MS = configManager.get("cooldownMs");
-      cooldownEndTime = Date.now() + COOLDOWN_MS;
-      const exp = newSingle(mod_points);
-      const point = newSingle(mod_points);
-      const LastDmgArray = makeObjectArray([
-        exp,
-        point,
-        Il2Cpp.string("Eating")
-      ]);
-      const receiverView = PhotonView.method("Find").invoke(hunter_id);
-      const receiver = receiverView.method("get_owner").invoke();
-      receiverView.method("RPC").overload("System.String", "PhotonPlayer", "System.Object[]").invoke(Il2Cpp.string("Net_Last_Damage_Hunter"), receiver, LastDmgArray);
-      const raw = mod_points / 1e4 * Math.max(2, configManager.get("currentTier"));
-      configManager.incrementScore("aidScore", Math.round(raw * 10) / 10);
-    };
-    Logger("[+] givePoints successfully initialized!");
-  }
-  var mod_points, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
-  var init_givePoints = __esm({
-    "src/hooks/givePoints.ts"() {
+  // src/overlay/ModOverlay_HUD.ts
+  var _ModOverlay_HUD, ModOverlay_HUD;
+  var init_ModOverlay_HUD = __esm({
+    "src/overlay/ModOverlay_HUD.ts"() {
       init_ConfigManager();
       init_playerWolfStore();
-      mod_points = 1e4;
-      cooldownActive = false;
-      cooldownEndTime = 0;
-    }
-  });
-
-  // src/hooks/hudName.ts
-  function hudName() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-    if (!assemblyC || !coreAssembly) {
-      Logger("[!] hudName Assemblies not ready, retrying in 500ms...");
-      setTimeout(hudName, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const UnityCore = coreAssembly.image;
-    const ChatParticipant = AssemblyC.class("ChatParticipant");
-    ChatParticipant.method("Set_hudText_ADD").implementation = function(ID) {
-      const mText = this.field("mText").value;
-      const removeCE = "[/u][/i][/sup][/sub][/s][/b]";
-      const ColorClass = UnityCore.class("UnityEngine.Color");
-      const color = ColorClass.new().unbox();
-      color.field("r").value = 1;
-      color.field("g").value = 1;
-      color.field("b").value = 1;
-      color.field("a").value = 1;
-      let userID = ID.content;
-      const displayName = removeCE + configManager.get("tierName") + "[b][ffffff]" + userID + removeCE;
-      mText.method("Add").invoke(
-        Il2Cpp.string(`${displayName}`),
-        color,
-        86400
-      );
-    };
-    Logger("[+] hudName successfully initialized!");
-  }
-  var init_hudName = __esm({
-    "src/hooks/hudName.ts"() {
-      init_ConfigManager();
-    }
-  });
-
-  // src/helpers/respawn.ts
-  function respawn() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-    if (!assemblyC || !coreAssembly) {
-      Logger("[!] Assembly-CSharp || Unity not ready for respawn, retrying...");
-      setTimeout(respawn, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const UnityCore = coreAssembly.image;
-    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
-    const gameObject = UnityCore.class("UnityEngine.GameObject");
-    const player = gameObject.method("FindWithTag").invoke(Il2Cpp.string("Player"));
-    if (!player) return;
-    const transform = player.method("get_transform").invoke();
-    const playerPosition = transform.method("get_position").invoke();
-    const playerRotation = transform.method("get_rotation").invoke();
-    SharedState.spawningClone = true;
-    PhotonNetwork.method("Instantiate").invoke(Il2Cpp.string(SharedState.wolfType), playerPosition, playerRotation, 0);
-  }
-  function initRespawnUpdates() {
-    configManager.onUpdate("currentTier", (tier) => respawn());
-    configManager.onUpdate("isSubtierUnlocked", (unlocked) => {
-      if (unlocked) respawn();
-    });
-  }
-  var init_respawn = __esm({
-    "src/helpers/respawn.ts"() {
-      init_ConfigManager();
-      init_playerWolfStore();
-    }
-  });
-
-  // src/hooks/playerRespawnAwake.ts
-  function playerRespawnAwake() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for playerRespawnAwake, retrying...");
-      setTimeout(playerRespawnAwake, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const Player_Wolf = AssemblyC.class("Player_Wolf");
-    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
-    Player_Wolf.method("Awake").implementation = function() {
-      const pv = this.field("_PhotonView").value;
-      const isMine = pv.method("get_isMine").invoke();
-      if (!isMine) {
-        return this.method("Awake").invoke();
-      }
-      const go = this.method("get_gameObject").invoke();
-      if (SharedState.spawningClone) {
-        Logger("Destroy Older Body");
-        SharedState.spawningClone = false;
-        SharedState.pendingOldBody = SharedState.realBody;
-        SharedState.realBody = go;
-        setPlayer(this);
-        if (SharedState.pendingOldBody) {
-          PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState.pendingOldBody);
-          SharedState.pendingOldBody = null;
-        }
-        return this.method("Awake").invoke();
-      }
-      const pvString = this.field("_PhotonView").value.toString();
-      SharedState.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
-      SharedState.realBody = go;
-      setPlayer(this);
-      return this.method("Awake").invoke();
-    };
-    Logger("[+] playerRespawnAwake successfully initialized!");
-  }
-  var init_playerRespawnAwake = __esm({
-    "src/hooks/playerRespawnAwake.ts"() {
-      init_playerWolfStore();
-    }
-  });
-
-  // src/hooks/playerUpdate.ts
-  function playerUpdate() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for playerUpdate, retrying...");
-      setTimeout(playerUpdate, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const Player_Wolf = AssemblyC.class("Player_Wolf");
-    Player_Wolf.method("Update").implementation = function() {
-      this.field("body_size").value = configManager.get("size");
-      this.field("eat_spped").value = 100;
-      this.field("runSpeed").value = 100;
-      return this.method("Update").invoke();
-    };
-    Logger("[+] playerUpdate successfully initialized!");
-  }
-  var init_playerUpdate = __esm({
-    "src/hooks/playerUpdate.ts"() {
-      init_ConfigManager();
-    }
-  });
-
-  // src/hooks/honor_pointLimiter.ts
-  function honorAndPointLimiter() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for honorAndPointLimiter, retrying...");
-      setTimeout(honorAndPointLimiter, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const RPC_Damage = AssemblyC.class("RPC_Damage");
-    RPC_Damage.method("Net_Last_Damage_Hunter").implementation = function(points, exp, tag) {
-      if (cooldownActive2 && Date.now() >= cooldownEndTime2) {
-        cooldownActive2 = false;
-      }
-      const incoming = points;
-      const clamped = Math.min(incoming, 1e4);
-      if (cooldownActive2 && clamped == 1e4) {
-        return;
-      }
-      if (!cooldownActive2 && clamped == 1e4) {
-        cooldownActive2 = true;
-        cooldownEndTime2 = Date.now() + COOLDOWN_DURATION;
-      }
-      const tagString = tag.toString().trim();
-      if (tagString.includes("Escape")) {
-        configManager.incrementScore("honorScore", 50);
-      }
-      if (tagString.includes("Defense")) {
-        configManager.incrementScore("honorScore", 1);
-      }
-      if (tagString.includes("Attack")) {
-        configManager.incrementScore("honorScore", 1.5);
-      }
-      if (tagString.includes("Player")) {
-        configManager.incrementScore("honorScore", 3);
-      }
-      if (tagString.includes("Eat")) {
-        configManager.incrementScore("honorScore", 0.05);
-      }
-      return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
-    };
-    Logger("[+] honorAndPointLimiter successfully initialized!");
-  }
-  var cooldownActive2, cooldownEndTime2, COOLDOWN_DURATION;
-  var init_honor_pointLimiter = __esm({
-    "src/hooks/honor_pointLimiter.ts"() {
-      init_ConfigManager();
-      cooldownActive2 = false;
-      cooldownEndTime2 = 0;
-      COOLDOWN_DURATION = 3e4;
-    }
-  });
-
-  // src/overlay/SceneOverlayManager.ts
-  var SceneOverlayManager;
-  var init_SceneOverlayManager = __esm({
-    "src/overlay/SceneOverlayManager.ts"() {
-      init_frida_java_bridge();
-      init_bossRegistry();
-      init_OverlayManager();
-      init_playerWolfStore();
-      SceneOverlayManager = class _SceneOverlayManager {
-        constructor() {
-          this.initialized = false;
-          this.lastScene = "";
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _SceneOverlayManager();
-          return this.instance;
-        }
-        initialize() {
-          if (this.initialized) return;
-          this.initialized = true;
-          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-          if (!core) {
-            Logger("[!] Unity not ready for SceneOverlayManager");
-            return;
-          }
-          const UnityCoreImage = core.image;
-          const AssemblyC = assemblyC.image;
-          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
-          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
-          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
-            const sceneName = scene.method("get_name").invoke().content;
-            _SceneOverlayManager.currentScene = sceneName;
-            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            return this.method("Internal_SceneLoaded").invoke(scene, mode);
-          };
-          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
-            BossRegistry.clearBoss();
-            SharedState.realBody = null;
-            setPlayer(null);
-            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
-          };
-          Logger("[*] SceneOverlayManager - Scene hooks installed");
-        }
-        registerOverlayScenes(overlayName, scenes, condition) {
-          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
-          if (overlay) {
-            overlay.scenes = scenes;
-            overlay.condition = condition || null;
-          }
-          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
-        }
-        onSceneChanged(sceneName) {
-          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
-          this.lastScene = sceneName;
-          const overlayManager = OverlayManager.getInstance();
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            Object.values(overlayManager["overlays"]).forEach((overlay) => {
-              if (!overlay.scenes) return;
-              const sceneMatch = overlay.scenes.includes(sceneName);
-              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-              const shouldShow = sceneMatch && conditionMatch;
-              overlay.layout.setVisibility(shouldShow ? 0 : 4);
-            });
-          });
-        }
-      };
-    }
-  });
-
-  // src/helpers/bossRegistry.ts
-  function isBossActive() {
-    return boss !== null;
-  }
-  var boss, bossHp, bossMaxHp, BossRegistry;
-  var init_bossRegistry = __esm({
-    "src/helpers/bossRegistry.ts"() {
-      init_BossBattleOverlay();
       init_OverlayManager();
       init_SceneOverlayManager();
-      boss = null;
-      bossHp = 0;
-      bossMaxHp = 0;
-      BossRegistry = {
-        // Maps that have bosses
-        bossScenes: {
-          "WolfOnline_Map_Lava": true,
-          "WolfOnline_Map_Wild_Guardian": true,
-          "WolfOnline_Map_Mountain_Guardian": true,
-          "WolfOnline_Map_Snow_Guardian": true
-        },
-        bossCorrectMap: {
-          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
-          "Dragon_High": "WolfOnline_Map_Lava",
-          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
-          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
-        },
-        /** Called when boss spawns */
-        setBoss(obj) {
-          boss = obj;
-          bossMaxHp = obj.field("health_Max").value;
-          bossHp = obj.field("health").value;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-          );
-        },
-        /** Called when boss dies */
-        clearBoss() {
-          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
-          boss = null;
-          bossHp = 0;
-          bossMaxHp = 0;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
-          );
-        },
-        /** HTML calls this when damage is dealt */
-        dealDamage(amount, critHit) {
-          if (!boss) return;
-          bossHp -= amount;
-          if (bossHp < 0) bossHp = 0;
-          OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `dealDamage(${amount}, ${critHit});`
-          );
-        },
-        /** Returns true if this scene has a boss */
-        hasBossForScene(scene) {
-          return this.bossScenes.hasOwnProperty(scene);
-        },
-        /** Returns true if boss exists AND scene has a boss */
-        isBossActive(scene) {
-          Logger("Boss active? " + BossRegistry.isBossActive(scene));
-          Logger("boss value: " + boss);
-          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
-          return this.hasBossForScene(scene) && boss !== null;
-        }
-      };
-    }
-  });
-
-  // src/overlay/BossBattleOverlay.ts
-  var _BossBattleOverlay, BossBattleOverlay;
-  var init_BossBattleOverlay = __esm({
-    "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _BossBattleOverlay = class _BossBattleOverlay {
+      _ModOverlay_HUD = class _ModOverlay_HUD {
         constructor(url) {
           (async () => {
-            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
-            Logger("[BossOverlay] Overlay created, now registering scenes");
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
+            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
             SceneOverlayManager.getInstance().registerOverlayScenes(
-              _BossBattleOverlay.OVERLAY_NAME,
-              Object.keys(BossRegistry.bossScenes),
-              () => isBossActive()
+              _ModOverlay_HUD.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene
             );
+            _ModOverlay_HUD.TIER = configManager.get("currentTier");
+            _ModOverlay_HUD.AID = configManager.get("aidScore");
+            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
+            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
+            _ModOverlay_HUD.MULTIHIT = configManager.get("multiHit");
           })();
         }
+        // Optional: TS → HTML health update (HTML handles visuals)
+        static bannerMessage(message, negativeAffect = false) {
+          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
+        static actionMessage(message) {
+          const js = `actionMessage(${JSON.stringify(message)});`;
+          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+        }
       };
-      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
-      BossBattleOverlay = _BossBattleOverlay;
+      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
+      _ModOverlay_HUD.TIER = 0;
+      _ModOverlay_HUD.AID = 0;
+      _ModOverlay_HUD.HONOR = 0;
+      _ModOverlay_HUD.DEATHTIER = 0;
+      _ModOverlay_HUD.MULTIHIT = null;
+      ModOverlay_HUD = _ModOverlay_HUD;
+      configManager.onUpdate("currentTier", (tier) => {
+        const js = `setTierByValue(${tier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+        const tierMsg = tier > ModOverlay_HUD.TIER ? "Tier Up! \u2014" : "Tier Drop \u2014";
+        const configMultiHit = configManager.get("multiHit");
+        if (tier > ModOverlay_HUD.TIER) {
+          if (configMultiHit.twoHits > 0) {
+            ModOverlay_HUD.MULTIHIT.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x2 Chance: ${configMultiHit.twoHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
+          }
+          if (configMultiHit.threeHits > 0) {
+            ModOverlay_HUD.MULTIHIT.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x3 Chance: ${configMultiHit.threeHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
+          }
+          if (configMultiHit.fiveHits > 0) {
+            ModOverlay_HUD.MULTIHIT.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x5 Chance: ${configMultiHit.fiveHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
+          }
+        } else {
+          if (ModOverlay_HUD.MULTIHIT.twoHits > 0) {
+            configMultiHit.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x2`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
+          }
+          if (ModOverlay_HUD.MULTIHIT.threeHits > 0) {
+            configMultiHit.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x3`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
+          }
+          if (ModOverlay_HUD.MULTIHIT.fiveHits > 0) {
+            configMultiHit.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x5`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
+          }
+        }
+        ModOverlay_HUD.TIER = tier;
+        ModOverlay_HUD.MULTIHIT = configMultiHit;
+      });
+      configManager.onUpdate("currentDeathTier", (deathTier) => {
+        const js = `setDeathTier(${deathTier});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("honorScore", (honor) => {
+        const js = `setHonor(${honor});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
+      configManager.onUpdate("aidScore", (aid) => {
+        const js = `setAid(${aid});`;
+        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+      });
     }
   });
 
@@ -17850,7 +17492,7 @@ std_string_c_str (StdString * self)
                             self.onHtmlReady(data.overlay);
                           }
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
-                            const js = `initStats(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
+                            const js = `initialize(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
                             _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
                           }
                           if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
@@ -18021,106 +17663,471 @@ std_string_c_str (StdString * self)
     }
   });
 
-  // src/overlay/ModOverlay_HUD.ts
-  var _ModOverlay_HUD, ModOverlay_HUD;
-  var init_ModOverlay_HUD = __esm({
-    "src/overlay/ModOverlay_HUD.ts"() {
-      init_ConfigManager();
-      init_playerWolfStore();
+  // src/overlay/BossBattleOverlay.ts
+  var _BossBattleOverlay, BossBattleOverlay;
+  var init_BossBattleOverlay = __esm({
+    "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
       init_OverlayManager();
       init_SceneOverlayManager();
-      _ModOverlay_HUD = class _ModOverlay_HUD {
+      _BossBattleOverlay = class _BossBattleOverlay {
         constructor(url) {
           (async () => {
-            await OverlayManager.getInstance().createOverlay(_ModOverlay_HUD.OVERLAY_NAME, url, true);
-            Logger("[ModOverlay HUD] Overlay created, now registering scenes");
+            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
+            Logger("[BossOverlay] Overlay created, now registering scenes");
             SceneOverlayManager.getInstance().registerOverlayScenes(
-              _ModOverlay_HUD.OVERLAY_NAME,
-              Object.keys({
-                "WolfOnline_Map_Snow": true,
-                "WolfOnline_Map_Snow_Guardian": true,
-                "WolfOnline_Map_Mountain": true,
-                "WolfOnline_Map_Mountain_Guardian": true,
-                "WolfOnline_Map_Wild": true,
-                "WolfOnline_Map_Wild_Guardian": true,
-                "WolfOnline_Map_Lava": true,
-                "WolfOnline_Map_Fish": true,
-                "WolfOnline_Map_BlackTiger": true,
-                "WolfOnline_Map_Wild_Dog": true,
-                "WolfOnline_Map_Field": true,
-                "WolfOnline_Map_Hellgate_0": true,
-                "WolfOnline_Map_WolfAndDino": true
-              }),
-              () => isPlayerActive()
+              _BossBattleOverlay.OVERLAY_NAME,
+              Object.keys(BossRegistry.bossScenes),
+              () => isBossActive()
             );
             SceneOverlayManager.getInstance().onSceneChanged(
               SceneOverlayManager.currentScene
             );
-            _ModOverlay_HUD.TIER = configManager.get("currentTier");
-            _ModOverlay_HUD.AID = configManager.get("aidScore");
-            _ModOverlay_HUD.DEATHTIER = configManager.get("currentDeathTier");
-            _ModOverlay_HUD.HONOR = configManager.get("honorScore");
-            _ModOverlay_HUD.MULTIHIT = configManager.get("multiHit");
           })();
         }
-        // Optional: TS → HTML health update (HTML handles visuals)
-        static bannerMessage(message, negativeAffect = false) {
-          const js = `setPopupBanner(${JSON.stringify(message)}, ${negativeAffect});`;
-          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
-        }
-        static actionMessage(message) {
-          const js = `actionMessage(${JSON.stringify(message)});`;
-          OverlayManager.getInstance().sendToHtml(_ModOverlay_HUD.OVERLAY_NAME, js);
+      };
+      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
+      BossBattleOverlay = _BossBattleOverlay;
+    }
+  });
+
+  // src/helpers/bossRegistry.ts
+  function isBossActive() {
+    return boss !== null;
+  }
+  var boss, bossHp, bossMaxHp, BossRegistry;
+  var init_bossRegistry = __esm({
+    "src/helpers/bossRegistry.ts"() {
+      init_BossBattleOverlay();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      boss = null;
+      bossHp = 0;
+      bossMaxHp = 0;
+      BossRegistry = {
+        // Maps that have bosses
+        bossScenes: {
+          "WolfOnline_Map_Lava": true,
+          "WolfOnline_Map_Wild_Guardian": true,
+          "WolfOnline_Map_Mountain_Guardian": true,
+          "WolfOnline_Map_Snow_Guardian": true
+        },
+        bossCorrectMap: {
+          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
+          "Dragon_High": "WolfOnline_Map_Lava",
+          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
+          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
+        },
+        /** Called when boss spawns */
+        setBoss(obj) {
+          boss = obj;
+          bossMaxHp = obj.field("health_Max").value;
+          bossHp = obj.field("health").value;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.currentScene
+          );
+        },
+        /** Called when boss dies */
+        clearBoss() {
+          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
+          boss = null;
+          bossHp = 0;
+          bossMaxHp = 0;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.getInstance().lastScene
+          );
+        },
+        /** HTML calls this when damage is dealt */
+        dealDamage(amount, critHit) {
+          if (!boss) return;
+          bossHp -= amount;
+          if (bossHp < 0) bossHp = 0;
+          OverlayManager.getInstance().sendToHtml(
+            BossBattleOverlay.OVERLAY_NAME,
+            `dealDamage(${amount}, ${critHit});`
+          );
+        },
+        /** Returns true if this scene has a boss */
+        hasBossForScene(scene) {
+          return this.bossScenes.hasOwnProperty(scene);
+        },
+        /** Returns true if boss exists AND scene has a boss */
+        isBossActive(scene) {
+          Logger("Boss active? " + BossRegistry.isBossActive(scene));
+          Logger("boss value: " + boss);
+          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
+          return this.hasBossForScene(scene) && boss !== null;
         }
       };
-      _ModOverlay_HUD.OVERLAY_NAME = "ModHUDOverlay";
-      _ModOverlay_HUD.TIER = 0;
-      _ModOverlay_HUD.AID = 0;
-      _ModOverlay_HUD.HONOR = 0;
-      _ModOverlay_HUD.DEATHTIER = 0;
-      _ModOverlay_HUD.MULTIHIT = null;
-      ModOverlay_HUD = _ModOverlay_HUD;
-      configManager.onUpdate("currentTier", (tier) => {
-        const js = `setTierByValue(${tier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-        const tierMsg = tier > ModOverlay_HUD.TIER ? "Tier Up! \u2014" : "Tier Drop \u2014";
-        const configMultiHit = configManager.get("multiHit");
-        if (tier > ModOverlay_HUD.TIER) {
-          if (configMultiHit.twoHits > 0) {
-            ModOverlay_HUD.MULTIHIT.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x2 Chance: ${configMultiHit.twoHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
-          }
-          if (configMultiHit.threeHits > 0) {
-            ModOverlay_HUD.MULTIHIT.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x3 Chance: ${configMultiHit.threeHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
-          }
-          if (configMultiHit.fiveHits > 0) {
-            ModOverlay_HUD.MULTIHIT.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Unlocked Multi-Hit x5 Chance: ${configMultiHit.fiveHits}%`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Boosted: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
-          }
-        } else {
-          if (ModOverlay_HUD.MULTIHIT.twoHits > 0) {
-            configMultiHit.twoHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x2`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x2 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.twoHits}% \u27F6 ${configMultiHit.twoHits}%`);
-          }
-          if (ModOverlay_HUD.MULTIHIT.threeHits > 0) {
-            configMultiHit.threeHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x3`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x3 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.threeHits}% \u27F6 ${configMultiHit.threeHits}%`);
-          }
-          if (ModOverlay_HUD.MULTIHIT.fiveHits > 0) {
-            configMultiHit.fiveHits == 0 ? ModOverlay_HUD.bannerMessage(`${tierMsg} Forfeit Multi-Hit x5`) : ModOverlay_HUD.bannerMessage(`${tierMsg} Multi-Hit x5 Chance Reduced: ${ModOverlay_HUD.MULTIHIT.fiveHits}% \u27F6 ${configMultiHit.fiveHits}%`);
-          }
+    }
+  });
+
+  // src/overlay/SceneOverlayManager.ts
+  var SceneOverlayManager;
+  var init_SceneOverlayManager = __esm({
+    "src/overlay/SceneOverlayManager.ts"() {
+      init_frida_java_bridge();
+      init_bossRegistry();
+      init_OverlayManager();
+      init_playerWolfStore();
+      SceneOverlayManager = class _SceneOverlayManager {
+        constructor() {
+          this.initialized = false;
+          this.lastScene = "";
         }
-        ModOverlay_HUD.TIER = tier;
-        ModOverlay_HUD.MULTIHIT = configMultiHit;
-      });
-      configManager.onUpdate("currentDeathTier", (deathTier) => {
-        const js = `setDeathTier(${deathTier});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("honorScore", (honor) => {
-        const js = `setHonor(${honor});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
-      configManager.onUpdate("aidScore", (aid) => {
-        const js = `setAid(${aid});`;
-        OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-      });
+        static getInstance() {
+          if (!this.instance) this.instance = new _SceneOverlayManager();
+          return this.instance;
+        }
+        initialize() {
+          if (this.initialized) return;
+          this.initialized = true;
+          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          if (!core) {
+            Logger("[!] Unity not ready for SceneOverlayManager");
+            return;
+          }
+          const UnityCoreImage = core.image;
+          const AssemblyC = assemblyC.image;
+          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
+          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
+            const sceneName = scene.method("get_name").invoke().content;
+            _SceneOverlayManager.currentScene = sceneName;
+            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
+            return this.method("Internal_SceneLoaded").invoke(scene, mode);
+          };
+          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
+            BossRegistry.clearBoss();
+            SharedState2.clearBody();
+            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
+          };
+          Logger("[*] SceneOverlayManager - Scene hooks installed");
+        }
+        registerOverlayScenes(overlayName, scenes, condition) {
+          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          if (overlay) {
+            overlay.scenes = scenes;
+            overlay.condition = condition || null;
+          }
+          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
+        }
+        onSceneChanged(sceneName) {
+          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
+          this.lastScene = sceneName;
+          const overlayManager = OverlayManager.getInstance();
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            Object.values(overlayManager["overlays"]).forEach((overlay) => {
+              if (!overlay.scenes) return;
+              const sceneMatch = overlay.scenes.includes(sceneName);
+              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+              const shouldShow = sceneMatch && conditionMatch;
+              overlay.layout.setVisibility(shouldShow ? 0 : 4);
+            });
+          });
+        }
+      };
+    }
+  });
+
+  // src/helpers/playerWolfStore.ts
+  function isPlayerActive() {
+    return activePlayer !== null;
+  }
+  var activePlayer, SharedState2;
+  var init_playerWolfStore = __esm({
+    "src/helpers/playerWolfStore.ts"() {
+      init_SceneOverlayManager();
+      activePlayer = null;
+      SharedState2 = {
+        spawningClone: false,
+        pendingOldBody: null,
+        wolfType: "",
+        setBody(obj) {
+          activePlayer = obj;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.currentScene
+          );
+        },
+        clearBody() {
+          activePlayer = null;
+          this.pendingOldBody = null;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.currentScene
+          );
+        }
+      };
+    }
+  });
+
+  // src/hooks/givePoints.ts
+  function makeObjectArray(items) {
+    return Il2Cpp.array(SystemObject, items);
+  }
+  function newSingle(value) {
+    const s = SingleClass.new();
+    s.field("m_value").value = value;
+    return s;
+  }
+  function isMe(theAttacked) {
+    const attackedGO = theAttacked.method("get_gameObject").invoke();
+    if (SharedState2.realBody && !attackedGO.equals(SharedState2.realBody)) {
+      return false;
+    }
+    const hasPlayerWolf = attackedGO.method("GetComponent").inflate(PlayerWolf).invoke();
+    if (!hasPlayerWolf) return false;
+    const attackedTransform = attackedGO.method("get_transform").invoke();
+    const attackedTransformRoot = attackedTransform.method("get_root").invoke();
+    const attackedView = attackedTransformRoot.method("GetComponent").inflate(PhotonView).invoke();
+    return attackedView.method("get_isMine").invoke();
+  }
+  function isOnCooldown() {
+    if (!cooldownActive) return false;
+    const now = Date.now();
+    if (now >= cooldownEndTime) {
+      cooldownActive = false;
+      return false;
+    }
+    return true;
+  }
+  function givePoints() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] Assembly-CSharp not ready for givePoints, retrying...");
+      setTimeout(givePoints, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    PhotonView = AssemblyC.class("PhotonView");
+    PlayerWolf = AssemblyC.class("Player_Wolf");
+    GameObject = UnityCore.class("UnityEngine.GameObject");
+    SystemObject = Il2Cpp.corlib.class("System.Object");
+    SingleClass = Il2Cpp.corlib.class("System.Single");
+    RPC_Damage.method("Net_Damage").implementation = function(hunter, hunter_id, damage) {
+      hunter = hunter;
+      if (!hunter || hunter.isNull() || !isMe(this) || mod_points == 0 || isOnCooldown()) {
+        return this.method("Net_Damage").invoke(hunter, hunter_id, damage);
+      }
+      cooldownActive = true;
+      const COOLDOWN_MS = configManager.get("cooldownMs");
+      cooldownEndTime = Date.now() + COOLDOWN_MS;
+      const exp = newSingle(mod_points);
+      const point = newSingle(mod_points);
+      const LastDmgArray = makeObjectArray([
+        exp,
+        point,
+        Il2Cpp.string("Eating")
+      ]);
+      const receiverView = PhotonView.method("Find").invoke(hunter_id);
+      const receiver = receiverView.method("get_owner").invoke();
+      receiverView.method("RPC").overload("System.String", "PhotonPlayer", "System.Object[]").invoke(Il2Cpp.string("Net_Last_Damage_Hunter"), receiver, LastDmgArray);
+      const raw = mod_points / 1e4 * Math.max(2, configManager.get("currentTier"));
+      configManager.incrementScore("aidScore", Math.round(raw * 10) / 10);
+    };
+    Logger("[+] givePoints successfully initialized!");
+  }
+  var mod_points, cooldownActive, cooldownEndTime, SystemObject, SingleClass, GameObject, PhotonView, PlayerWolf;
+  var init_givePoints = __esm({
+    "src/hooks/givePoints.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+      mod_points = 1e4;
+      cooldownActive = false;
+      cooldownEndTime = 0;
+    }
+  });
+
+  // src/hooks/hudName.ts
+  function hudName() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] hudName Assemblies not ready, retrying in 500ms...");
+      setTimeout(hudName, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const ChatParticipant = AssemblyC.class("ChatParticipant");
+    ChatParticipant.method("Set_hudText_ADD").implementation = function(ID) {
+      const mText = this.field("mText").value;
+      const removeCE = "[/u][/i][/sup][/sub][/s][/b]";
+      const ColorClass = UnityCore.class("UnityEngine.Color");
+      const color = ColorClass.new().unbox();
+      color.field("r").value = 1;
+      color.field("g").value = 1;
+      color.field("b").value = 1;
+      color.field("a").value = 1;
+      let userID = ID.content;
+      const displayName = removeCE + configManager.get("tierName") + "[b][ffffff]" + userID + removeCE;
+      mText.method("Add").invoke(
+        Il2Cpp.string(`${displayName}`),
+        color,
+        86400
+      );
+    };
+    Logger("[+] hudName successfully initialized!");
+  }
+  var init_hudName = __esm({
+    "src/hooks/hudName.ts"() {
+      init_ConfigManager();
+    }
+  });
+
+  // src/helpers/respawn.ts
+  function respawn() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    const coreAssembly = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+    if (!assemblyC || !coreAssembly) {
+      Logger("[!] Assembly-CSharp || Unity not ready for respawn, retrying...");
+      setTimeout(respawn, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const UnityCore = coreAssembly.image;
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    const gameObject = UnityCore.class("UnityEngine.GameObject");
+    const player = gameObject.method("FindWithTag").invoke(Il2Cpp.string("Player"));
+    if (!player) return;
+    const transform = player.method("get_transform").invoke();
+    const playerPosition = transform.method("get_position").invoke();
+    const playerRotation = transform.method("get_rotation").invoke();
+    SharedState2.spawningClone = true;
+    PhotonNetwork.method("Instantiate").invoke(Il2Cpp.string(SharedState2.wolfType), playerPosition, playerRotation, 0);
+  }
+  function initRespawnUpdates() {
+    configManager.onUpdate("currentTier", (tier) => respawn());
+    configManager.onUpdate("isSubtierUnlocked", (unlocked) => {
+      if (unlocked) respawn();
+    });
+  }
+  var init_respawn = __esm({
+    "src/helpers/respawn.ts"() {
+      init_ConfigManager();
+      init_playerWolfStore();
+    }
+  });
+
+  // src/hooks/playerRespawnAwake.ts
+  function playerRespawnAwake() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for playerRespawnAwake, retrying...");
+      setTimeout(playerRespawnAwake, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+    Player_Wolf.method("Awake").implementation = function() {
+      const pv = this.field("_PhotonView").value;
+      const isMine = pv.method("get_isMine").invoke();
+      if (!isMine) {
+        return this.method("Awake").invoke();
+      }
+      const go = this.method("get_gameObject").invoke();
+      if (SharedState2.spawningClone) {
+        Logger("Destroy Older Body");
+        SharedState2.spawningClone = false;
+        SharedState2.pendingOldBody = activePlayer;
+        SharedState2.setBody(go);
+        if (SharedState2.pendingOldBody) {
+          PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState2.pendingOldBody);
+          SharedState2.pendingOldBody = null;
+        }
+        return this.method("Awake").invoke();
+      }
+      const pvString = this.field("_PhotonView").value.toString();
+      SharedState2.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
+      SharedState2.setBody(go, true);
+      return this.method("Awake").invoke();
+    };
+    Logger("[+] playerRespawnAwake successfully initialized!");
+  }
+  var init_playerRespawnAwake = __esm({
+    "src/hooks/playerRespawnAwake.ts"() {
+      init_playerWolfStore();
+    }
+  });
+
+  // src/hooks/playerUpdate.ts
+  function playerUpdate() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for playerUpdate, retrying...");
+      setTimeout(playerUpdate, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const Player_Wolf = AssemblyC.class("Player_Wolf");
+    Player_Wolf.method("Update").implementation = function() {
+      this.field("body_size").value = configManager.get("size");
+      this.field("eat_spped").value = 100;
+      this.field("runSpeed").value = 100;
+      return this.method("Update").invoke();
+    };
+    Logger("[+] playerUpdate successfully initialized!");
+  }
+  var init_playerUpdate = __esm({
+    "src/hooks/playerUpdate.ts"() {
+      init_ConfigManager();
+    }
+  });
+
+  // src/hooks/honor_pointLimiter.ts
+  function honorAndPointLimiter() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for honorAndPointLimiter, retrying...");
+      setTimeout(honorAndPointLimiter, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const RPC_Damage = AssemblyC.class("RPC_Damage");
+    RPC_Damage.method("Net_Last_Damage_Hunter").implementation = function(points, exp, tag) {
+      if (cooldownActive2 && Date.now() >= cooldownEndTime2) {
+        cooldownActive2 = false;
+      }
+      const incoming = points;
+      const clamped = Math.min(incoming, 1e4);
+      if (cooldownActive2 && clamped == 1e4) {
+        return;
+      }
+      if (!cooldownActive2 && clamped == 1e4) {
+        cooldownActive2 = true;
+        cooldownEndTime2 = Date.now() + COOLDOWN_DURATION;
+      }
+      const tagString = tag.toString().trim();
+      if (tagString.includes("Escape")) {
+        configManager.incrementScore("honorScore", 50);
+      }
+      if (tagString.includes("Defense")) {
+        configManager.incrementScore("honorScore", 1);
+      }
+      if (tagString.includes("Attack")) {
+        configManager.incrementScore("honorScore", 1.5);
+      }
+      if (tagString.includes("Player")) {
+        configManager.incrementScore("honorScore", 3);
+      }
+      if (tagString.includes("Eat")) {
+        configManager.incrementScore("honorScore", 0.05);
+      }
+      return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
+    };
+    Logger("[+] honorAndPointLimiter successfully initialized!");
+  }
+  var cooldownActive2, cooldownEndTime2, COOLDOWN_DURATION;
+  var init_honor_pointLimiter = __esm({
+    "src/hooks/honor_pointLimiter.ts"() {
+      init_ConfigManager();
+      cooldownActive2 = false;
+      cooldownEndTime2 = 0;
+      COOLDOWN_DURATION = 3e4;
     }
   });
 

@@ -2,7 +2,7 @@
 import Java from 'frida-java-bridge'
 import { BossRegistry } from "../helpers/bossRegistry";
 import { OverlayManager } from "./OverlayManager";
-import { setPlayer, SharedState } from '../helpers/playerWolfStore';
+import { SharedState } from '../helpers/playerWolfStore';
 
 export class SceneOverlayManager {
     private static instance: SceneOverlayManager;
@@ -49,8 +49,7 @@ export class SceneOverlayManager {
             // Clear boss when leaving ANY scene
             BossRegistry.clearBoss();
             // Clear saved player body
-            SharedState.realBody = null;
-            setPlayer(null);
+            SharedState.clearBody();
 
             return this.method("Internal_SceneUnloaded").invoke(scene, mode);
         }

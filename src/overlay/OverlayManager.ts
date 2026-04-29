@@ -188,7 +188,7 @@ export class OverlayManager {
                                             self.onHtmlReady(data.overlay);
                                         }
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
-                                            const js = `initStats(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
+                                            const js = `initialize(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
                                             OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
                                         }
                                         if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){

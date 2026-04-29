@@ -190,10 +190,16 @@ export class OverlayManager {
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
                                             const js = `initialize(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
                                             OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                                            SceneOverlayManager.getInstance().onSceneChanged(
+                                                SceneOverlayManager.currentScene
+                                            );
                                         }
                                         if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){
                                             const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`;
                                             OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
+                                            SceneOverlayManager.getInstance().onSceneChanged(
+                                                SceneOverlayManager.currentScene
+                                            );
                                         }
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);

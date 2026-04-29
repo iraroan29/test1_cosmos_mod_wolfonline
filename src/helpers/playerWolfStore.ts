@@ -5,6 +5,9 @@ export let activePlayer: Il2Cpp.Object | null = null;
 export function isPlayerActive() {
     return activePlayer !== null;
 }
+export function setPlayerActive() {
+    activePlayer 
+}
 
 export const SharedState = {
     spawningClone: false,
@@ -12,13 +15,15 @@ export const SharedState = {
     wolfType: "" as string,
 
 
-    setBody(obj: Il2Cpp.Object){
+    setBody(obj: Il2Cpp.Object, forOverlay: boolean = false){
         activePlayer = obj;
 
-        // Force overlay visibility update
-        SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-        );
+        if(forOverlay){
+            // Force overlay visibility update
+            SceneOverlayManager.getInstance().onSceneChanged(
+                SceneOverlayManager.currentScene
+            );
+        }
     },
     clearBody(){
         activePlayer = null;

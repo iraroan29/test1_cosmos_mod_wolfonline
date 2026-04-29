@@ -17494,10 +17494,16 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                             const js = `initialize(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
                             _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                            SceneOverlayManager.getInstance().onSceneChanged(
+                              SceneOverlayManager.currentScene
+                            );
                           }
                           if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
                             const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`;
                             _OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
+                            SceneOverlayManager.getInstance().onSceneChanged(
+                              SceneOverlayManager.currentScene
+                            );
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);
@@ -17844,11 +17850,13 @@ std_string_c_str (StdString * self)
         spawningClone: false,
         pendingOldBody: null,
         wolfType: "",
-        setBody(obj) {
+        setBody(obj, forOverlay = false) {
           activePlayer = obj;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-          );
+          if (forOverlay) {
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          }
         },
         clearBody() {
           activePlayer = null;

@@ -17882,7 +17882,7 @@ std_string_c_str (StdString * self)
   }
   function isMe(theAttacked) {
     const attackedGO = theAttacked.method("get_gameObject").invoke();
-    if (SharedState2.realBody && !attackedGO.equals(SharedState2.realBody)) {
+    if (activePlayer && !attackedGO.equals(activePlayer)) {
       return false;
     }
     const hasPlayerWolf = attackedGO.method("GetComponent").inflate(PlayerWolf).invoke();

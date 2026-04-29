@@ -1,5 +1,5 @@
 import { configManager } from "../config/ConfigManager";
-import { SharedState } from "../helpers/playerWolfStore";
+import { activePlayer, SharedState } from "../helpers/playerWolfStore";
 
 // Temp 
 let mod_points = 10000;
@@ -32,7 +32,7 @@ function isMe(theAttacked: Il2Cpp.Object): boolean {
     const attackedGO = theAttacked.method<Il2Cpp.Object>("get_gameObject").invoke();
 
     // NEW RULE: Must match my real player wolf body
-    if (SharedState.realBody && !attackedGO.equals(SharedState.realBody)) {
+    if (activePlayer && !attackedGO.equals(activePlayer)) {
         return false;
     }
 

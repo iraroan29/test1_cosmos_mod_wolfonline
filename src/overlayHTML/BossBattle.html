@@ -321,12 +321,11 @@ window.dealDamage = function(newHp, critHit = false) {
 
 // At the end of your HTML script
 window.onload = () => {
-    if (window.AndroidBridge) {
-        AndroidBridge.sendToMod(JSON.stringify({ 
-            type: "READY", 
-            overlay: "bossOverlay" 
-        }));
-    }
+    AndroidBridge.getInitialData(JSON.stringify({
+        type: "READY",
+        overlay: "bossOverlay",
+        payload: { htmlReady: true }
+    }));
 };
 
 

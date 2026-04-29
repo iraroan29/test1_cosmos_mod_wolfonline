@@ -177,7 +177,7 @@ export class OverlayManager {
                     const JSBridge = Java.registerClass({
                         name: "com.overlay.JSBridge_" + name,
                         methods: {
-                            sendToMod: {
+                            getInitialData: {
                                 returnType: 'void',
                                 argumentTypes: ['java.lang.String'],
                                 implementation: function (jsonString: string) {
@@ -188,7 +188,7 @@ export class OverlayManager {
                                             self.onHtmlReady(data.overlay);
                                         }
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
-                                            Logger(`initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`);
+                                            Logger(`initialize(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`);
                                             const js = `initialize(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
                                             OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
                                             SceneOverlayManager.getInstance().onSceneChanged(
@@ -202,6 +202,25 @@ export class OverlayManager {
                                             SceneOverlayManager.getInstance().onSceneChanged(
                                                 SceneOverlayManager.currentScene
                                             );
+                                        }
+                                    } catch (e) {
+                                        Logger("[Overlay] Bridge Error: " + e);
+                                    }
+                                }
+                            },
+                            sendToMod: {
+                                returnType: 'void',
+                                argumentTypes: ['java.lang.String'],
+                                implementation: function (jsonString: string) {
+                                    try {
+                                        const data = JSON.parse(jsonString);
+
+                                        if (data.type === "READY") {
+                                            self.onHtmlReady(data.overlay);
+                                        }
+                                        if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
+                                        }
+                                        if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){
                                         }
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);

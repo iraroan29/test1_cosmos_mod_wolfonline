@@ -487,7 +487,7 @@ window.setMenuOpen = function(open) {
   /* no layout mutation needed; phantom already reserves space */
 };
 window.onload = () => {
-    AndroidBridge.sendToMod(JSON.stringify({
+    AndroidBridge.getInitialData(JSON.stringify({
         type: "READY",
         overlay: "ModHUDOverlay",
         payload: { htmlReady: true }

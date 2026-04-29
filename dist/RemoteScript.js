@@ -17492,6 +17492,7 @@ std_string_c_str (StdString * self)
                             self.onHtmlReady(data.overlay);
                           }
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
+                            Logger(`initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`);
                             const js = `initialize(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
                             _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
                             SceneOverlayManager.getInstance().onSceneChanged(
@@ -17499,7 +17500,8 @@ std_string_c_str (StdString * self)
                             );
                           }
                           if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
-                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`;
+                            Logger(`initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`);
+                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`;
                             _OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
                             SceneOverlayManager.getInstance().onSceneChanged(
                               SceneOverlayManager.currentScene

@@ -41,7 +41,7 @@ export function WildBossHooks() {
             }
             
             Logger("Master Client >> " + PhotonNetwork.method<Il2Cpp.Object>("get_masterClient").invoke().toString());
-            BossRegistry.setBoss(this as Il2Cpp.Object, scene);
+            BossRegistry.setBoss(this as Il2Cpp.Object);
             return this.method("Update").invoke();
         }
 

@@ -27,31 +27,18 @@ export const BossRegistry = {
 
 
     /** Called when boss spawns */
-    setBoss(obj: Il2Cpp.Object, sceneName: string) {
+    setBoss(obj: Il2Cpp.Object) {
         
-        Logger("got into setBoss");
         boss = obj;
 
-        Logger("set the boss");
         // Read HP fields directly from IL2CPP object
         bossMaxHp = obj.field("health_Max").value as number;
         bossHp = obj.field("health").value as number;
         
-        Logger("After setting boss stats 32523");
-        // HTML handles theme + UI, so we send map + hp + maxhp
-        // HTML has: initBoss(map, hp, maxhp)
-        OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
-        );
-        Logger("Made it past sendToHtml");
-
         // Force overlay visibility update
         SceneOverlayManager.getInstance().onSceneChanged(
             SceneOverlayManager.currentScene
         );
-        
-        Logger("Made it past overly visibility update");
     },
 
     /** Called when boss dies */

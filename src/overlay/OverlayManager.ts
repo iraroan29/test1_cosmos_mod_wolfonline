@@ -3,6 +3,8 @@ import { configManager } from '../config/ConfigManager';
 import { ModOverlay_HUD } from './ModOverlay_HUD';
 import { BossBattleOverlay } from './BossBattleOverlay';
 import { NameGenOverlay } from './NameGenOverlay';
+import { SceneOverlayManager } from './SceneOverlayManager';
+import { bossHp, bossMaxHp } from '../helpers/bossRegistry';
 
 export enum OverlayLayer {
     BACKGROUND = 0,
@@ -188,6 +190,10 @@ export class OverlayManager {
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
                                             const js = `initStats(${configManager.get('currentTier')},${configManager.get('currentDeathTier')},${configManager.get('honorScore')},${configManager.get('aidScore')});`;
                                             OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                                        }
+                                        if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){
+                                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`;
+                                            OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
                                         }
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);

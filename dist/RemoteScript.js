@@ -17576,6 +17576,175 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/SceneOverlayManager.ts
+  var SceneOverlayManager;
+  var init_SceneOverlayManager = __esm({
+    "src/overlay/SceneOverlayManager.ts"() {
+      init_frida_java_bridge();
+      init_bossRegistry();
+      init_OverlayManager();
+      init_playerWolfStore();
+      SceneOverlayManager = class _SceneOverlayManager {
+        constructor() {
+          this.initialized = false;
+          this.lastScene = "";
+        }
+        static getInstance() {
+          if (!this.instance) this.instance = new _SceneOverlayManager();
+          return this.instance;
+        }
+        initialize() {
+          if (this.initialized) return;
+          this.initialized = true;
+          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
+          if (!core) {
+            Logger("[!] Unity not ready for SceneOverlayManager");
+            return;
+          }
+          const UnityCoreImage = core.image;
+          const AssemblyC = assemblyC.image;
+          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
+          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
+          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
+            const sceneName = scene.method("get_name").invoke().content;
+            _SceneOverlayManager.currentScene = sceneName;
+            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
+            return this.method("Internal_SceneLoaded").invoke(scene, mode);
+          };
+          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
+            BossRegistry.clearBoss();
+            SharedState.realBody = null;
+            setPlayer(null);
+            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
+          };
+          Logger("[*] SceneOverlayManager - Scene hooks installed");
+        }
+        registerOverlayScenes(overlayName, scenes, condition) {
+          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
+          if (overlay) {
+            overlay.scenes = scenes;
+            overlay.condition = condition || null;
+          }
+          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
+        }
+        onSceneChanged(sceneName) {
+          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
+          this.lastScene = sceneName;
+          const overlayManager = OverlayManager.getInstance();
+          frida_java_bridge_default.scheduleOnMainThread(() => {
+            Object.values(overlayManager["overlays"]).forEach((overlay) => {
+              if (!overlay.scenes) return;
+              const sceneMatch = overlay.scenes.includes(sceneName);
+              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
+              const shouldShow = sceneMatch && conditionMatch;
+              overlay.layout.setVisibility(shouldShow ? 0 : 4);
+            });
+          });
+        }
+      };
+    }
+  });
+
+  // src/helpers/bossRegistry.ts
+  function isBossActive() {
+    return boss !== null;
+  }
+  var boss, bossHp, bossMaxHp, BossRegistry;
+  var init_bossRegistry = __esm({
+    "src/helpers/bossRegistry.ts"() {
+      init_BossBattleOverlay();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      boss = null;
+      bossHp = 0;
+      bossMaxHp = 0;
+      BossRegistry = {
+        // Maps that have bosses
+        bossScenes: {
+          "WolfOnline_Map_Lava": true,
+          "WolfOnline_Map_Wild_Guardian": true,
+          "WolfOnline_Map_Mountain_Guardian": true,
+          "WolfOnline_Map_Snow_Guardian": true
+        },
+        bossCorrectMap: {
+          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
+          "Dragon_High": "WolfOnline_Map_Lava",
+          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
+          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
+        },
+        /** Called when boss spawns */
+        setBoss(obj) {
+          boss = obj;
+          bossMaxHp = obj.field("health_Max").value;
+          bossHp = obj.field("health").value;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.currentScene
+          );
+        },
+        /** Called when boss dies */
+        clearBoss() {
+          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
+          boss = null;
+          bossHp = 0;
+          bossMaxHp = 0;
+          SceneOverlayManager.getInstance().onSceneChanged(
+            SceneOverlayManager.getInstance().lastScene
+          );
+        },
+        /** HTML calls this when damage is dealt */
+        dealDamage(amount, critHit) {
+          if (!boss) return;
+          bossHp -= amount;
+          if (bossHp < 0) bossHp = 0;
+          OverlayManager.getInstance().sendToHtml(
+            BossBattleOverlay.OVERLAY_NAME,
+            `dealDamage(${amount}, ${critHit});`
+          );
+        },
+        /** Returns true if this scene has a boss */
+        hasBossForScene(scene) {
+          return this.bossScenes.hasOwnProperty(scene);
+        },
+        /** Returns true if boss exists AND scene has a boss */
+        isBossActive(scene) {
+          Logger("Boss active? " + BossRegistry.isBossActive(scene));
+          Logger("boss value: " + boss);
+          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
+          return this.hasBossForScene(scene) && boss !== null;
+        }
+      };
+    }
+  });
+
+  // src/overlay/BossBattleOverlay.ts
+  var _BossBattleOverlay, BossBattleOverlay;
+  var init_BossBattleOverlay = __esm({
+    "src/overlay/BossBattleOverlay.ts"() {
+      init_bossRegistry();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _BossBattleOverlay = class _BossBattleOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
+            Logger("[BossOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _BossBattleOverlay.OVERLAY_NAME,
+              Object.keys(BossRegistry.bossScenes),
+              () => isBossActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
+      BossBattleOverlay = _BossBattleOverlay;
+    }
+  });
+
   // src/overlay/OverlayManager.ts
   var counter, OverlayManager;
   var init_OverlayManager = __esm({
@@ -17583,6 +17752,9 @@ std_string_c_str (StdString * self)
       init_frida_java_bridge();
       init_ConfigManager();
       init_ModOverlay_HUD();
+      init_BossBattleOverlay();
+      init_SceneOverlayManager();
+      init_bossRegistry();
       counter = 0;
       OverlayManager = class _OverlayManager {
         constructor() {
@@ -17680,6 +17852,10 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                             const js = `initStats(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
                             _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
+                          }
+                          if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
+                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp})`;
+                            _OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);
@@ -17840,184 +18016,6 @@ std_string_c_str (StdString * self)
             this.sendToHtml(id, js);
           });
           this.pendingMessages[id] = [];
-        }
-      };
-    }
-  });
-
-  // src/overlay/BossBattleOverlay.ts
-  var _BossBattleOverlay, BossBattleOverlay;
-  var init_BossBattleOverlay = __esm({
-    "src/overlay/BossBattleOverlay.ts"() {
-      init_bossRegistry();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _BossBattleOverlay = class _BossBattleOverlay {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_BossBattleOverlay.OVERLAY_NAME, url, true);
-            Logger("[BossOverlay] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _BossBattleOverlay.OVERLAY_NAME,
-              Object.keys(BossRegistry.bossScenes),
-              () => isBossActive()
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          })();
-        }
-      };
-      _BossBattleOverlay.OVERLAY_NAME = "bossOverlay";
-      BossBattleOverlay = _BossBattleOverlay;
-    }
-  });
-
-  // src/helpers/bossRegistry.ts
-  function isBossActive() {
-    return boss !== null;
-  }
-  var boss, bossHp, bossMaxHp, BossRegistry;
-  var init_bossRegistry = __esm({
-    "src/helpers/bossRegistry.ts"() {
-      init_BossBattleOverlay();
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      boss = null;
-      bossHp = 0;
-      bossMaxHp = 0;
-      BossRegistry = {
-        // Maps that have bosses
-        bossScenes: {
-          "WolfOnline_Map_Lava": true,
-          "WolfOnline_Map_Wild_Guardian": true,
-          "WolfOnline_Map_Mountain_Guardian": true,
-          "WolfOnline_Map_Snow_Guardian": true
-        },
-        bossCorrectMap: {
-          "Mountain_Wolf_Guardian": "WolfOnline_Map_Mountain_Guardian",
-          "Dragon_High": "WolfOnline_Map_Lava",
-          "Wild_Wolf_Guardian": "WolfOnline_Map_Wild_Guardian",
-          "Snow_Wolf_Guardian": "WolfOnline_Map_Snow_Guardian"
-        },
-        /** Called when boss spawns */
-        setBoss(obj, sceneName) {
-          Logger("got into setBoss");
-          boss = obj;
-          Logger("set the boss");
-          bossMaxHp = obj.field("health_Max").value;
-          bossHp = obj.field("health").value;
-          Logger("After setting boss stats 32523");
-          OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `initBoss(${JSON.stringify(sceneName)}, ${bossHp}, ${bossMaxHp});`
-          );
-          Logger("Made it past sendToHtml");
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-          );
-          Logger("Made it past overly visibility update");
-        },
-        /** Called when boss dies */
-        clearBoss() {
-          Logger("Boss cleared >> " + boss.toString() + " hp/max " + bossHp.toString() + "/" + bossMaxHp.toString());
-          boss = null;
-          bossHp = 0;
-          bossMaxHp = 0;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.getInstance().lastScene
-          );
-        },
-        /** HTML calls this when damage is dealt */
-        dealDamage(amount, critHit) {
-          if (!boss) return;
-          bossHp -= amount;
-          if (bossHp < 0) bossHp = 0;
-          OverlayManager.getInstance().sendToHtml(
-            BossBattleOverlay.OVERLAY_NAME,
-            `dealDamage(${amount}, ${critHit});`
-          );
-        },
-        /** Returns true if this scene has a boss */
-        hasBossForScene(scene) {
-          return this.bossScenes.hasOwnProperty(scene);
-        },
-        /** Returns true if boss exists AND scene has a boss */
-        isBossActive(scene) {
-          Logger("Boss active? " + BossRegistry.isBossActive(scene));
-          Logger("boss value: " + boss);
-          Logger("hasBossForScene: " + BossRegistry.hasBossForScene(scene));
-          return this.hasBossForScene(scene) && boss !== null;
-        }
-      };
-    }
-  });
-
-  // src/overlay/SceneOverlayManager.ts
-  var SceneOverlayManager;
-  var init_SceneOverlayManager = __esm({
-    "src/overlay/SceneOverlayManager.ts"() {
-      init_frida_java_bridge();
-      init_bossRegistry();
-      init_OverlayManager();
-      init_playerWolfStore();
-      SceneOverlayManager = class _SceneOverlayManager {
-        constructor() {
-          this.initialized = false;
-          this.lastScene = "";
-        }
-        static getInstance() {
-          if (!this.instance) this.instance = new _SceneOverlayManager();
-          return this.instance;
-        }
-        initialize() {
-          if (this.initialized) return;
-          this.initialized = true;
-          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-          const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-          if (!core) {
-            Logger("[!] Unity not ready for SceneOverlayManager");
-            return;
-          }
-          const UnityCoreImage = core.image;
-          const AssemblyC = assemblyC.image;
-          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
-          const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
-          SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
-            const sceneName = scene.method("get_name").invoke().content;
-            _SceneOverlayManager.currentScene = sceneName;
-            _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
-            return this.method("Internal_SceneLoaded").invoke(scene, mode);
-          };
-          SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
-            BossRegistry.clearBoss();
-            SharedState.realBody = null;
-            setPlayer(null);
-            return this.method("Internal_SceneUnloaded").invoke(scene, mode);
-          };
-          Logger("[*] SceneOverlayManager - Scene hooks installed");
-        }
-        registerOverlayScenes(overlayName, scenes, condition) {
-          const overlay = OverlayManager.getInstance().getOverlay(overlayName);
-          if (overlay) {
-            overlay.scenes = scenes;
-            overlay.condition = condition || null;
-          }
-          Logger("Register Overlay Scenes End >> " + overlay.scenes + " -- condition >> " + overlay.condition);
-        }
-        onSceneChanged(sceneName) {
-          Logger("\nonSceneChanged ENTER: [" + sceneName + "]");
-          this.lastScene = sceneName;
-          const overlayManager = OverlayManager.getInstance();
-          frida_java_bridge_default.scheduleOnMainThread(() => {
-            Object.values(overlayManager["overlays"]).forEach((overlay) => {
-              if (!overlay.scenes) return;
-              const sceneMatch = overlay.scenes.includes(sceneName);
-              const conditionMatch = overlay.condition ? overlay.condition(sceneName) : true;
-              const shouldShow = sceneMatch && conditionMatch;
-              overlay.layout.setVisibility(shouldShow ? 0 : 4);
-            });
-          });
         }
       };
     }
@@ -18247,7 +18245,7 @@ std_string_c_str (StdString * self)
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
         Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
-        BossRegistry.setBoss(this, scene);
+        BossRegistry.setBoss(this);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
@@ -18330,7 +18328,7 @@ std_string_c_str (StdString * self)
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
         Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
-        BossRegistry.setBoss(this, scene);
+        BossRegistry.setBoss(this);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
@@ -18392,7 +18390,7 @@ std_string_c_str (StdString * self)
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
         Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
-        BossRegistry.setBoss(this, scene);
+        BossRegistry.setBoss(this);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {
@@ -18454,7 +18452,7 @@ std_string_c_str (StdString * self)
           PhotonNetwork.method("SetMasterClient").invoke(PhotonNetwork.method("get_player").invoke());
         }
         Logger("Master Client >> " + PhotonNetwork.method("get_masterClient").invoke().toString());
-        BossRegistry.setBoss(this, scene);
+        BossRegistry.setBoss(this);
         return this.method("Update").invoke();
       }
       if (!boss.equals(this)) {

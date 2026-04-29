@@ -17536,6 +17536,7 @@ std_string_c_str (StdString * self)
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
+                          Logger(`setSize(${width}, ${height}); overlay: ${data.overlay}`);
                           const js = `setSize(${width}, ${height});`;
                           _OverlayManager.getInstance().sendToHtml(data.overlay, js);
                         } catch (e) {

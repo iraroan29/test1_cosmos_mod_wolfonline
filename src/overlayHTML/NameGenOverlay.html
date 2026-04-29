@@ -820,7 +820,7 @@ function getVisibleRect() {
 //         );
 //     });
 // }
-function sendOverlayGeometry() {
+function sendOverlayGeometry(visible) {
     requestAnimationFrame(() => {
         const r = getVisibleRect();
 
@@ -837,7 +837,7 @@ function setGeneratorVisible(visible) {
     generatorRoot.style.display = visible ? "flex" : "none";
     openBtn.style.display = visible ? "none" : "block";
 
-    sendOverlayGeometry();
+    sendOverlayGeometry(visible);
 }
 openBtn.onclick = () => {
   setGeneratorVisible(true);

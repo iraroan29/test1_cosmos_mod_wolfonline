@@ -240,6 +240,7 @@ export class OverlayManager {
                                         const height = dm.heightPixels.value;
 
                                         // Send JS call to HTML
+                                        Logger(`setSize(${width}, ${height});` + ` overlay: ${data.overlay}`);
                                         const js = `setSize(${width}, ${height});`;
                                         OverlayManager.getInstance().sendToHtml(data.overlay, js);
                                     }

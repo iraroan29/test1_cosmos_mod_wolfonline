@@ -812,7 +812,7 @@ function sendOverlayGeometry() {
         const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
-            JSON.stringify({ overlay: "NameGenOverlay", htmlWidth: document.body.style.width, htmlHeight: document.body.style.height}),
+            JSON.stringify({ overlay: "NameGenOverlay", htmlWidth: window.deviceWidth, htmlHeight: window.deviceHeight}),
             r.x,
             r.y,
             r.width,

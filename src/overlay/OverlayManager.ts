@@ -195,14 +195,6 @@ export class OverlayManager {
                                                 SceneOverlayManager.currentScene
                                             );
                                         }
-                                        if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){
-                                            Logger(`initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`);
-                                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`;
-                                            OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
-                                            SceneOverlayManager.getInstance().onSceneChanged(
-                                                SceneOverlayManager.currentScene
-                                            );
-                                        }
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);
                                     }

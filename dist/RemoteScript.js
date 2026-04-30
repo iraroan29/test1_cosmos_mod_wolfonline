@@ -17396,7 +17396,6 @@ std_string_c_str (StdString * self)
       init_ModOverlay_HUD();
       init_BossBattleOverlay();
       init_SceneOverlayManager();
-      init_bossRegistry();
       counter = 0;
       OverlayManager = class _OverlayManager {
         constructor() {
@@ -17495,14 +17494,6 @@ std_string_c_str (StdString * self)
                             Logger(`initialize(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`);
                             const js = `initialize(${configManager.get("currentTier")},${configManager.get("currentDeathTier")},${configManager.get("honorScore")},${configManager.get("aidScore")});`;
                             _OverlayManager.getInstance().sendToHtml(ModOverlay_HUD.OVERLAY_NAME, js);
-                            SceneOverlayManager.getInstance().onSceneChanged(
-                              SceneOverlayManager.currentScene
-                            );
-                          }
-                          if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
-                            Logger(`initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`);
-                            const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`;
-                            _OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
                             SceneOverlayManager.getInstance().onSceneChanged(
                               SceneOverlayManager.currentScene
                             );
@@ -17747,9 +17738,11 @@ std_string_c_str (StdString * self)
         },
         /** Called when boss spawns */
         setBoss(obj) {
-          boss = obj;
           bossMaxHp = obj.field("health_Max").value;
           bossHp = obj.field("health").value;
+          const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`;
+          OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
+          boss = obj;
           SceneOverlayManager.getInstance().onSceneChanged(
             SceneOverlayManager.currentScene
           );

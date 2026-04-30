@@ -17041,6 +17041,9 @@ std_string_c_str (StdString * self)
   function isChatFilter(obj) {
     return obj && typeof obj.maxMessages === "number" && typeof obj.maxCharacters === "number" && typeof obj.timeFrame === "number" && typeof obj.timeout === "number";
   }
+  function isKillCounts(obj) {
+    return obj && typeof obj.player === "number" && typeof obj.attackAnimal === "number" && typeof obj.defenseAnimal === "number" && typeof obj.weakAnimal === "number" && typeof obj.bossAnimal === "number" && typeof obj.eat === "number";
+  }
   var ConfigManager, configManager;
   var init_ConfigManager = __esm({
     "src/config/ConfigManager.ts"() {
@@ -17055,8 +17058,7 @@ std_string_c_str (StdString * self)
             aidScore: 0,
             deathScore: 0,
             travelDistance: 0,
-            enforeAttack: false,
-            enforceHp: false,
+            killCounts: { player: 0, attackAnimal: 0, defenseAnimal: 0, weakAnimal: 0, bossAnimal: 0, eat: 0 },
             chatFilter: {
               maxMessages: 2,
               maxCharacters: 150,
@@ -17082,8 +17084,7 @@ std_string_c_str (StdString * self)
             this.config.honorScore = rawData.honorScore;
             this.config.aidScore = rawData.aidScore;
             this.config.deathScore = rawData.deathScore;
-            this.config.enforeAttack = rawData.enforeAttack;
-            this.config.enforceHp = rawData.enforceHp;
+            this.config.killCounts = rawData.killCounts;
             this.config.travelDistance = rawData.travelDistance;
             this.config.chatFilter = rawData.chatFilter;
             this.calculateTier(false);
@@ -17094,6 +17095,13 @@ std_string_c_str (StdString * self)
           const newValue = this.config[key] + amount;
           this.setScore(key, newValue);
           return this.config[key];
+        }
+        incrementKillCount(type, amount = 1) {
+          const current = this.config.killCounts[type];
+          const newValue = current + amount;
+          this.config.killCounts[type] = newValue;
+          this.setScore("killCounts", this.config.killCounts);
+          return newValue;
         }
         decrementScore(key, amount = 1) {
           const current = this.config[key];
@@ -17121,10 +17129,8 @@ std_string_c_str (StdString * self)
             this.config.deathScore = value;
             this.calculateAntiDamage(true);
             this.emit("deathScore", value);
-          } else if (key === "enforceHp" && typeof value === "boolean") {
-            this.config.enforceHp = value;
-          } else if (key === "enforeAttack" && typeof value === "boolean") {
-            this.config.enforceHp = value;
+          } else if (key === "killCounts" && isKillCounts(value)) {
+            this.config.killCounts = value;
           } else if (key === "chatFilter" && isChatFilter(value)) {
             this.config.chatFilter = value;
           }
@@ -17225,9 +17231,9 @@ std_string_c_str (StdString * self)
               honorScore: this.config.honorScore,
               aidScore: this.config.aidScore,
               deathScore: this.config.deathScore,
-              enforeAttack: this.config.enforeAttack,
-              enforceHp: this.config.enforceHp,
-              travelDistance: this.config.travelDistance
+              killCounts: this.config.killCounts,
+              travelDistance: this.config.travelDistance,
+              chatFilter: this.config.chatFilter
             });
             const encrypted = ConfigHelper.btoa(ConfigHelper.crypt(json));
             ConfigHelper.writeAllText(this.configPath, encrypted);
@@ -17249,8 +17255,7 @@ std_string_c_str (StdString * self)
               honorScore: parsed.honorScore ?? 0,
               aidScore: parsed.aidScore ?? 0,
               deathScore: parsed.deathScore ?? 0,
-              enforeAttack: parsed.enforeAttack ?? false,
-              enforceHp: parsed.enforceHp ?? false,
+              killCounts: parsed.killCounts ?? null,
               travelDistance: parsed.travelDistance ?? 0,
               chatFilter: parsed.chatFilter ?? null
             };
@@ -18136,18 +18141,23 @@ std_string_c_str (StdString * self)
       const tagString = tag.toString().trim();
       if (tagString.includes("Escape")) {
         configManager.incrementScore("honorScore", 50);
+        configManager.incrementKillCount("weakAnimal");
       }
       if (tagString.includes("Defense")) {
         configManager.incrementScore("honorScore", 1);
+        configManager.incrementKillCount("defenseAnimal");
       }
       if (tagString.includes("Attack")) {
         configManager.incrementScore("honorScore", 1.5);
+        configManager.incrementKillCount("attackAnimal");
       }
       if (tagString.includes("Player")) {
         configManager.incrementScore("honorScore", 3);
+        configManager.incrementKillCount("player");
       }
       if (tagString.includes("Eat")) {
         configManager.incrementScore("honorScore", 0.05);
+        configManager.incrementKillCount("eat");
       }
       return this.method("Net_Last_Damage_Hunter").invoke(points, exp, tag);
     };
@@ -18295,17 +18305,23 @@ std_string_c_str (StdString * self)
     };
     MountainBoss.method("Death").implementation = function() {
       BossRegistry.clearBoss();
+      configManager.incrementKillCount("bossAnimal");
       return this.method("Death").invoke();
     };
     MountainBoss.method("Damage").implementation = function(damage) {
-      let roll = Math.floor(Math.random() * 101);
-      let dmg = damage;
+      const now = Date.now();
       let critHit = false;
+      let dmg = damage;
       let damageMax = this.field("damage_max").value;
-      if (roll <= 10) {
-        this.field("damage_max").value = 200;
-        critHit = true;
-        dmg *= 5;
+      const canCrit = now - lastCritTime >= CRIT_COOLDOWN_MS;
+      if (canCrit) {
+        lastCritTime = now;
+        let roll = Math.floor(Math.random() * 101);
+        if (roll <= CRIT_CHANCE) {
+          this.field("damage_max").value = 100;
+          critHit = true;
+          dmg *= CRIT_CHANCE;
+        }
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);
@@ -18313,10 +18329,15 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] MountainBossHooks successfully initialized!");
   }
+  var CRIT_CHANCE, lastCritTime, CRIT_COOLDOWN_MS;
   var init_mountainHooks = __esm({
     "src/bossHooks/mountainHooks.ts"() {
+      init_ConfigManager();
       init_bossRegistry();
       init_SceneOverlayManager();
+      CRIT_CHANCE = 5;
+      lastCritTime = 0;
+      CRIT_COOLDOWN_MS = 1e4;
     }
   });
 
@@ -18378,17 +18399,23 @@ std_string_c_str (StdString * self)
     };
     DragonBoss.method("Death").implementation = function() {
       BossRegistry.clearBoss();
+      configManager.incrementKillCount("bossAnimal");
       return this.method("Death").invoke();
     };
     DragonBoss.method("Damage").implementation = function(damage) {
-      let roll = Math.floor(Math.random() * 101);
-      let dmg = damage;
+      const now = Date.now();
       let critHit = false;
+      let dmg = damage;
       let damageMax = this.field("damage_max").value;
-      if (roll <= 10) {
-        this.field("damage_max").value = 1e3;
-        critHit = true;
-        dmg *= 5;
+      const canCrit = now - lastCritTime2 >= CRIT_COOLDOWN_MS2;
+      if (canCrit) {
+        lastCritTime2 = now;
+        let roll = Math.floor(Math.random() * 101);
+        if (roll <= CRIT_CHANCE2) {
+          this.field("damage_max").value = 1e3;
+          critHit = true;
+          dmg *= CRIT_CHANCE2;
+        }
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);
@@ -18396,10 +18423,15 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] DragonBossHooks successfully initialized!");
   }
+  var CRIT_CHANCE2, lastCritTime2, CRIT_COOLDOWN_MS2;
   var init_dragonHooks = __esm({
     "src/bossHooks/dragonHooks.ts"() {
+      init_ConfigManager();
       init_bossRegistry();
       init_SceneOverlayManager();
+      CRIT_CHANCE2 = 7.5;
+      lastCritTime2 = 0;
+      CRIT_COOLDOWN_MS2 = 1e3;
     }
   });
 
@@ -18440,17 +18472,23 @@ std_string_c_str (StdString * self)
     };
     SnowBoss.method("Death").implementation = function() {
       BossRegistry.clearBoss();
+      configManager.incrementKillCount("bossAnimal");
       return this.method("Death").invoke();
     };
     SnowBoss.method("Damage").implementation = function(damage) {
-      let roll = Math.floor(Math.random() * 101);
-      let dmg = damage;
+      const now = Date.now();
       let critHit = false;
+      let dmg = damage;
       let damageMax = this.field("damage_max").value;
-      if (roll <= 10) {
-        this.field("damage_max").value = 200;
-        critHit = true;
-        dmg *= 5;
+      const canCrit = now - lastCritTime3 >= CRIT_COOLDOWN_MS3;
+      if (canCrit) {
+        lastCritTime3 = now;
+        let roll = Math.floor(Math.random() * 101);
+        if (roll <= CRIT_CHANCE3) {
+          this.field("damage_max").value = 200;
+          critHit = true;
+          dmg *= CRIT_CHANCE3;
+        }
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);
@@ -18458,10 +18496,15 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] SnowBossHooks successfully initialized!");
   }
+  var CRIT_CHANCE3, lastCritTime3, CRIT_COOLDOWN_MS3;
   var init_snowHooks = __esm({
     "src/bossHooks/snowHooks.ts"() {
+      init_ConfigManager();
       init_bossRegistry();
       init_SceneOverlayManager();
+      CRIT_CHANCE3 = 5;
+      lastCritTime3 = 0;
+      CRIT_COOLDOWN_MS3 = 1e4;
     }
   });
 
@@ -18502,17 +18545,23 @@ std_string_c_str (StdString * self)
     };
     WildBoss.method("Death").implementation = function() {
       BossRegistry.clearBoss();
+      configManager.incrementKillCount("bossAnimal");
       return this.method("Death").invoke();
     };
     WildBoss.method("Damage").implementation = function(damage) {
-      let roll = Math.floor(Math.random() * 101);
-      let dmg = damage;
+      const now = Date.now();
       let critHit = false;
+      let dmg = damage;
       let damageMax = this.field("damage_max").value;
-      if (roll <= 5) {
-        this.field("damage_max").value = 200;
-        critHit = true;
-        dmg *= 5;
+      const canCrit = now - lastCritTime4 >= CRIT_COOLDOWN_MS4;
+      if (canCrit) {
+        lastCritTime4 = now;
+        let roll = Math.floor(Math.random() * 101);
+        if (roll <= CRIT_CHANCE4) {
+          this.field("damage_max").value = 200;
+          critHit = true;
+          dmg *= CRIT_CHANCE4;
+        }
       }
       this.method("Damage").invoke(dmg);
       BossRegistry.dealDamage(this.field("health").value, critHit);
@@ -18520,10 +18569,15 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] WildBossHooks successfully initialized!");
   }
+  var CRIT_CHANCE4, lastCritTime4, CRIT_COOLDOWN_MS4;
   var init_wildHooks = __esm({
     "src/bossHooks/wildHooks.ts"() {
+      init_ConfigManager();
       init_bossRegistry();
       init_SceneOverlayManager();
+      CRIT_CHANCE4 = 3;
+      lastCritTime4 = 0;
+      CRIT_COOLDOWN_MS4 = 1e4;
     }
   });
 

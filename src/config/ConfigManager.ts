@@ -7,7 +7,8 @@ import {
   TIER_GRADES,
   ChatFilter,
   TIER_SIZE_TABLE,
-  DEATH_TABLE
+  DEATH_TABLE,
+  KillCount
   
 } from './ConfigTypes';
 
@@ -19,13 +20,24 @@ function isChatFilter(obj: any): obj is ChatFilter {
         typeof obj.timeout === 'number';
 }
 
+function isKillCounts(obj: any): obj is KillCount {
+    return obj &&
+        typeof obj.player === 'number' &&
+        typeof obj.attackAnimal === 'number' &&
+        typeof obj.defenseAnimal === 'number' &&
+        typeof obj.weakAnimal === 'number' &&
+        typeof obj.bossAnimal === 'number' &&
+        typeof obj.eat === 'number';
+}
+
 
 class ConfigManager {
     private configPath: string = "";
 
     private config: GameConfig = {
         honorScore: 0, aidScore: 0, deathScore: 0, travelDistance: 0,
-        enforeAttack: false, enforceHp: false, chatFilter: {maxMessages: 2, maxCharacters: 150, timeFrame: 3000 /* 3s */, timeout: 5000 /* 5s */},
+        killCounts: {player: 0, attackAnimal: 0, defenseAnimal: 0, weakAnimal: 0, bossAnimal: 0, eat: 0},
+        chatFilter: {maxMessages: 2, maxCharacters: 150, timeFrame: 3000 /* 3s */, timeout: 5000 /* 5s */},
         currentTier: 0, currentDeathTier: 0, tierName: TIER_NAMES[0].base, isSubtierUnlocked: false,
         deathTierInfo: DEATH_TABLE[0], cooldownMs: POINT_COOLDOWN_REDUCTION[0], grade: TIER_GRADES[0], size: TIER_SIZE_TABLE[0].base,
         multiHit: MULTI_HIT_TABLE[0]
@@ -39,8 +51,7 @@ class ConfigManager {
             this.config.honorScore = rawData.honorScore;
             this.config.aidScore = rawData.aidScore;
             this.config.deathScore = rawData.deathScore;
-            this.config.enforeAttack = rawData.enforeAttack;
-            this.config.enforceHp = rawData.enforceHp;
+            this.config.killCounts = rawData.killCounts;
             this.config.travelDistance = rawData.travelDistance;
             this.config.chatFilter = rawData.chatFilter;
 
@@ -55,6 +66,18 @@ class ConfigManager {
         return this.config[key] as number; // Returns the (potentially clamped) value
     }
     
+    public incrementKillCount(type: keyof KillCount, amount: number = 1): number {
+        const current = this.config.killCounts[type];
+        const newValue = current + amount;
+
+        this.config.killCounts[type] = newValue;
+
+        // Persist the whole killCounts object
+        this.setScore("killCounts", this.config.killCounts);
+
+        return newValue;
+    }
+    
     public decrementScore<K extends keyof PersistedConfig>(key: K, amount: number = 1): number {
         const current = this.config[key] as number;
         const newValue = Math.max(0, current - amount);
@@ -62,7 +85,7 @@ class ConfigManager {
         return this.config[key] as number; // Returns the clamped value
     }
 
-    public setScore<K extends keyof PersistedConfig>(key: K, value: number | boolean | ChatFilter) {
+    public setScore<K extends keyof PersistedConfig>(key: K, value: number | boolean | ChatFilter | KillCount) {
         if (key === 'honorScore' && typeof value === 'number') {
             this.config.honorScore = value;
             this.calculateTier(true);
@@ -86,11 +109,8 @@ class ConfigManager {
             this.calculateAntiDamage(true);
             this.emit('deathScore', value)
         }
-        else if (key === 'enforceHp' && typeof value === 'boolean') {
-            this.config.enforceHp = value;
-        }
-        else if (key === 'enforeAttack' && typeof value === 'boolean') {
-            this.config.enforceHp = value;
+        else if (key === 'killCounts' && isKillCounts(value)) {
+            this.config.killCounts = value;
         }
         else if (key === 'chatFilter' && isChatFilter(value)) {
             this.config.chatFilter = value;
@@ -213,9 +233,9 @@ class ConfigManager {
                 honorScore: this.config.honorScore,
                 aidScore: this.config.aidScore,
                 deathScore: this.config.deathScore,
-                enforeAttack: this.config.enforeAttack,
-                enforceHp: this.config.enforceHp,
-                travelDistance: this.config.travelDistance
+                killCounts: this.config.killCounts,
+                travelDistance: this.config.travelDistance,
+                chatFilter: this.config.chatFilter
             });
 
             const encrypted = ConfigHelper.btoa(ConfigHelper.crypt(json));
@@ -244,8 +264,7 @@ class ConfigManager {
                 honorScore: parsed.honorScore ?? 0,
                 aidScore: parsed.aidScore ?? 0,
                 deathScore: parsed.deathScore ?? 0,
-                enforeAttack: parsed.enforeAttack ?? false,
-                enforceHp: parsed.enforceHp ?? false,
+                killCounts: parsed.killCounts ?? null,
                 travelDistance: parsed.travelDistance ?? 0,
                 chatFilter: parsed.chatFilter ?? null
             };

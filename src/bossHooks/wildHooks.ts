@@ -1,5 +1,10 @@
+import { configManager } from "../config/ConfigManager";
 import { boss, BossRegistry } from "../helpers/bossRegistry";
 import { SceneOverlayManager } from "../overlay/SceneOverlayManager";
+
+const CRIT_CHANCE = 3 // 3%
+let lastCritTime = 0;
+const CRIT_COOLDOWN_MS = 10000; // 10 seconds
 
 export function WildBossHooks() {
 
@@ -60,20 +65,30 @@ export function WildBossHooks() {
     // Death Function
     WildBoss.method("Death").implementation = function () {
         BossRegistry.clearBoss();
+        configManager.incrementKillCount('bossAnimal');
         return this.method("Death").invoke();
     };
 
     // Damage Function 
     WildBoss.method("Damage").implementation = function(damage) {
-        let roll = Math.floor(Math.random() * 101); // 0 -> 100
-        let dmg = damage as number;
+        const now = Date.now();
         let critHit = false;
+        let dmg = damage as number;
         // Store actualDmgMax to set it back after
         let damageMax = this.field<number>("damage_max").value;
-        if(roll <= 5) {
-            this.field<number>("damage_max").value = 200;
-            critHit = true;
-            dmg *= 5;
+
+        // Check if crit is allowed
+        const canCrit = (now - lastCritTime) >= CRIT_COOLDOWN_MS;
+        if (canCrit) {
+            // Record crit time
+            lastCritTime = now;
+
+            let roll = Math.floor(Math.random() * 101); // 0 -> 100
+            if(roll <= CRIT_CHANCE) {
+                this.field<number>("damage_max").value = 200;
+                critHit = true;
+                dmg *= CRIT_CHANCE;
+            }
         }
         this.method("Damage").invoke(dmg);
         BossRegistry.dealDamage(this.field<number>("health").value, critHit);

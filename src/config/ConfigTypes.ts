@@ -24,6 +24,16 @@ export interface ChatFilter {
   timeFrame: number;
   timeout: number;
 }
+
+export interface KillCount {
+  player: number, 
+  attackAnimal: number,
+  defenseAnimal: number, 
+  weakAnimal: number,
+  bossAnimal: number,
+  eat: number
+
+}
 export interface TierGrade {
   base: string;
   // Can have multiple bases for more movement
@@ -58,8 +68,7 @@ export interface PersistedConfig {
   honorScore: number;
   aidScore: number;
   deathScore: number;
-  enforeAttack: boolean;  // If game's attack/dmg is detected to be hacked/invalid, use mod's attack (slightly punishing it will take 5 times as many kills to get honor)
-  enforceHp: boolean; // If game's hp is detected to be hacked/invalid, use mod's hp (slightly punishing as it will be based purely on hits & it will take 5 times as many actual deaths to increase the death score)
+  killCounts: KillCount;
   travelDistance: number;
   chatFilter: ChatFilter;
 }

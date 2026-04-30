@@ -40,20 +40,25 @@ export function honorAndPointLimiter() {
         const tagString = tag.toString().trim();
         if(tagString.includes("Escape")){
             configManager.incrementScore('honorScore', 50); //0.50 Testing
+            configManager.incrementKillCount('weakAnimal');
         }
         // Whatever Defense is? // 3.0
         if(tagString.includes("Defense")){
             configManager.incrementScore('honorScore', 1.0);
+            configManager.incrementKillCount('defenseAnimal');
         }
         if(tagString.includes("Attack")){
             configManager.incrementScore('honorScore', 1.5);
+            configManager.incrementKillCount('attackAnimal');
         }
         if(tagString.includes("Player")){
 
             configManager.incrementScore('honorScore', 3);
+            configManager.incrementKillCount('player');
         }
         if(tagString.includes("Eat")){
             configManager.incrementScore('honorScore', 0.05);
+            configManager.incrementKillCount('eat')
         }
 
 

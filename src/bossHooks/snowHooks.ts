@@ -1,5 +1,10 @@
+import { configManager } from "../config/ConfigManager";
 import { boss, BossRegistry } from "../helpers/bossRegistry";
 import { SceneOverlayManager } from "../overlay/SceneOverlayManager";
+
+const CRIT_CHANCE = 5 // 5%
+let lastCritTime = 0;
+const CRIT_COOLDOWN_MS = 10000; // 10 seconds
 
 export function SnowBossHooks() {
 
@@ -60,20 +65,30 @@ export function SnowBossHooks() {
     // Death Function
     SnowBoss.method("Death").implementation = function () {
         BossRegistry.clearBoss();
+        configManager.incrementKillCount('bossAnimal');
         return this.method("Death").invoke();
     };
     
     // Damage Function 
     SnowBoss.method("Damage").implementation = function(damage) {
-        let roll = Math.floor(Math.random() * 101); // 0 -> 100
-        let dmg = damage as number;
+        const now = Date.now();
         let critHit = false;
+        let dmg = damage as number;
         // Store actualDmgMax to set it back after
         let damageMax = this.field<number>("damage_max").value;
-        if(roll <= 10) { 
-            this.field<number>("damage_max").value = 200;
-            critHit = true;
-            dmg *= 5;
+
+        // Check if crit is allowed
+        const canCrit = (now - lastCritTime) >= CRIT_COOLDOWN_MS;
+        if (canCrit) {
+            // Record crit time
+            lastCritTime = now;
+
+            let roll = Math.floor(Math.random() * 101); // 0 -> 100
+            if(roll <= CRIT_CHANCE) {
+                this.field<number>("damage_max").value = 200;
+                critHit = true;
+                dmg *= CRIT_CHANCE;
+            }
         }
         this.method("Damage").invoke(dmg);
         BossRegistry.dealDamage(this.field<number>("health").value, critHit);

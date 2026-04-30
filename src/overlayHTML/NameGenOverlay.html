@@ -807,32 +807,32 @@ function getVisibleRect() {
     }
 }
 
-// function sendOverlayGeometry() {
-//     requestAnimationFrame(() => {
-//         const r = getVisibleRect();
-
-//         AndroidBridge.redrawOverlay(
-//             JSON.stringify({ overlay: "NameGenOverlay" }),
-//             Math.round(r.left),
-//             Math.round(r.top),
-//             Math.round(r.width),
-//             Math.round(r.height)
-//         );
-//     });
-// }
-function sendOverlayGeometry(visible) {
+function sendOverlayGeometry() {
     requestAnimationFrame(() => {
         const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
             JSON.stringify({ overlay: "NameGenOverlay" }),
-            0, // x always 0 inside HTML
-            0, // y always 0 inside HTML
-            r.width,
-            r.height
+            Math.round(r.left),
+            Math.round(r.top),
+            Math.round(r.width),
+            Math.round(r.height)
         );
     });
 }
+// function sendOverlayGeometry(visible) {
+//     requestAnimationFrame(() => {
+//         const r = getVisibleRect();
+
+//         AndroidBridge.redrawOverlay(
+//             JSON.stringify({ overlay: "NameGenOverlay" }),
+//             r.left, // x always 0 inside HTML
+//             r.top, // y always 0 inside HTML
+//             r.width,
+//             r.height
+//         );
+//     });
+// }
 function setGeneratorVisible(visible) {
     generatorRoot.style.display = visible ? "flex" : "none";
     openBtn.style.display = visible ? "none" : "block";

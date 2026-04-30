@@ -848,17 +848,18 @@ window.setSize = function (width, height) {
   document.documentElement.style.height = height + "px";
   document.body.style.width = width + "px";
   document.body.style.height = height + "px";
+
+  // After setSize() applies, measure again
+    requestAnimationFrame(sendOverlayGeometry);
 };
 
-window.onload = () => {
-    if (window.Android?.requestDeviceSize) {
-        AndroidBridge.requestDeviceSize(JSON.stringify({
-            overlay: "NameGenOverlay"
-        }));
-    }
 
-    // After setSize() applies, measure again
-    requestAnimationFrame(sendOverlayGeometry);
+window.onload = () => {
+    AndroidBridge.requestDeviceSize(JSON.stringify({
+        type: "READY",
+        overlay: "NameGenOverlay",
+        payload: { htmlReady: true }
+    }));
 };
 
 

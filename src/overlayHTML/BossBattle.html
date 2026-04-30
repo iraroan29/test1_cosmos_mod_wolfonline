@@ -308,10 +308,10 @@ window.initialize = function(mapName, hp, hpmax){
   setHp(hp, hpmax);
   
   // Wait for DOM update + layout + paint
-  requestAnimationFrame(() => {
-      AndroidBridge.delayedDraw(JSON.stringify({
-          overlay: "bossOverlay"
-      }));
+  Promise.resolve().then(() => {
+    AndroidBridge.delayedDraw(JSON.stringify({
+        overlay: "bossOverlay"
+    }));
   });
 }
 

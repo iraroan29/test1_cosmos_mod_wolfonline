@@ -306,10 +306,13 @@ function setHp(hp, max) {
 window.initialize = function(mapName, hp, hpmax){
   setMap(mapName);
   setHp(hp, hpmax);
-
-  AndroidBridge.delayedDraw(JSON.stringify({
-        overlay: "bossOverlay"
-  }));
+  
+  // Wait for DOM update + layout + paint
+  requestAnimationFrame(() => {
+      AndroidBridge.delayedDraw(JSON.stringify({
+          overlay: "bossOverlay"
+      }));
+  });
 }
 
 /**

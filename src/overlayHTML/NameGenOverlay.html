@@ -792,15 +792,15 @@ function sendOverlayGeometry() {
 function getVisibleRect() {
     if (generatorRoot.style.display !== "none") {
         return {
-            x: 0,
-            y: 0,
+            x: generatorRoot.offsetLeft,
+            y: generatorRoot.offsetTop,
             width: generatorRoot.offsetWidth,
             height: generatorRoot.offsetHeight
         };
     } else {
         return {
-            x: 0,
-            y: 0,
+            x: openBtn.offsetLeft,
+            y: openBtn.offsetTop,
             width: openBtn.offsetWidth,
             height: openBtn.offsetHeight
         };
@@ -813,26 +813,14 @@ function sendOverlayGeometry() {
 
         AndroidBridge.redrawOverlay(
             JSON.stringify({ overlay: "NameGenOverlay" }),
-            Math.round(r.left),
-            Math.round(r.top),
-            Math.round(r.width),
-            Math.round(r.height)
+            r.x,
+            r.y,
+            r.width,
+            r.height
         );
     });
 }
-// function sendOverlayGeometry(visible) {
-//     requestAnimationFrame(() => {
-//         const r = getVisibleRect();
 
-//         AndroidBridge.redrawOverlay(
-//             JSON.stringify({ overlay: "NameGenOverlay" }),
-//             r.left, // x always 0 inside HTML
-//             r.top, // y always 0 inside HTML
-//             r.width,
-//             r.height
-//         );
-//     });
-// }
 function setGeneratorVisible(visible) {
     generatorRoot.style.display = visible ? "flex" : "none";
     openBtn.style.display = visible ? "none" : "block";

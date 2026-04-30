@@ -832,13 +832,14 @@ openBtn.onclick = () => {
 };
 
 window.setSize = function (width, height) {
-  document.documentElement.style.width = width + "px";
-  document.documentElement.style.height = height + "px";
-  document.body.style.width = width + "px";
-  document.body.style.height = height + "px";
+  // DO NOT resize HTML here.
+  // HTML must stay full-screen.
 
-  // After setSize() applies, measure again
-    requestAnimationFrame(sendOverlayGeometry);
+  window.deviceWidth = width;
+  window.deviceHeight = height;
+
+  // After device size is known, measure visible UI
+  requestAnimationFrame(sendOverlayGeometry);
 };
 
 

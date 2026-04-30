@@ -259,11 +259,12 @@ export class OverlayManager {
                             },
                             delayedDraw: {
                                 returnType: 'void',
-                                argumentTypes: [],
+                                argumentTypes: ['java.lang.String'],
                                 implementation: function( jsonString: string) {
                                     try {
                                         const data = JSON.parse(jsonString);
                                         // Force overlay visibility update
+                                        Logger("delayedDraw")
                                         SceneOverlayManager.getInstance().onSceneChanged(
                                             SceneOverlayManager.currentScene
                                         );

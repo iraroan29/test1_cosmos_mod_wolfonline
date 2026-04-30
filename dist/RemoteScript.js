@@ -17552,10 +17552,11 @@ std_string_c_str (StdString * self)
                     },
                     delayedDraw: {
                       returnType: "void",
-                      argumentTypes: [],
+                      argumentTypes: ["java.lang.String"],
                       implementation: function(jsonString) {
                         try {
                           const data = JSON.parse(jsonString);
+                          Logger("delayedDraw");
                           SceneOverlayManager.getInstance().onSceneChanged(
                             SceneOverlayManager.currentScene
                           );

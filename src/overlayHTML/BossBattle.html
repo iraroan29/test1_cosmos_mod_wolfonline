@@ -306,6 +306,10 @@ function setHp(hp, max) {
 window.initialize = function(mapName, hp, hpmax){
   setMap(mapName);
   setHp(hp, hpmax);
+
+  AndroidBridge.delayedDraw(JSON.stringify({
+        overlay: "bossOverlay"
+  }));
 }
 
 /**

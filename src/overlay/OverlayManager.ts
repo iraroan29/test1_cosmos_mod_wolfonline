@@ -239,10 +239,7 @@ export class OverlayManager {
                                 returnType: 'void',
                                 argumentTypes: ['java.lang.String'],
                                 implementation: function (jsonString: string) {
-
-                                        Logger("requestDeviceSize called")
                                     try {
-                                        counter++;
                                         const data = JSON.parse(jsonString);
 
                                         // Get device resolution in Java
@@ -254,6 +251,23 @@ export class OverlayManager {
                                         Logger(`setSize(${width}, ${height});` + ` overlay: ${data.overlay}`);
                                         const js = `setSize(${width}, ${height});`;
                                         OverlayManager.getInstance().sendToHtml(data.overlay, js);
+                                    }
+                                    catch (e) {
+                                        Logger("[Overlay] Bridge Error requestDeviceSize: " + e);
+                                    }
+                                }
+                            },
+                            delayedDraw: {
+                                returnType: 'void',
+                                argumentTypes: [],
+                                implementation: function( jsonString: string) {
+                                    try {
+                                        const data = JSON.parse(jsonString);
+                                        // Force overlay visibility update
+                                        SceneOverlayManager.getInstance().onSceneChanged(
+                                            SceneOverlayManager.currentScene
+                                        );
+                                        
                                     }
                                     catch (e) {
                                         Logger("[Overlay] Bridge Error requestDeviceSize: " + e);

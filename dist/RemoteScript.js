@@ -17388,7 +17388,7 @@ std_string_c_str (StdString * self)
   });
 
   // src/overlay/OverlayManager.ts
-  var counter, OverlayManager;
+  var OverlayManager;
   var init_OverlayManager = __esm({
     "src/overlay/OverlayManager.ts"() {
       init_frida_java_bridge();
@@ -17396,7 +17396,6 @@ std_string_c_str (StdString * self)
       init_ModOverlay_HUD();
       init_BossBattleOverlay();
       init_SceneOverlayManager();
-      counter = 0;
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -17538,9 +17537,7 @@ std_string_c_str (StdString * self)
                       returnType: "void",
                       argumentTypes: ["java.lang.String"],
                       implementation: function(jsonString) {
-                        Logger("requestDeviceSize called");
                         try {
-                          counter++;
                           const data = JSON.parse(jsonString);
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
@@ -17548,6 +17545,20 @@ std_string_c_str (StdString * self)
                           Logger(`setSize(${width}, ${height}); overlay: ${data.overlay}`);
                           const js = `setSize(${width}, ${height});`;
                           _OverlayManager.getInstance().sendToHtml(data.overlay, js);
+                        } catch (e) {
+                          Logger("[Overlay] Bridge Error requestDeviceSize: " + e);
+                        }
+                      }
+                    },
+                    delayedDraw: {
+                      returnType: "void",
+                      argumentTypes: [],
+                      implementation: function(jsonString) {
+                        try {
+                          const data = JSON.parse(jsonString);
+                          SceneOverlayManager.getInstance().onSceneChanged(
+                            SceneOverlayManager.currentScene
+                          );
                         } catch (e) {
                           Logger("[Overlay] Bridge Error requestDeviceSize: " + e);
                         }
@@ -17738,14 +17749,11 @@ std_string_c_str (StdString * self)
         },
         /** Called when boss spawns */
         setBoss(obj) {
+          boss = obj;
           bossMaxHp = obj.field("health_Max").value;
           bossHp = obj.field("health").value;
           const js = `initialize(${JSON.stringify(SceneOverlayManager.currentScene)},${bossHp},${bossMaxHp});`;
           OverlayManager.getInstance().sendToHtml(BossBattleOverlay.OVERLAY_NAME, js);
-          boss = obj;
-          SceneOverlayManager.getInstance().onSceneChanged(
-            SceneOverlayManager.currentScene
-          );
         },
         /** Called when boss dies */
         clearBoss() {

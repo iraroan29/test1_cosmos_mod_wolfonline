@@ -227,6 +227,8 @@ export class OverlayManager {
                                         const data = JSON.parse(jsonString);
                                         const mgr = OverlayManager.getInstance();
 
+                                        Logger(`returned html width ${data.htmlWidth} x height ${data.htmlHeight}`);
+
                                         // Atomic update: move + resize in one main-thread block
                                         mgr.updateWindowGeometry(data.overlay, x, y, w, h);
                                     }

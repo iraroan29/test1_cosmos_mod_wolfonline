@@ -17527,6 +17527,7 @@ std_string_c_str (StdString * self)
                         try {
                           const data = JSON.parse(jsonString);
                           const mgr = _OverlayManager.getInstance();
+                          Logger(`returned html width ${data.htmlWidth} x height ${data.htmlHeight}`);
                           mgr.updateWindowGeometry(data.overlay, x, y, w, h);
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);

@@ -4,13 +4,13 @@ const names = new Map<string, string>([
     ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
 ]);
 
-let InputID: Il2Cpp.Object = null;
+let INPUT: Il2Cpp.Object = null;
 export function updateID(name: string){
-    if(!InputID.isNull()){
-        const mInput = InputID.field("mInput").value as Il2Cpp.Object;
+    if(!INPUT.isNull()){
+        const mInput = INPUT.field("mInput").value as Il2Cpp.Object;
         mInput.field("mValue").value = Il2Cpp.string(name);
         // Visually see the name changes
-        InputID.method("OnSubmit").invoke();
+        INPUT.method("OnSubmit").invoke();
         Logger(`input id : ${mInput.field("mValue").value}`);
     }
 }
@@ -34,6 +34,9 @@ export function inputID(){
     InputID.method("Start").implementation = function(){
         // Call original method
         this.method("Start").invoke();
+        // Store this instance of Input_ID
+        INPUT = this as Il2Cpp.Object;
+        
         const mInput = this.field("mInput").value as Il2Cpp.Object;
         mInput.field("characterLimit").value = 1000;
 

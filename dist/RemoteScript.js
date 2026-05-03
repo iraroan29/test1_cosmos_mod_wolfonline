@@ -17422,10 +17422,10 @@ std_string_c_str (StdString * self)
 
   // src/hooks/inputid.ts
   function updateID(name) {
-    if (!InputID.isNull()) {
-      const mInput = InputID.field("mInput").value;
+    if (!INPUT.isNull()) {
+      const mInput = INPUT.field("mInput").value;
       mInput.field("mValue").value = Il2Cpp.string(name);
-      InputID.method("OnSubmit").invoke();
+      INPUT.method("OnSubmit").invoke();
       Logger(`input id : ${mInput.field("mValue").value}`);
     }
   }
@@ -17437,14 +17437,15 @@ std_string_c_str (StdString * self)
       return;
     }
     const AssemblyC = assemblyC.image;
-    const InputID2 = AssemblyC.class("Input_ID");
-    InputID2.method("Start").implementation = function() {
+    const InputID = AssemblyC.class("Input_ID");
+    InputID.method("Start").implementation = function() {
       this.method("Start").invoke();
+      INPUT = this;
       const mInput = this.field("mInput").value;
       mInput.field("characterLimit").value = 1e3;
       let ID = mInput.field("mValue").value;
     };
-    InputID2.method("OnSubmit").implementation = function() {
+    InputID.method("OnSubmit").implementation = function() {
       const mInput = this.field("mInput").value;
       let ID = mInput.field("mValue").value;
       for (const [searchName, replaceName] of names) {
@@ -17457,14 +17458,14 @@ std_string_c_str (StdString * self)
     };
     Logger("[+] inputID successfully initialized!");
   }
-  var names, InputID;
+  var names, INPUT;
   var init_inputid = __esm({
     "src/hooks/inputid.ts"() {
       names = /* @__PURE__ */ new Map([
         ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
         ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
       ]);
-      InputID = null;
+      INPUT = null;
     }
   });
 

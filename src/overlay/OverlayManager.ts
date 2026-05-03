@@ -62,10 +62,10 @@ export class OverlayManager {
 
                     const webview = WebView.$new(self.context);
                     webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
-                    webview.setClickable(!touchPassthrough);
+                    webview.setClickable(false);
                     webview.setLongClickable(false);
-                    webview.setFocusable(!touchPassthrough);
-                    webview.setFocusableInTouchMode(!touchPassthrough);
+                    webview.setFocusable(false);
+                    webview.setFocusableInTouchMode(false);
                     webview.setBackgroundColor(0x00000000);
 
                     // Logger("Here 2 — WebView created");
@@ -79,10 +79,7 @@ export class OverlayManager {
                     settings.setBuiltInZoomControls(false);
                     settings.setDisplayZoomControls(false);
 
-                    const WebChromeClient = Java.use("android.webkit.WebChromeClient");
-                    webview.setWebChromeClient(WebChromeClient.$new());
-
-                    Logger("Web chrome client applied");
+                    // Logger("Here 3 — WebView settings applied");
 
                     const layout = FrameLayout.$new(self.context);
                     const flParams = FrameLayoutParams.$new(-1, -1);
@@ -136,20 +133,14 @@ export class OverlayManager {
                     const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                     const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
 
-                    // Start with basic layout flags
-                    let flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                    lp.flags.value =
+                        FLAG_LAYOUT_IN_SCREEN |
+                        FLAG_LAYOUT_NO_LIMITS |
+                        FLAG_NOT_FOCUSABLE;
 
                     if (touchPassthrough) {
-                        // If we are passing through touches, we must also be NOT_FOCUSABLE
-                        flags |= FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
-                    } else {
-                        // INTERACTABLE STATE:
-                        // We do NOT add FLAG_NOT_FOCUSABLE here.
-                        // This allows the keyboard and color picker to work.
+                        lp.flags.value |= FLAG_NOT_TOUCHABLE;
                     }
-
-                    lp.flags.value = flags;
-
 
                     // Logger("Here 7 — Flags applied");
 
@@ -239,19 +230,27 @@ export class OverlayManager {
                                         const dm = Java.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                                         const width = dm.widthPixels.value;
                                         const height = dm.heightPixels.value;
+                                        
+                                        const overlay = this.overlays[name];
+                                        const lp = overlay.windowLayoutParams;
+                                        const FLAG_NOT_FOCUSABLE = 8;
 
                                         if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                                             if (contentOpen) {
                                                 // Full Screen
                                                 mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
+                                                // 2. Enable Keyboard: REMOVE Not_Focusable
+                                                lp.flags.value &= ~FLAG_NOT_FOCUSABLE;
                                             } else {
                                                 // Tiny Button State with Rounded Integers
                                                 const targetWidth = Math.round(width * 0.2);              // 4% of width
-                                                const targetHeight = Math.round(height * 0.4);            // 4% of height
+                                                const targetHeight = Math.round(height * 0.7);            // 4% of height
                                                 const xOffset = Math.round(width * 0.155);                 // 15.5% left
                                                 const yOffset = Math.round(Math.min(width, height) * 0.10); // 10vmin top
 
                                                 mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
+                                                // 2. Disable Keyboard: ADD Not_Focusable
+                                                lp.flags.value |= FLAG_NOT_FOCUSABLE;
                                             }
                                         }
                                     }

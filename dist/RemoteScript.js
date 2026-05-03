@@ -17455,10 +17455,10 @@ std_string_c_str (StdString * self)
                 const View = frida_java_bridge_default.use("android.view.View");
                 const webview = WebView.$new(self.context);
                 webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
-                webview.setClickable(!touchPassthrough);
+                webview.setClickable(false);
                 webview.setLongClickable(false);
-                webview.setFocusable(!touchPassthrough);
-                webview.setFocusableInTouchMode(!touchPassthrough);
+                webview.setFocusable(false);
+                webview.setFocusableInTouchMode(false);
                 webview.setBackgroundColor(0);
                 const settings = webview.getSettings();
                 settings.setJavaScriptEnabled(true);
@@ -17468,9 +17468,6 @@ std_string_c_str (StdString * self)
                 settings.setSupportZoom(false);
                 settings.setBuiltInZoomControls(false);
                 settings.setDisplayZoomControls(false);
-                const WebChromeClient = frida_java_bridge_default.use("android.webkit.WebChromeClient");
-                webview.setWebChromeClient(WebChromeClient.$new());
-                Logger("Web chrome client applied");
                 const layout = FrameLayout.$new(self.context);
                 const flParams = FrameLayoutParams.$new(-1, -1);
                 layout.addView(webview, flParams);
@@ -17502,12 +17499,10 @@ std_string_c_str (StdString * self)
                 const FLAG_NOT_TOUCHABLE = WMLayoutParams.FLAG_NOT_TOUCHABLE.value;
                 const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                 const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
-                let flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
+                lp.flags.value = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS | FLAG_NOT_FOCUSABLE;
                 if (touchPassthrough) {
-                  flags |= FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
-                } else {
+                  lp.flags.value |= FLAG_NOT_TOUCHABLE;
                 }
-                lp.flags.value = flags;
                 lp.token.value = activity.getWindow().getDecorView().getWindowToken();
                 const ViewManager = frida_java_bridge_default.use("android.view.ViewManager");
                 ViewManager.addView.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(wm, layout, lp);
@@ -17569,15 +17564,20 @@ std_string_c_str (StdString * self)
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
+                          const overlay = this.overlays[name];
+                          const lp2 = overlay.windowLayoutParams;
+                          const FLAG_NOT_FOCUSABLE2 = 8;
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                             if (contentOpen) {
                               mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
+                              lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
                             } else {
                               const targetWidth = Math.round(width * 0.2);
-                              const targetHeight = Math.round(height * 0.4);
+                              const targetHeight = Math.round(height * 0.7);
                               const xOffset = Math.round(width * 0.155);
                               const yOffset = Math.round(Math.min(width, height) * 0.1);
                               mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
+                              lp2.flags.value |= FLAG_NOT_FOCUSABLE2;
                             }
                           }
                         } catch (e) {

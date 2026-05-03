@@ -231,27 +231,43 @@ export class OverlayManager {
                                         const width = dm.widthPixels.value;
                                         const height = dm.heightPixels.value;
                                         
-                                        const overlay = this.overlays[name];
+                                        
+                                        const overlay = this.overlays[data.overlay];
                                         const lp = overlay.windowLayoutParams;
+                                        const wm = overlay.windowManager;
+                                        const layout = overlay.layout;
+                                        const webview = overlay.webview;
+
                                         const FLAG_NOT_FOCUSABLE = 8;
 
                                         if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
+
                                             if (contentOpen) {
-                                                // Full Screen
+                                                // 1. Let your manager handle geometry (size/pos)
                                                 mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
-                                                // 2. Enable Keyboard: REMOVE Not_Focusable
+                                                
+                                                // 2. Toggle Flags and WebView Focus
                                                 lp.flags.value &= ~FLAG_NOT_FOCUSABLE;
+                                                webview.setFocusable(true);
+                                                webview.setFocusableInTouchMode(true);
                                             } else {
+                                                
                                                 // Tiny Button State with Rounded Integers
                                                 const targetWidth = Math.round(width * 0.2);              // 4% of width
                                                 const targetHeight = Math.round(height * 0.2);            // 4% of height
                                                 const xOffset = Math.round(width * 0.155);                 // 15.5% left
                                                 const yOffset = Math.round(Math.min(width, height) * 0.10); // 10vmin top
-
+                                                // 1. Let your manager handle geometry (tiny size/pos)
                                                 mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
-                                                // 2. Disable Keyboard: ADD Not_Focusable
+                                                
+                                                // 2. Toggle Flags and WebView Focus
                                                 lp.flags.value |= FLAG_NOT_FOCUSABLE;
+                                                webview.setFocusable(false);
+                                                webview.setFocusableInTouchMode(false);
                                             }
+
+                                            // 3. Push the FLAG changes specifically
+                                            wm.updateViewLayout(layout, lp);
                                         }
                                     }
                                     catch (e) {

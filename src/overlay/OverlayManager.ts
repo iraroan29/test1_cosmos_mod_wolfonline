@@ -62,10 +62,10 @@ export class OverlayManager {
 
                     const webview = WebView.$new(self.context);
                     webview.setLayerType(View.LAYER_TYPE_HARDWARE.value, null);
-                    webview.setClickable(false);
+                    webview.setClickable(!touchPassthrough);
                     webview.setLongClickable(false);
-                    webview.setFocusable(false);
-                    webview.setFocusableInTouchMode(false);
+                    webview.setFocusable(!touchPassthrough);
+                    webview.setFocusableInTouchMode(!touchPassthrough);
                     webview.setBackgroundColor(0x00000000);
 
                     // Logger("Here 2 — WebView created");
@@ -79,7 +79,10 @@ export class OverlayManager {
                     settings.setBuiltInZoomControls(false);
                     settings.setDisplayZoomControls(false);
 
-                    // Logger("Here 3 — WebView settings applied");
+                    const WebChromeClient = Java.use("android.webkit.WebChromeClient");
+                    webview.setWebChromeClient(WebChromeClient.$new());
+
+                    Logger("Web chrome client applied");
 
                     const layout = FrameLayout.$new(self.context);
                     const flParams = FrameLayoutParams.$new(-1, -1);
@@ -133,14 +136,20 @@ export class OverlayManager {
                     const FLAG_LAYOUT_IN_SCREEN = WMLayoutParams.FLAG_LAYOUT_IN_SCREEN.value;
                     const FLAG_LAYOUT_NO_LIMITS = WMLayoutParams.FLAG_LAYOUT_NO_LIMITS.value;
 
-                    lp.flags.value =
-                        FLAG_LAYOUT_IN_SCREEN |
-                        FLAG_LAYOUT_NO_LIMITS |
-                        FLAG_NOT_FOCUSABLE;
+                    // Start with basic layout flags
+                    let flags = FLAG_LAYOUT_IN_SCREEN | FLAG_LAYOUT_NO_LIMITS;
 
                     if (touchPassthrough) {
-                        lp.flags.value |= FLAG_NOT_TOUCHABLE;
+                        // If we are passing through touches, we must also be NOT_FOCUSABLE
+                        flags |= FLAG_NOT_TOUCHABLE | FLAG_NOT_FOCUSABLE;
+                    } else {
+                        // INTERACTABLE STATE:
+                        // We do NOT add FLAG_NOT_FOCUSABLE here.
+                        // This allows the keyboard and color picker to work.
                     }
+
+                    lp.flags.value = flags;
+
 
                     // Logger("Here 7 — Flags applied");
 

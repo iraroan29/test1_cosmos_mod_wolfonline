@@ -231,8 +231,19 @@ export class OverlayManager {
                                         const width = dm.widthPixels.value;
                                         const height = dm.heightPixels.value;
 
-                                        if( data.overlay === NameGenOverlay.OVERLAY_NAME){
-                                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry( data.overlay, width * 0.155 /*left: 15.5%*/, Math.min(width, height) * 0.10 /* top: 10vmin */, 200, 100);
+                                        if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
+                                            if (contentOpen) {
+                                                // Full Screen
+                                                mgr.updateWindowGeometry(data.overlay, 0, 0, width, height);
+                                            } else {
+                                                // Tiny Button State
+                                                const btnWidth = Math.round(width * 0.10);  /* 4% of width */
+                                                const btnHeight = Math.round(height * 0.10); /* 4% of height */
+                                                const left = width * 0.155;
+                                                const top = Math.min(width, height) * 0.10;
+
+                                                mgr.updateWindowGeometry(data.overlay, left, top, btnWidth, btnHeight);
+                                            }
                                         }
 
                                     }

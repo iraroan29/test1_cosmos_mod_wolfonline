@@ -17565,7 +17565,15 @@ std_string_c_str (StdString * self)
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry(data.overlay, width * 0.155, Math.min(width, height) * 0.1, 200, 100);
+                            if (contentOpen) {
+                              mgr.updateWindowGeometry(data.overlay, 0, 0, width, height);
+                            } else {
+                              const btnWidth = Math.round(width * 0.1);
+                              const btnHeight = Math.round(height * 0.1);
+                              const left = width * 0.155;
+                              const top = Math.min(width, height) * 0.1;
+                              mgr.updateWindowGeometry(data.overlay, left, top, btnWidth, btnHeight);
+                            }
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);

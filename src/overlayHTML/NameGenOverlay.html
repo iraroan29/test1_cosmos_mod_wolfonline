@@ -353,7 +353,7 @@ input[type="text"] {
 #openGeneratorBtn {
   position: absolute;
   width: 50vw;  /* 30% of viewport width */
-  height: 20vh; /* 20% of viewport height */
+  height: 50vh; /* 20% of viewport height */
   padding: 0;  /* Prevents padding from distorting the small size */
 }
 
@@ -728,15 +728,22 @@ function getBackgroundForColors(colors) {
 function lerp(a,b,t) { return a + (b - a) * t; }
 
 function colorAt(i, len) {
-  if (len <= 2) return checkpoints[0];
+  if (len <= 1) return checkpoints[0]; // Avoid division by zero
   const t = i / (len - 1);
   const seg = 1 / (checkpoints.length - 1);
   const idx = Math.min(checkpoints.length - 2, Math.floor(t / seg));
   const lt = (t - idx * seg) / seg;
   const a = hexToRgb(checkpoints[idx]);
   const b = hexToRgb(checkpoints[idx + 1]);
-  return `rgb(${lerp(a[0],b[0],lt)},${lerp(a[1],b[1],lt)},${lerp(a[2],b[2],lt)})`;
+  
+  // Round these to integers immediately
+  const r = Math.round(lerp(a[0], b[0], lt));
+  const g = Math.round(lerp(a[1], b[1], lt));
+  const b_val = Math.round(lerp(a[2], b[2], lt));
+  
+  return `rgb(${r},${g},${b_val})`;
 }
+
 
 function colorAtWithColors(colors, i, len) {
   if (len <= 2) return colors[0];
@@ -805,28 +812,28 @@ toggleExclusiveCheckbox("fmtSup", "script", "sup", ["fmtSub"]);
 
 function buildOutputString(text) {
   let prefix = "";
-
   if (formatState.bold) prefix += "[b]";
   if (formatState.italic) prefix += "[i]";
-
   if (formatState.decoration === "underline") prefix += "[u]";
   if (formatState.decoration === "strike") prefix += "[s]";
-
   if (formatState.script === "sub") prefix += "[sub]";
   if (formatState.script === "sup") prefix += "[sup]";
 
   let out = "";
   for (let i = 0; i < text.length; i++) {
-    const c = colorAt(i, text.length)
+    const rgbStr = colorAt(i, text.length);
+    const hex = rgbStr
       .match(/\d+/g)
-      .map(v => (+v).toString(16).padStart(2, "0"))
+      .slice(0, 3) // Ensure we only take R, G, and B
+      .map(v => parseInt(v).toString(16).padStart(2, "0"))
       .join("");
 
-    out += `[${c}]${text[i]}`;
+    out += `[${hex.toUpperCase()}]${text[i]}`;
   }
 
   return prefix + out;
 }
+
 
 const presetListEl = document.getElementById("presetList");
 

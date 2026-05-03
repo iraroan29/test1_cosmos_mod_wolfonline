@@ -211,8 +211,10 @@ export class OverlayManager {
                                         }
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
                                         }
-                                        if ( data.overlay === BossBattleOverlay.OVERLAY_NAME ){
+                                        if ( data.overlay === NameGenOverlay.OVERLAY_NAME ){
+                                            Logger(`Set inputID to generated name returned: ${data.gradientName}`);
                                         }
+
                                     } catch (e) {
                                         Logger("[Overlay] Bridge Error: " + e);
                                     }

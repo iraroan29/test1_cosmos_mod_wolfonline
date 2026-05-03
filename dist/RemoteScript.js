@@ -17427,7 +17427,6 @@ std_string_c_str (StdString * self)
       init_frida_java_bridge();
       init_ConfigManager();
       init_ModOverlay_HUD();
-      init_BossBattleOverlay();
       init_NameGenOverlay();
       init_SceneOverlayManager();
       OverlayManager = class _OverlayManager {
@@ -17547,7 +17546,8 @@ std_string_c_str (StdString * self)
                           }
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                           }
-                          if (data.overlay === BossBattleOverlay.OVERLAY_NAME) {
+                          if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
+                            Logger(`Set inputID to generated name returned: ${data.gradientName}`);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);

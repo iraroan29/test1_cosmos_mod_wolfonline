@@ -1042,19 +1042,16 @@ window.onload = () => {
 ========================= */
 document.getElementById("useBtn").onclick = () => {
   const result = buildOutputString(input.value);
-
-  // if (window.Android?.setGradientResult) {
-  //   window.Android.setGradientResult(result);
-  // }
+  AndroidBridge.sendToMod(JSON.stringify({
+      type: "READY",
+      overlay: "NameGenOverlay",
+      gradientName: result
+  }));
 
   setGeneratorVisible(false);
 };
 
 document.getElementById("cancelBtn").onclick = () => {
-  // if (window.Android?.cancelGradient) {
-  //   window.Android.cancelGradient();
-  // }
-
   setGeneratorVisible(false);
 };
 

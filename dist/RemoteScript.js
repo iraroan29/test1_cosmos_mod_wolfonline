@@ -17422,16 +17422,15 @@ std_string_c_str (StdString * self)
 
   // src/hooks/inputid.ts
   function updateID(name) {
-    if (INPUT && !INPUT.handle.isNull()) {
-      Il2Cpp.mainThread.schedule(() => {
-        const mInput = INPUT.field("mInput").value;
-        mInput.field("mValue").value = Il2Cpp.string(name);
-        const updateLabel = INPUT.field("input_label").value;
-        updateLabel.method("SetText").invoke(Il2Cpp.string(name));
-        INPUT.method("OnSubmit").invoke();
-        console.log(`[+] Manual OnSubmit triggered for: ${name}`);
-      });
-    }
+    if (!INPUT || INPUT.handle.isNull()) return;
+    const il2cppString = Il2Cpp.string(name);
+    const mInput = INPUT.field("mInput").value;
+    mInput.field("mValue").value = il2cppString;
+    const updateLabel = INPUT.field("input_label").value;
+    updateLabel.method("SetText").invoke(il2cppString);
+    Il2Cpp.mainThread.schedule(() => {
+      INPUT.method("OnSubmit").invoke();
+    });
   }
   function inputID() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -17600,9 +17599,11 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                           }
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            Il2Cpp.perform(() => {
-                              updateID(data.gradientName);
-                            });
+                            setTimeout(() => {
+                              Il2Cpp.perform(() => {
+                                updateID(data.gradientName);
+                              });
+                            }, 0);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);

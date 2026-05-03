@@ -6,21 +6,24 @@ const names = new Map<string, string>([
 
 let INPUT: Il2Cpp.Object = null;
 export function updateID(name: string) {
-    if (INPUT && !INPUT.handle.isNull()) {
-        // Schedule the call on the game's main thread
-        Il2Cpp.mainThread.schedule(() => {
-            const mInput = INPUT.field<Il2Cpp.Object>("mInput").value;
-            mInput.field<Il2Cpp.String>("mValue").value = Il2Cpp.string(name);
+    if (!INPUT || INPUT.handle.isNull()) return;
 
-            const updateLabel = INPUT.field<Il2Cpp.Object>("input_label").value;
-            updateLabel.method("SetText").invoke(Il2Cpp.string(name));
+    // Pre-create the IL2Cpp string BEFORE hopping to the main thread
+    // This moves the allocation work off the game's render thread
+    const il2cppString = Il2Cpp.string(name);
+    const mInput = INPUT.field<Il2Cpp.Object>("mInput").value;
+    mInput.field<Il2Cpp.String>("mValue").value = il2cppString;
 
-            // Force the game to process the submission
-            INPUT.method("OnSubmit").invoke();
-            console.log(`[+] Manual OnSubmit triggered for: ${name}`);
-        });
-    }
+    const updateLabel = INPUT.field<Il2Cpp.Object>("input_label").value;
+    // If this still causes lag, try setting the field directly instead of SetText
+    updateLabel.method("SetText").invoke(il2cppString);
+
+    Il2Cpp.mainThread.schedule(() => {
+
+        INPUT.method("OnSubmit").invoke();
+    });
 }
+
 
 
 

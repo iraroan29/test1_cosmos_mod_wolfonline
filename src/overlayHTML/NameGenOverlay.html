@@ -314,11 +314,14 @@ input[type="text"] {
   /* ❗ no positioning here on purpose */
 }
 #openGeneratorBtn {
-  position: absolute;
-  top: 10vmin;
-  left: 15.5%;
+  position: fixed; /* Ensures it stays pinned to the screen */
+  top: 0;
+  left: 0;
+  width: 100vw;    /* 100% of viewport width */
+  height: 100vh;   /* 100% of viewport height */
+  margin: 0;       /* Removes any offset */
+  border: none;    /* Optional: cleaner look for a full-screen button */
 }
-
 
 
 /* =========================
@@ -778,27 +781,8 @@ function getOverlayRect() {
     };
 }
 
-function getVisibleRect() {
-    if (generatorRoot.style.display !== "none") {
-        return {
-            x: generatorRoot.offsetLeft,
-            y: generatorRoot.offsetTop,
-            width: generatorRoot.offsetWidth,
-            height: generatorRoot.offsetHeight
-        };
-    } else {
-        return {
-            x: openBtn.offsetLeft,
-            y: openBtn.offsetTop,
-            width: openBtn.offsetWidth,
-            height: openBtn.offsetHeight
-        };
-    }
-}
-
 function sendOverlayGeometry(visible) {
     requestAnimationFrame(() => {
-        const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
             JSON.stringify({ overlay: "NameGenOverlay"}),

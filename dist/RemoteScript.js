@@ -17600,7 +17600,9 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                           }
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            updateID(data.gradientName);
+                            Il2Cpp.perform(() => {
+                              updateID(data.gradientName);
+                            });
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);

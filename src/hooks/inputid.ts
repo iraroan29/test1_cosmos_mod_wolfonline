@@ -18,11 +18,9 @@ export function updateID(name: string) {
     // If this still causes lag, try setting the field directly instead of SetText
     updateLabel.method("SetText").invoke(il2cppString);
 
-    Il2Cpp.perform(() => {
-        Il2Cpp.mainThread.schedule(() => {
-                INPUT.method("OnSubmit").invoke();
-        });
-    }, "free"); 
+    Il2Cpp.mainThread.schedule(() => {
+        INPUT.method("OnSubmit").invoke();
+    });
 }
 
 

@@ -213,8 +213,10 @@ export class OverlayManager {
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
                                         }
                                         if ( data.overlay === NameGenOverlay.OVERLAY_NAME ){
-                                           // Run this in the background so Java doesn't wait
-                                           updateID(data.gradientName);
+                                           // Attach this thread to IL2CPP so we can call updateID
+                                            Il2Cpp.perform(() => {
+                                                updateID(data.gradientName);
+                                            });
                                         }
 
                                     } catch (e) {

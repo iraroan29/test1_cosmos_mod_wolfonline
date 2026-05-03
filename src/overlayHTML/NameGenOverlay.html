@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Gradient Name Generator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cosmos Colorful Name Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <style>
 /* =========================
@@ -26,13 +26,51 @@
   padding: 0;
 }
 
+/* =========================
+ ANDROID / MOBILE NO-HIGHLIGHT
+========================= */
+
+/* Disable text selection everywhere */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* Android + iOS tap flash */
+  -webkit-tap-highlight-color: transparent;
+
+  /* Disable long‑press handles / copy bubble */
+  -webkit-touch-callout: none;
+}
+
+/* Re-enable text selection ONLY for inputs */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Remove focus outlines & pressed states */
+button,
+input,
+label,
+div {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Android WebView pressed highlight fix */
+:focus {
+  outline: none;
+}
+
+
+
 html, body {
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 /* =========================
@@ -41,7 +79,7 @@ html, body {
 #overlay {
   width: 100vw;
   height: 100vh;
-  background: transparent;
+  background: rgba(20, 20, 24, 0.8);
   padding: 2.6vmin;
 }
 
@@ -132,15 +170,14 @@ input[type="text"] {
   flex-direction: column;
   gap: 1vmin;
 
-  width: 33%;
-  max-width: 33%;
-
-  max-height: calc(100% - 2.5vmin);
+  /* ✅ CRITICAL */
+  flex: 1;
+  min-height: 0;
+  max-height: 100%;
   overflow-y: auto;
-  overflow-x: visible;
 
-  padding-left: 1.4vmin;   /* ✅ NEW: prevents left shadow clipping */
-  padding-right: 0.6vmin;  /* existing scrollbar spacing */
+  padding-left: 1.4vmin;
+  padding-right: 0.6vmin;
 }
 
 .checkpoints::-webkit-scrollbar {
@@ -230,7 +267,7 @@ input[type="text"] {
   transition: background-color 150ms ease;
 
   font-size: clamp(1.1rem, 2.4vmin, 1.8rem);
-  font-weight: 800;
+  font-weight: normal;
   letter-spacing: 0.12em;
   text-align: center;
   white-space: nowrap;
@@ -321,6 +358,7 @@ input[type="text"] {
 }
 
 
+
 /* =========================
  CONTENT LAYOUT
 ========================= */
@@ -339,15 +377,17 @@ input[type="text"] {
   flex-direction: column;
   gap: 1vmin;
   margin-bottom: 2vmin;
+  flex: 0 0 40%;   /* grow | shrink | basis */
 }
 
 /* =========================
  PREVIEW BLOCK
 ========================= */
 .preview-block {
+  flex-shrink: 0; /* ✅ prevents being pushed off-screen */
   display: flex;
   flex-direction: column;
-  margin-top: auto; /* ✅ pushes preview block to bottom */
+  margin-top: auto;
 }
 
 /* Visual output should sit above footer */
@@ -360,16 +400,20 @@ input[type="text"] {
 ========================= */
 .checkpoint-row {
   display: flex;
-  gap: 2vmin;
-  align-items: flex-start;
+  gap: 10vmin;
+  align-items: stretch;
+
+  /* ✅ THIS is the fix */
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* =========================
  PRESET PANEL
 ========================= */
 .preset-panel {
-  width: 33%;
-  max-width: 33%;
+  flex: 0 0 40%;
   display: flex;
   flex-direction: column;
 }
@@ -430,6 +474,60 @@ input[type="text"] {
   text-shadow: 0 0 0.35vmin #000;
 }
 
+/* =========================
+ FORMATTING BAR
+========================= */
+.formatting-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.2vmin;
+  margin-top: 1vmin;
+  margin-bottom: 0.6vmin;
+}
+
+.fmt-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6vmin 1.2vmin;
+  border-radius: 0.9vmin;
+  background: rgba(0,0,0,0.35);
+  box-shadow: inset 0 0 0 0.15vmin rgba(var(--galaxy-rgb),0.35);
+  cursor: pointer;
+}
+
+.fmt-toggle input {
+  display: none;
+}
+
+.fmt-toggle span {
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: #bbb;
+  white-space: nowrap;
+}
+
+
+.fmt-toggle input:checked + span {
+  color: #fff;
+  text-shadow: 0 0 0.6vmin rgba(var(--galaxy-rgb),0.8);
+}
+
+.fmt-radio-group {
+  display: flex;
+  gap: 1vmin;
+  margin-left: 1.6vmin;
+}
+
+.fmt-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.4vmin;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 
 </style>
 </head>
@@ -461,16 +559,52 @@ input[type="text"] {
         </div>
       </div>
       <div class="preview-block">
-          <label>Visual Output</label>
-          <div class="label-note gradient-vivid-text">
-          Some symbols may not be supported by the game. Unsupported characters may
-          be replaced or displayed differently depending on where the name is used.
+
+        <div class="formatting-bar">
+          <!-- Independent toggles -->
+          <label class="fmt-toggle">
+            <input type="checkbox" id="fmtBold">
+            <span>Bold</span>
+          </label>
+
+          <label class="fmt-toggle">
+            <input type="checkbox" id="fmtItalic">
+            <span>Italic</span>
+          </label>
+
+          <div class="fmt-radio-group">
+            <label class="fmt-toggle">
+              <input type="checkbox" id="fmtUnderline">
+              <span>Underline</span>
+            </label>
+
+            <label class="fmt-toggle">
+              <input type="checkbox" id="fmtStrike">
+              <span>Strikethrough</span>
+            </label>
           </div>
 
-          <div id="preview" class="preview"></div>
+          <div class="fmt-radio-group">
+            <label class="fmt-toggle">
+              <input type="checkbox" id="fmtSub">
+              <span>Subscript</span>
+            </label>
+
+            <label class="fmt-toggle">
+              <input type="checkbox" id="fmtSup">
+              <span>Superscript</span>
+            </label>
+          </div>
+        </div>
+
+        <label>Visual Output</label>
+          <div class="label-note gradient-vivid-text">
+            Some symbols may not be supported by the game. Unsupported characters may
+            be replaced or displayed differently depending on where the name is used.
+          </div>
+        <div id="preview" class="preview"></div>
       </div>
     </div>
-
 
     <div class="footer">
       <button class="use" id="useBtn">Use</button>
@@ -483,16 +617,28 @@ input[type="text"] {
 <script>
 const PREDEFINED_GRADIENTS = [
   {
-    name: "⋆｡°✩Solarized✩°｡⋆",
+    name: "⋆｡°✩ Solarized ✩°｡⋆",
     colors: ["#268BD2", "#2AA198", "#859900", "#B58900", "#CB4B16"]
   },
   {
-    name: "⋆｡°✩Vaporwave✩°｡⋆",
+    name: "⋆｡°✩ Vaporwave ✩°｡⋆",
     colors: ["#FF71CE", "#01CDFE", "#05FFA1", "#B967FF", "#B967FF", "#FFFB96"]
   },
   {
-    name: "⋆｡°✩Watermelon✩°｡⋆",
+    name: "⋆｡°✩ Watermelon ✩°｡⋆",
     colors: ["#FF4F79", "#FF7F50", "#FFD27F", "#7FFF7F", "#4FFFAF"]
+  },
+  {
+    name: "⋆｡°✩ Photon Bloom ✩°｡⋆",
+    colors: ["#FDE68A", "#F59E0B", "#EF4444"]
+  },
+  {
+    name: "⋆｡°✩ Astral Veil ✩°｡⋆",
+    colors: ["#22D3EE", "#60A5FA", "#A78BFA", "#F472B6"]
+  },
+  {
+    name: "⋆｡°✩ Aurora Borealis ✩°｡⋆",
+    colors: ["#172346", "#025385", "#0EF3C5", "#04E2B7", "#038298", "#015268"]
   }
 ];
 
@@ -526,7 +672,7 @@ window.setTierByValue = function(v){
 
 
 /* Default tier (Nova) */
-setTierByValue(0);
+// setTierByValue(6);
 
 /* =========================
  GRADIENT ENGINE
@@ -612,16 +758,74 @@ function colorAtWithColors(colors, i, len) {
     ${lerp(a[2], b[2], lt)}
   )`;
 }
+const formatState = {
+  bold: false,
+  italic: false,
+  decoration: null, // 'underline' | 'strike' | null
+  script: null      // 'sub' | 'sup' | null
+};
+const fmtControls = [
+  ["fmtBold", "bold"],
+  ["fmtItalic", "italic"],
+  ["fmtUnderline", "underline"],
+  ["fmtStrike", "strike"]
+];
+
+fmtControls.forEach(([id, key]) => {
+  document.getElementById(id).onchange = e => {
+    formatState[key] = e.target.checked;
+    render();
+  };
+});
+
+function toggleExclusiveCheckbox(id, stateKey, value, siblings) {
+  const box = document.getElementById(id);
+
+  box.addEventListener("change", () => {
+    if (box.checked) {
+      // Turn off siblings
+      siblings.forEach(sid => {
+        const sib = document.getElementById(sid);
+        sib.checked = false;
+      });
+
+      formatState[stateKey] = value;
+    } else {
+      formatState[stateKey] = null;
+    }
+
+    render();
+  });
+}
+toggleExclusiveCheckbox("fmtUnderline", "decoration", "underline", ["fmtStrike"]);
+toggleExclusiveCheckbox("fmtStrike", "decoration", "strike", ["fmtUnderline"]);
+toggleExclusiveCheckbox("fmtSub", "script", "sub", ["fmtSup"]);
+toggleExclusiveCheckbox("fmtSup", "script", "sup", ["fmtSub"]);
+
 
 function buildOutputString(text) {
+  let prefix = "";
+
+  if (formatState.bold) prefix += "[b]";
+  if (formatState.italic) prefix += "[i]";
+
+  if (formatState.decoration === "underline") prefix += "[u]";
+  if (formatState.decoration === "strike") prefix += "[s]";
+
+  if (formatState.script === "sub") prefix += "[sub]";
+  if (formatState.script === "sup") prefix += "[sup]";
+
   let out = "";
   for (let i = 0; i < text.length; i++) {
     const c = colorAt(i, text.length)
       .match(/\d+/g)
-      .map(v => (+v).toString(16).padStart(2,"0")).join("");
+      .map(v => (+v).toString(16).padStart(2, "0"))
+      .join("");
+
     out += `[${c}]${text[i]}`;
   }
-  return out;
+
+  return prefix + out;
 }
 
 const presetListEl = document.getElementById("presetList");
@@ -733,10 +937,35 @@ function render() {
   }
 
   preview.innerHTML = "";
-  [...input.value].forEach((ch,i) => {
+
+  [...input.value].forEach((ch, i) => {
     const span = document.createElement("span");
     span.textContent = ch;
     span.style.color = colorAt(i, input.value.length);
+
+    if (formatState.bold) {
+      span.style.fontWeight = "900";
+    }
+
+    if (formatState.italic) {
+      span.style.fontStyle = "italic";
+    }
+
+    /* Decoration */
+    if (formatState.decoration === "underline") {
+      span.style.textDecoration = "underline";
+    } else if (formatState.decoration === "strike") {
+      span.style.textDecoration = "line-through";
+    } else {
+      span.style.textDecoration = "none";
+    }
+
+    /* Script */
+    if (formatState.script === "sub") {
+      span.style.verticalAlign = "sub";
+    } else if (formatState.script === "sup") {
+      span.style.verticalAlign = "super";
+    }
 
     preview.appendChild(span);
   });
@@ -766,17 +995,6 @@ function darken(hex, factor = 0.45) {
 const openBtn = document.getElementById("openGeneratorBtn");
 const generatorRoot = document.getElementById("generatorRoot");
 
-function getOverlayRect() {
-    const el = document.getElementById("overlay");
-    const rect = el.getBoundingClientRect();
-
-    return {
-        x: Math.round(rect.left),
-        y: Math.round(rect.top),
-        width: Math.round(rect.width),
-        height: Math.round(rect.height)
-    };
-}
 
 function sendOverlayGeometry(visible) {
     requestAnimationFrame(() => {
@@ -839,6 +1057,9 @@ document.getElementById("cancelBtn").onclick = () => {
 
   setGeneratorVisible(false);
 };
+
+// Initial minimized state
+setGeneratorVisible(false);
 
 </script>
 

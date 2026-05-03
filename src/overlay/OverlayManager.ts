@@ -248,8 +248,8 @@ export class OverlayManager {
                                                         webview.setFocusableInTouchMode(true);
                                                     } else {
                                                         // Tiny Button State with Rounded Integers
-                                                        const targetWidth = Math.round(width * 0.04);
-                                                        const targetHeight = Math.round(height * 0.04);
+                                                        const targetWidth = Math.round(width * 0.30);
+                                                        const targetHeight = Math.round(height * 0.20);
                                                         const xOffset = Math.round(width * 0.155);
                                                         const yOffset = Math.round(Math.min(width, height) * 0.10);
 

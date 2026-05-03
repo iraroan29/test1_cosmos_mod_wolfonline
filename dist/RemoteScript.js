@@ -17577,8 +17577,8 @@ std_string_c_str (StdString * self)
                                   webview2.setFocusable(true);
                                   webview2.setFocusableInTouchMode(true);
                                 } else {
-                                  const targetWidth = Math.round(width * 0.04);
-                                  const targetHeight = Math.round(height * 0.04);
+                                  const targetWidth = Math.round(width * 0.3);
+                                  const targetHeight = Math.round(height * 0.2);
                                   const xOffset = Math.round(width * 0.155);
                                   const yOffset = Math.round(Math.min(width, height) * 0.1);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);

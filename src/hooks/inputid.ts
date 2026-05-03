@@ -5,15 +5,27 @@ const names = new Map<string, string>([
 ]);
 
 let INPUT: Il2Cpp.Object = null;
-export function updateID(name: string){
-    if(!INPUT.isNull()){
+export function updateID(name: string) {
+    if (!INPUT.isNull()) {
         const mInput = INPUT.field("mInput").value as Il2Cpp.Object;
+        
+        // 1. Update the value
         mInput.field("mValue").value = Il2Cpp.string(name);
-        // Visually see the name changes
+
+        // 2. Force the UI to refresh its text display
+        // Note: Check if the method name is "UpdateLabel" or "ExecuteOnValueChange"
+        const updateLabel = mInput.class.method("UpdateLabel");
+        if (updateLabel) {
+            updateLabel.invoke(mInput);
+        }
+
+        // 3. Trigger the logic submission
         INPUT.method("OnSubmit").invoke();
-        Logger(`input id : ${mInput.field("mValue").value}`);
+
+        Logger(`Input ID visually updated to: ${name}`);
     }
 }
+
 
 
 export function inputID(){
@@ -36,15 +48,9 @@ export function inputID(){
         this.method("Start").invoke();
         // Store this instance of Input_ID
         INPUT = this as Il2Cpp.Object;
-        
+
         const mInput = this.field("mInput").value as Il2Cpp.Object;
         mInput.field("characterLimit").value = 1000;
-
-        // Check if name has symbols, if not add them
-        let ID = mInput.field("mValue").value as Il2Cpp.String;
-        // if(!ID.content.includes(SECRET_SYMBOLS)){
-        //     (mInput.field<Il2Cpp.String>("mValue").value).content += SECRET_SYMBOLS;
-        // }
     }
 
     // 3. Replace Input ID if they enter specific strings
@@ -58,11 +64,6 @@ export function inputID(){
                 break;
             }
         }
-
-        // Check if name has symbols, if not add them
-        // if(!ID.content.includes(SECRET_SYMBOLS)){
-        //     (mInput.field<Il2Cpp.String>("mValue").value).content += SECRET_SYMBOLS;
-        // }
 
         // Call original method
         this.method("OnSubmit").invoke();

@@ -17425,8 +17425,12 @@ std_string_c_str (StdString * self)
     if (!INPUT.isNull()) {
       const mInput = INPUT.field("mInput").value;
       mInput.field("mValue").value = Il2Cpp.string(name);
+      const updateLabel = mInput.class.method("UpdateLabel");
+      if (updateLabel) {
+        updateLabel.invoke(mInput);
+      }
       INPUT.method("OnSubmit").invoke();
-      Logger(`input id : ${mInput.field("mValue").value}`);
+      Logger(`Input ID visually updated to: ${name}`);
     }
   }
   function inputID() {
@@ -17443,7 +17447,6 @@ std_string_c_str (StdString * self)
       INPUT = this;
       const mInput = this.field("mInput").value;
       mInput.field("characterLimit").value = 1e3;
-      let ID = mInput.field("mValue").value;
     };
     InputID.method("OnSubmit").implementation = function() {
       const mInput = this.field("mInput").value;
@@ -17597,7 +17600,6 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                           }
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            Logger(`Set inputID to generated name returned: ${data.gradientName}`);
                             updateID(data.gradientName);
                           }
                         } catch (e) {

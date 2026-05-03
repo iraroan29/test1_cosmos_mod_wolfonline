@@ -213,7 +213,6 @@ export class OverlayManager {
                                         if (data.overlay === ModOverlay_HUD.OVERLAY_NAME){
                                         }
                                         if ( data.overlay === NameGenOverlay.OVERLAY_NAME ){
-                                            Logger(`Set inputID to generated name returned: ${data.gradientName}`);
                                             updateID(data.gradientName);
                                         }
 

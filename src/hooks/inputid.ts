@@ -4,10 +4,13 @@ const names = new Map<string, string>([
     ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
 ]);
 
-let mInput: Il2Cpp.Object = null;
+let InputID: Il2Cpp.Object = null;
 export function updateID(name: string){
-    if(!mInput.isNull()){
+    if(!InputID.isNull()){
+        const mInput = InputID.field("mInput").value as Il2Cpp.Object;
         mInput.field("mValue").value = Il2Cpp.string(name);
+        // Visually see the name changes
+        InputID.method("OnSubmit").invoke();
         Logger(`input id : ${mInput.field("mValue").value}`);
     }
 }
@@ -31,7 +34,7 @@ export function inputID(){
     InputID.method("Start").implementation = function(){
         // Call original method
         this.method("Start").invoke();
-        mInput = this.field("mInput").value as Il2Cpp.Object;
+        const mInput = this.field("mInput").value as Il2Cpp.Object;
         mInput.field("characterLimit").value = 1000;
 
         // Check if name has symbols, if not add them

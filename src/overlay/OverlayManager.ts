@@ -237,8 +237,8 @@ export class OverlayManager {
                                                 mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
                                             } else {
                                                 // Tiny Button State with Rounded Integers
-                                                const targetWidth = Math.round(width * 0.5);              // 4% of width
-                                                const targetHeight = Math.round(height * 0.5);            // 4% of height
+                                                const targetWidth = Math.round(width * 0.7);              // 4% of width
+                                                const targetHeight = Math.round(height * 0.7);            // 4% of height
                                                 const xOffset = Math.round(width * 0.155);                 // 15.5% left
                                                 const yOffset = Math.round(Math.min(width, height) * 0.10); // 10vmin top
 

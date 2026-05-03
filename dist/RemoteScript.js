@@ -17420,6 +17420,52 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/hooks/inputid.ts
+  function updateID(name) {
+    if (!mInput.isNull()) {
+      mInput.field("mValue").value = Il2Cpp.string(name);
+      Logger(`input id : ${mInput.field("mValue").value}`);
+    }
+  }
+  function inputID() {
+    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+    if (!assemblyC) {
+      Logger("[!] Assembly-CSharp not ready for inputID, retrying...");
+      setTimeout(inputID, 500);
+      return;
+    }
+    const AssemblyC = assemblyC.image;
+    const InputID = AssemblyC.class("Input_ID");
+    InputID.method("Start").implementation = function() {
+      this.method("Start").invoke();
+      mInput = this.field("mInput").value;
+      mInput.field("characterLimit").value = 1e3;
+      let ID = mInput.field("mValue").value;
+    };
+    InputID.method("OnSubmit").implementation = function() {
+      const mInput2 = this.field("mInput").value;
+      let ID = mInput2.field("mValue").value;
+      for (const [searchName, replaceName] of names) {
+        if (ID.content.toString() === searchName) {
+          mInput2.field("mValue").value = Il2Cpp.string(replaceName);
+          break;
+        }
+      }
+      this.method("OnSubmit").invoke();
+    };
+    Logger("[+] inputID successfully initialized!");
+  }
+  var names, mInput;
+  var init_inputid = __esm({
+    "src/hooks/inputid.ts"() {
+      names = /* @__PURE__ */ new Map([
+        ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
+        ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
+      ]);
+      mInput = null;
+    }
+  });
+
   // src/overlay/OverlayManager.ts
   var OverlayManager;
   var init_OverlayManager = __esm({
@@ -17429,6 +17475,7 @@ std_string_c_str (StdString * self)
       init_ModOverlay_HUD();
       init_NameGenOverlay();
       init_SceneOverlayManager();
+      init_inputid();
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -17548,6 +17595,7 @@ std_string_c_str (StdString * self)
                           }
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                             Logger(`Set inputID to generated name returned: ${data.gradientName}`);
+                            updateID(data.gradientName);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);
@@ -18637,45 +18685,6 @@ std_string_c_str (StdString * self)
       CRIT_CHANCE4 = 3;
       lastCritTime4 = 0;
       CRIT_COOLDOWN_MS4 = 1e4;
-    }
-  });
-
-  // src/hooks/inputid.ts
-  function inputID() {
-    const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
-    if (!assemblyC) {
-      Logger("[!] Assembly-CSharp not ready for inputID, retrying...");
-      setTimeout(inputID, 500);
-      return;
-    }
-    const AssemblyC = assemblyC.image;
-    const InputID = AssemblyC.class("Input_ID");
-    InputID.method("Start").implementation = function() {
-      this.method("Start").invoke();
-      const mInput = this.field("mInput").value;
-      mInput.field("characterLimit").value = 1e3;
-      let ID = mInput.field("mValue").value;
-    };
-    InputID.method("OnSubmit").implementation = function() {
-      const mInput = this.field("mInput").value;
-      let ID = mInput.field("mValue").value;
-      for (const [searchName, replaceName] of names) {
-        if (ID.content.toString() === searchName) {
-          mInput.field("mValue").value = Il2Cpp.string(replaceName);
-          break;
-        }
-      }
-      this.method("OnSubmit").invoke();
-    };
-    Logger("[+] inputID successfully initialized!");
-  }
-  var names;
-  var init_inputid = __esm({
-    "src/hooks/inputid.ts"() {
-      names = /* @__PURE__ */ new Map([
-        ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
-        ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
-      ]);
     }
   });
 

@@ -4,6 +4,7 @@ import { ModOverlay_HUD } from './ModOverlay_HUD';
 import { BossBattleOverlay } from './BossBattleOverlay';
 import { NameGenOverlay } from './NameGenOverlay';
 import { SceneOverlayManager } from './SceneOverlayManager';
+import { updateID } from '../hooks/inputid';
 
 export enum OverlayLayer {
     BACKGROUND = 0,
@@ -213,6 +214,7 @@ export class OverlayManager {
                                         }
                                         if ( data.overlay === NameGenOverlay.OVERLAY_NAME ){
                                             Logger(`Set inputID to generated name returned: ${data.gradientName}`);
+                                            updateID(data.gradientName);
                                         }
 
                                     } catch (e) {

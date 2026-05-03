@@ -4,7 +4,13 @@ const names = new Map<string, string>([
     ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
 ]);
 
-const SECRET_SYMBOLS = "✪✫✷✧✶✦✬✰✴✭✵✯";
+let mInput: Il2Cpp.Object = null;
+export function updateID(name: string){
+    if(!mInput.isNull()){
+        mInput.field("mValue").value = Il2Cpp.string(name);
+        Logger(`input id : ${mInput.field("mValue").value}`);
+    }
+}
 
 
 export function inputID(){
@@ -25,7 +31,7 @@ export function inputID(){
     InputID.method("Start").implementation = function(){
         // Call original method
         this.method("Start").invoke();
-        const mInput = this.field("mInput").value as Il2Cpp.Object;
+        mInput = this.field("mInput").value as Il2Cpp.Object;
         mInput.field("characterLimit").value = 1000;
 
         // Check if name has symbols, if not add them

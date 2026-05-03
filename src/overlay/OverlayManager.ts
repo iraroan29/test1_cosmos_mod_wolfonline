@@ -234,19 +234,17 @@ export class OverlayManager {
                                         if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                                             if (contentOpen) {
                                                 // Full Screen
-                                                mgr.updateWindowGeometry(data.overlay, 0, 0, width, height);
+                                                mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
                                             } else {
-                                                // Tiny Button State
-                                                const btnWidth = Math.round(width * 0.10);  /* 4% of width */
-                                                const btnHeight = Math.round(height * 0.10); /* 4% of height */
-                                                const left = width * 0.155;
-                                                const top = Math.min(width, height) * 0.10;
+                                                // Tiny Button State with Rounded Integers
+                                                const targetWidth = Math.round(width * 0.04);              // 4% of width
+                                                const targetHeight = Math.round(height * 0.04);            // 4% of height
+                                                const xOffset = Math.round(width * 0.155);                 // 15.5% left
+                                                const yOffset = Math.round(Math.min(width, height) * 0.10); // 10vmin top
 
-                                                Logger(`buttonWidth ${btnWidth} x buttonHeight ${btnHeight}`);
-                                                mgr.updateWindowGeometry(data.overlay, left, top, btnWidth, btnHeight);
+                                                mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                             }
                                         }
-
                                     }
                                     catch (e) {
                                         Logger("[Overlay] Bridge Error redrawOverlay: " + e);

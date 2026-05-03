@@ -17566,14 +17566,13 @@ std_string_c_str (StdString * self)
                           const height = dm.heightPixels.value;
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                             if (contentOpen) {
-                              mgr.updateWindowGeometry(data.overlay, 0, 0, width, height);
+                              mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
                             } else {
-                              const btnWidth = Math.round(width * 0.1);
-                              const btnHeight = Math.round(height * 0.1);
-                              const left = width * 0.155;
-                              const top = Math.min(width, height) * 0.1;
-                              Logger(`buttonWidth ${btnWidth} x buttonHeight ${btnHeight}`);
-                              mgr.updateWindowGeometry(data.overlay, left, top, btnWidth, btnHeight);
+                              const targetWidth = Math.round(width * 0.04);
+                              const targetHeight = Math.round(height * 0.04);
+                              const xOffset = Math.round(width * 0.155);
+                              const yOffset = Math.round(Math.min(width, height) * 0.1);
+                              mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                             }
                           }
                         } catch (e) {

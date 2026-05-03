@@ -17422,13 +17422,15 @@ std_string_c_str (StdString * self)
 
   // src/hooks/inputid.ts
   function updateID(name) {
-    if (!INPUT.isNull()) {
-      const mInput = INPUT.field("mInput").value;
-      mInput.field("mValue").value = Il2Cpp.string(name);
-      const updateLabel = INPUT.field("input_label").value;
-      updateLabel.method("SetText").invoke(Il2Cpp.string(name));
-      INPUT.method("OnSubmit").invoke();
-      Logger(`Input ID visually updated to: ${name}`);
+    if (INPUT && !INPUT.handle.isNull()) {
+      Il2Cpp.mainThread.schedule(() => {
+        const mInput = INPUT.field("mInput").value;
+        mInput.field("mValue").value = Il2Cpp.string(name);
+        const updateLabel = INPUT.field("input_label").value;
+        updateLabel.method("SetText").invoke(Il2Cpp.string(name));
+        INPUT.method("OnSubmit").invoke();
+        console.log(`[+] Manual OnSubmit triggered for: ${name}`);
+      });
     }
   }
   function inputID() {
@@ -17447,7 +17449,6 @@ std_string_c_str (StdString * self)
       mInput.field("characterLimit").value = 1e3;
     };
     InputID.method("OnSubmit").implementation = function() {
-      Logger("IS IT SUBMITTING???S?GJ");
       const mInput = this.field("mInput").value;
       let ID = mInput.field("mValue").value;
       for (const [searchName, replaceName] of names) {

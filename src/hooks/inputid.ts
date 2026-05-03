@@ -6,23 +6,22 @@ const names = new Map<string, string>([
 
 let INPUT: Il2Cpp.Object = null;
 export function updateID(name: string) {
-    if (!INPUT.isNull()) {
-        const mInput = INPUT.field("mInput").value as Il2Cpp.Object;
-        
-        // 1. Update the value
-        mInput.field("mValue").value = Il2Cpp.string(name);
+    if (INPUT && !INPUT.handle.isNull()) {
+        // Schedule the call on the game's main thread
+        Il2Cpp.mainThread.schedule(() => {
+            const mInput = INPUT.field<Il2Cpp.Object>("mInput").value;
+            mInput.field<Il2Cpp.String>("mValue").value = Il2Cpp.string(name);
 
-        // 2. Force the UI to refresh its text display
-        // Note: Check if the method name is "UpdateLabel" or "ExecuteOnValueChange"
-        const updateLabel = INPUT.field("input_label").value as Il2Cpp.Object;
-        updateLabel.method("SetText").invoke(Il2Cpp.string(name));
+            const updateLabel = INPUT.field<Il2Cpp.Object>("input_label").value;
+            updateLabel.method("SetText").invoke(Il2Cpp.string(name));
 
-        // 3. Trigger the logic submission
-        INPUT.method("OnSubmit").invoke();
-
-        Logger(`Input ID visually updated to: ${name}`);
+            // Force the game to process the submission
+            INPUT.method("OnSubmit").invoke();
+            console.log(`[+] Manual OnSubmit triggered for: ${name}`);
+        });
     }
 }
+
 
 
 
@@ -53,7 +52,6 @@ export function inputID(){
 
     // 3. Replace Input ID if they enter specific strings
     InputID.method("OnSubmit").implementation = function(){
-        Logger("IS IT SUBMITTING???S?GJ")
         const mInput = this.field("mInput").value as Il2Cpp.Object;
         let ID = mInput.field("mValue").value as Il2Cpp.String;
         

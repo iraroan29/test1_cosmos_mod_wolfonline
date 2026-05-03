@@ -17573,7 +17573,7 @@ std_string_c_str (StdString * self)
                               lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
                             } else {
                               const targetWidth = Math.round(width * 0.2);
-                              const targetHeight = Math.round(height * 0.7);
+                              const targetHeight = Math.round(height * 0.2);
                               const xOffset = Math.round(width * 0.155);
                               const yOffset = Math.round(Math.min(width, height) * 0.1);
                               mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);

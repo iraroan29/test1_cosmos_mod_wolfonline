@@ -4,7 +4,6 @@ import { ModOverlay_HUD } from './ModOverlay_HUD';
 import { BossBattleOverlay } from './BossBattleOverlay';
 import { NameGenOverlay } from './NameGenOverlay';
 import { SceneOverlayManager } from './SceneOverlayManager';
-import { bossHp, bossMaxHp } from '../helpers/bossRegistry';
 
 export enum OverlayLayer {
     BACKGROUND = 0,
@@ -232,6 +231,7 @@ export class OverlayManager {
                                         const height = dm.heightPixels.value;
                                         
                                         
+                                        Logger("before stored overlay data")
                                         const overlay = this.overlays[data.overlay];
                                         const lp = overlay.windowLayoutParams;
                                         const wm = overlay.windowManager;
@@ -239,7 +239,7 @@ export class OverlayManager {
                                         const webview = overlay.webview;
 
                                         const FLAG_NOT_FOCUSABLE = 8;
-
+                                        Logger("Passed stored overlay data")
                                         if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
 
                                             if (contentOpen) {

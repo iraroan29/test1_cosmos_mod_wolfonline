@@ -17564,12 +17564,14 @@ std_string_c_str (StdString * self)
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
+                          Logger("before stored overlay data");
                           const overlay = this.overlays[data.overlay];
                           const lp2 = overlay.windowLayoutParams;
                           const wm2 = overlay.windowManager;
                           const layout2 = overlay.layout;
                           const webview2 = overlay.webview;
                           const FLAG_NOT_FOCUSABLE2 = 8;
+                          Logger("Passed stored overlay data");
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
                             if (contentOpen) {
                               mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));

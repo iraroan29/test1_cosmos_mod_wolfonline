@@ -242,6 +242,7 @@ export class OverlayManager {
                                                 const left = width * 0.155;
                                                 const top = Math.min(width, height) * 0.10;
 
+                                                Logger(`buttonWidth ${btnWidth} x buttonHeight ${btnHeight}`);
                                                 mgr.updateWindowGeometry(data.overlay, left, top, btnWidth, btnHeight);
                                             }
                                         }

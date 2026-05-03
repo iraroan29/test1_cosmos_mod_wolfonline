@@ -17447,6 +17447,7 @@ std_string_c_str (StdString * self)
       mInput.field("characterLimit").value = 1e3;
     };
     InputID.method("OnSubmit").implementation = function() {
+      Logger("IS IT SUBMITTING???S?GJ");
       const mInput = this.field("mInput").value;
       let ID = mInput.field("mValue").value;
       for (const [searchName, replaceName] of names) {

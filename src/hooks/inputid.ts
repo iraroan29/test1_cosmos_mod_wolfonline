@@ -53,6 +53,7 @@ export function inputID(){
 
     // 3. Replace Input ID if they enter specific strings
     InputID.method("OnSubmit").implementation = function(){
+        Logger("IS IT SUBMITTING???S?GJ")
         const mInput = this.field("mInput").value as Il2Cpp.Object;
         let ID = mInput.field("mValue").value as Il2Cpp.String;
         

@@ -17568,8 +17568,8 @@ std_string_c_str (StdString * self)
                             if (contentOpen) {
                               mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
                             } else {
-                              const targetWidth = Math.round(width * 0.04);
-                              const targetHeight = Math.round(height * 0.04);
+                              const targetWidth = Math.round(width * 0.5);
+                              const targetHeight = Math.round(height * 0.5);
                               const xOffset = Math.round(width * 0.155);
                               const yOffset = Math.round(Math.min(width, height) * 0.1);
                               mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);

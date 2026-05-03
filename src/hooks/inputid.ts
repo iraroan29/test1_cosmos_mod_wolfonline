@@ -14,10 +14,8 @@ export function updateID(name: string) {
 
         // 2. Force the UI to refresh its text display
         // Note: Check if the method name is "UpdateLabel" or "ExecuteOnValueChange"
-        const updateLabel = mInput.class.method("UpdateLabel");
-        if (updateLabel) {
-            updateLabel.invoke(mInput);
-        }
+        const updateLabel = INPUT.field("input_label").value as Il2Cpp.Object;
+        updateLabel.method("SetText").invoke(Il2Cpp.string(name));
 
         // 3. Trigger the logic submission
         INPUT.method("OnSubmit").invoke();

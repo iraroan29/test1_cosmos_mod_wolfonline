@@ -17425,10 +17425,8 @@ std_string_c_str (StdString * self)
     if (!INPUT.isNull()) {
       const mInput = INPUT.field("mInput").value;
       mInput.field("mValue").value = Il2Cpp.string(name);
-      const updateLabel = mInput.class.method("UpdateLabel");
-      if (updateLabel) {
-        updateLabel.invoke(mInput);
-      }
+      const updateLabel = INPUT.field("input_label").value;
+      updateLabel.method("SetText").invoke(Il2Cpp.string(name));
       INPUT.method("OnSubmit").invoke();
       Logger(`Input ID visually updated to: ${name}`);
     }

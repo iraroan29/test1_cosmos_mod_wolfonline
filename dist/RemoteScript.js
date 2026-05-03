@@ -17565,7 +17565,7 @@ std_string_c_str (StdString * self)
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry(data.overlay, 10, 10, 200, 100);
+                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry(data.overlay, width * 0.155, Math.min(width, height) * 0.1, 200, 100);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);

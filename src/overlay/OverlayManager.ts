@@ -232,7 +232,7 @@ export class OverlayManager {
                                         const height = dm.heightPixels.value;
 
                                         if( data.overlay === NameGenOverlay.OVERLAY_NAME){
-                                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry( data.overlay, 10, 10, 200, 100);
+                                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry( data.overlay, width * 0.155 /*left: 15.5%*/, Math.min(width, height) * 0.10 /* top: 10vmin */, 200, 100);
                                         }
 
                                     }

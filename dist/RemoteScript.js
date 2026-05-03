@@ -17392,6 +17392,34 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/NameGenOverlay.ts
+  var _NameGenOverlay, NameGenOverlay;
+  var init_NameGenOverlay = __esm({
+    "src/overlay/NameGenOverlay.ts"() {
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _NameGenOverlay = class _NameGenOverlay {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_NameGenOverlay.OVERLAY_NAME, url, false, 38 /* MENU */);
+            Logger("[NameGenOverlay] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _NameGenOverlay.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Select_Wolf": true
+              })
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _NameGenOverlay.OVERLAY_NAME = "NameGenOverlay";
+      NameGenOverlay = _NameGenOverlay;
+    }
+  });
+
   // src/overlay/OverlayManager.ts
   var OverlayManager;
   var init_OverlayManager = __esm({
@@ -17400,6 +17428,7 @@ std_string_c_str (StdString * self)
       init_ConfigManager();
       init_ModOverlay_HUD();
       init_BossBattleOverlay();
+      init_NameGenOverlay();
       init_SceneOverlayManager();
       OverlayManager = class _OverlayManager {
         constructor() {
@@ -17527,13 +17556,17 @@ std_string_c_str (StdString * self)
                     },
                     redrawOverlay: {
                       returnType: "void",
-                      argumentTypes: ["java.lang.String", "int", "int", "int", "int"],
-                      implementation: function(jsonString, x, y, w, h) {
+                      argumentTypes: ["java.lang.String", "boolean"],
+                      implementation: function(jsonString, contentOpen) {
                         try {
                           const data = JSON.parse(jsonString);
                           const mgr = _OverlayManager.getInstance();
-                          Logger(`returned html width ${data.htmlWidth} x height ${data.htmlHeight}`);
-                          mgr.updateWindowGeometry(data.overlay, x, y, w, h);
+                          const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
+                          const width = dm.widthPixels.value;
+                          const height = dm.heightPixels.value;
+                          if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
+                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry(data.overlay, 10, 10, 200, 100);
+                          }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);
                         }
@@ -18617,34 +18650,6 @@ std_string_c_str (StdString * self)
         ["Hello", "[b][ffea00]H[ffd400]e[ffbe00]l[ffa500]l[ff8a00]o[ff6f00] [ff7c00]W[ff8900]o[ff9200]r[ff9900]l[ffa000]d"],
         ["Goodnight", "[i][ff00cc]G[e200db]o[c500e9]o[a800f8]d[8a00ff]n[6d00ff]i[5000ff]g[3300ff]h[2400f0]t[1600e2] [0700d3]W[0000b6]o[00008a]r[00005f]l[000033]d"]
       ]);
-    }
-  });
-
-  // src/overlay/NameGenOverlay.ts
-  var _NameGenOverlay, NameGenOverlay;
-  var init_NameGenOverlay = __esm({
-    "src/overlay/NameGenOverlay.ts"() {
-      init_OverlayManager();
-      init_SceneOverlayManager();
-      _NameGenOverlay = class _NameGenOverlay {
-        constructor(url) {
-          (async () => {
-            await OverlayManager.getInstance().createOverlay(_NameGenOverlay.OVERLAY_NAME, url, false, 38 /* MENU */);
-            Logger("[NameGenOverlay] Overlay created, now registering scenes");
-            SceneOverlayManager.getInstance().registerOverlayScenes(
-              _NameGenOverlay.OVERLAY_NAME,
-              Object.keys({
-                "WolfOnline_Select_Wolf": true
-              })
-            );
-            SceneOverlayManager.getInstance().onSceneChanged(
-              SceneOverlayManager.currentScene
-            );
-          })();
-        }
-      };
-      _NameGenOverlay.OVERLAY_NAME = "NameGenOverlay";
-      NameGenOverlay = _NameGenOverlay;
     }
   });
 

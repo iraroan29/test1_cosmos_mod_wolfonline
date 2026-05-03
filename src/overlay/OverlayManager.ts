@@ -221,16 +221,20 @@ export class OverlayManager {
                             },
                             redrawOverlay: {
                                 returnType: 'void',
-                                argumentTypes: ['java.lang.String', 'int', 'int', 'int', 'int'],
-                                implementation: function (jsonString: string, x: number, y: number, w: number, h: number) {
+                                argumentTypes: ['java.lang.String', 'boolean'],
+                                implementation: function (jsonString: string, contentOpen: boolean) {
                                     try {
                                         const data = JSON.parse(jsonString);
                                         const mgr = OverlayManager.getInstance();
 
-                                        Logger(`returned html width ${data.htmlWidth} x height ${data.htmlHeight}`);
+                                        const dm = Java.use("android.content.res.Resources").getSystem().getDisplayMetrics();
+                                        const width = dm.widthPixels.value;
+                                        const height = dm.heightPixels.value;
 
-                                        // Atomic update: move + resize in one main-thread block
-                                        mgr.updateWindowGeometry(data.overlay, x, y, w, h);
+                                        if( data.overlay === NameGenOverlay.OVERLAY_NAME){
+                                            contentOpen ? mgr.updateWindowGeometry(data.overlay, 0, 0, width, height) : mgr.updateWindowGeometry( data.overlay, 10, 10, 200, 100);
+                                        }
+
                                     }
                                     catch (e) {
                                         Logger("[Overlay] Bridge Error redrawOverlay: " + e);

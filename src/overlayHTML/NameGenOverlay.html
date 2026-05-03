@@ -778,17 +778,6 @@ function getOverlayRect() {
     };
 }
 
-// function sendOverlayGeometry() {
-//     const r = getOverlayRect();
-
-//     AndroidBridge.redrawOverlay(
-//         JSON.stringify({ overlay: "NameGenOverlay" }),
-//         r.x,
-//         r.y,
-//         r.width,
-//         r.height
-//     );
-// }
 function getVisibleRect() {
     if (generatorRoot.style.display !== "none") {
         return {
@@ -807,16 +796,13 @@ function getVisibleRect() {
     }
 }
 
-function sendOverlayGeometry() {
+function sendOverlayGeometry(visible) {
     requestAnimationFrame(() => {
         const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
-            JSON.stringify({ overlay: "NameGenOverlay", htmlWidth: window.deviceWidth, htmlHeight: document.body.style.height}),
-            r.x,
-            r.y,
-            r.width,
-            r.height
+            JSON.stringify({ overlay: "NameGenOverlay"}),
+            visible
         );
     });
 }
@@ -839,7 +825,7 @@ window.setSize = function (width, height) {
   window.deviceHeight = height;
 
   // After device size is known, measure visible UI
-  requestAnimationFrame(sendOverlayGeometry);
+  requestAnimationFrame(sendOverlayGeometry(false));
 };
 
 

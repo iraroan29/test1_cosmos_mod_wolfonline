@@ -232,10 +232,8 @@ export class OverlayManager {
                                         
                                         
                                         Logger("before stored overlay data")
-                                        const overlay = this.overlays[data.overlay];
+                                        const overlay = this.overlays[name];
                                         const lp = overlay.windowLayoutParams;
-                                        const wm = overlay.windowManager;
-                                        const layout = overlay.layout;
                                         const webview = overlay.webview;
 
                                         const FLAG_NOT_FOCUSABLE = 8;
@@ -267,7 +265,10 @@ export class OverlayManager {
                                             }
 
                                             // 3. Push the FLAG changes specifically
-                                            wm.updateViewLayout(layout, lp);
+                                            const ViewManager = Java.use("android.view.ViewManager");
+                                            ViewManager.updateViewLayout
+                                                .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
+                                                .call(overlay.windowManager, overlay.layout, lp);
                                         }
                                     }
                                     catch (e) {

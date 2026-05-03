@@ -17565,10 +17565,8 @@ std_string_c_str (StdString * self)
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
                           Logger("before stored overlay data");
-                          const overlay = this.overlays[data.overlay];
+                          const overlay = this.overlays[name];
                           const lp2 = overlay.windowLayoutParams;
-                          const wm2 = overlay.windowManager;
-                          const layout2 = overlay.layout;
                           const webview2 = overlay.webview;
                           const FLAG_NOT_FOCUSABLE2 = 8;
                           Logger("Passed stored overlay data");
@@ -17588,7 +17586,8 @@ std_string_c_str (StdString * self)
                               webview2.setFocusable(false);
                               webview2.setFocusableInTouchMode(false);
                             }
-                            wm2.updateViewLayout(layout2, lp2);
+                            const ViewManager2 = frida_java_bridge_default.use("android.view.ViewManager");
+                            ViewManager2.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp2);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);

@@ -229,46 +229,49 @@ export class OverlayManager {
                                         const dm = Java.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                                         const width = dm.widthPixels.value;
                                         const height = dm.heightPixels.value;
-                                        
-                                        
-                                        Logger("before stored overlay data")
+
                                         const overlay = mgr.getOverlay(data.overlay);
                                         const lp = overlay.windowLayoutParams;
                                         const webview = overlay.webview;
-
                                         const FLAG_NOT_FOCUSABLE = 8;
-                                        Logger("Passed stored overlay data")
+
                                         if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
+                                            Java.scheduleOnMainThread(() => {
+                                                try {
+                                                    if (contentOpen) {
+                                                        // 1. Let your manager handle geometry (size/pos)
+                                                        mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
 
-                                            if (contentOpen) {
-                                                // 1. Let your manager handle geometry (size/pos)
-                                                mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
-                                                
-                                                // 2. Toggle Flags and WebView Focus
-                                                lp.flags.value &= ~FLAG_NOT_FOCUSABLE;
-                                                webview.setFocusable(true);
-                                                webview.setFocusableInTouchMode(true);
-                                            } else {
-                                                
-                                                // Tiny Button State with Rounded Integers
-                                                const targetWidth = Math.round(width * 0.2);              // 4% of width
-                                                const targetHeight = Math.round(height * 0.2);            // 4% of height
-                                                const xOffset = Math.round(width * 0.155);                 // 15.5% left
-                                                const yOffset = Math.round(Math.min(width, height) * 0.10); // 10vmin top
-                                                // 1. Let your manager handle geometry (tiny size/pos)
-                                                mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
-                                                
-                                                // 2. Toggle Flags and WebView Focus
-                                                lp.flags.value |= FLAG_NOT_FOCUSABLE;
-                                                webview.setFocusable(false);
-                                                webview.setFocusableInTouchMode(false);
-                                            }
+                                                        // 2. Toggle Flags and WebView Focus
+                                                        lp.flags.value &= ~FLAG_NOT_FOCUSABLE;
+                                                        webview.setFocusable(true);
+                                                        webview.setFocusableInTouchMode(true);
+                                                    } else {
+                                                        // Tiny Button State with Rounded Integers
+                                                        const targetWidth = Math.round(width * 0.04);
+                                                        const targetHeight = Math.round(height * 0.04);
+                                                        const xOffset = Math.round(width * 0.155);
+                                                        const yOffset = Math.round(Math.min(width, height) * 0.10);
 
-                                            // 3. Push the FLAG changes specifically
-                                            const ViewManager = Java.use("android.view.ViewManager");
-                                            ViewManager.updateViewLayout
-                                                .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
-                                                .call(overlay.windowManager, overlay.layout, lp);
+                                                        // 1. Let your manager handle geometry (tiny size/pos)
+                                                        mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
+
+                                                        // 2. Toggle Flags and WebView Focus
+                                                        lp.flags.value |= FLAG_NOT_FOCUSABLE;
+                                                        webview.setFocusable(false);
+                                                        webview.setFocusableInTouchMode(false);
+                                                    }
+
+                                                    // 3. Push the FLAG changes specifically on UI Thread
+                                                    const ViewManager = Java.use("android.view.ViewManager");
+                                                    ViewManager.updateViewLayout
+                                                        .overload('android.view.View', 'android.view.ViewGroup$LayoutParams')
+                                                        .call(overlay.windowManager, overlay.layout, lp);
+
+                                                } catch (innerError) {
+                                                    Logger("[Overlay] UI Thread Error: " + innerError);
+                                                }
+                                            });
                                         }
                                     }
                                     catch (e) {
@@ -276,6 +279,7 @@ export class OverlayManager {
                                     }
                                 }
                             },
+
                             requestDeviceSize: {
                                 returnType: 'void',
                                 argumentTypes: ['java.lang.String'],

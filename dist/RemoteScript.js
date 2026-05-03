@@ -17564,30 +17564,34 @@ std_string_c_str (StdString * self)
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
-                          Logger("before stored overlay data");
                           const overlay = mgr.getOverlay(data.overlay);
                           const lp2 = overlay.windowLayoutParams;
                           const webview2 = overlay.webview;
                           const FLAG_NOT_FOCUSABLE2 = 8;
-                          Logger("Passed stored overlay data");
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            if (contentOpen) {
-                              mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
-                              lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
-                              webview2.setFocusable(true);
-                              webview2.setFocusableInTouchMode(true);
-                            } else {
-                              const targetWidth = Math.round(width * 0.2);
-                              const targetHeight = Math.round(height * 0.2);
-                              const xOffset = Math.round(width * 0.155);
-                              const yOffset = Math.round(Math.min(width, height) * 0.1);
-                              mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
-                              lp2.flags.value |= FLAG_NOT_FOCUSABLE2;
-                              webview2.setFocusable(false);
-                              webview2.setFocusableInTouchMode(false);
-                            }
-                            const ViewManager2 = frida_java_bridge_default.use("android.view.ViewManager");
-                            ViewManager2.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp2);
+                            frida_java_bridge_default.scheduleOnMainThread(() => {
+                              try {
+                                if (contentOpen) {
+                                  mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
+                                  lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
+                                  webview2.setFocusable(true);
+                                  webview2.setFocusableInTouchMode(true);
+                                } else {
+                                  const targetWidth = Math.round(width * 0.04);
+                                  const targetHeight = Math.round(height * 0.04);
+                                  const xOffset = Math.round(width * 0.155);
+                                  const yOffset = Math.round(Math.min(width, height) * 0.1);
+                                  mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
+                                  lp2.flags.value |= FLAG_NOT_FOCUSABLE2;
+                                  webview2.setFocusable(false);
+                                  webview2.setFocusableInTouchMode(false);
+                                }
+                                const ViewManager2 = frida_java_bridge_default.use("android.view.ViewManager");
+                                ViewManager2.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp2);
+                              } catch (innerError) {
+                                Logger("[Overlay] UI Thread Error: " + innerError);
+                              }
+                            });
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error redrawOverlay: " + e);

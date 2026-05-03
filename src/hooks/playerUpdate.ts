@@ -15,7 +15,7 @@ export function playerUpdate() {
     Player_Wolf.method("Update").implementation = function(){
         this.field("body_size").value = configManager.get('size');
         this.field("eat_spped").value = 100;
-        // TEMP SPEED HACK
+        // <----TEMP SPEED HACK ---->
         this.field("runSpeed").value = 100;
         return this.method("Update").invoke();
     }

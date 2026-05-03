@@ -17428,9 +17428,11 @@ std_string_c_str (StdString * self)
     mInput.field("mValue").value = il2cppString;
     const updateLabel = INPUT.field("input_label").value;
     updateLabel.method("SetText").invoke(il2cppString);
-    Il2Cpp.mainThread.schedule(() => {
-      INPUT.method("OnSubmit").invoke();
-    });
+    Il2Cpp.perform(() => {
+      Il2Cpp.mainThread.schedule(() => {
+        INPUT.method("OnSubmit").invoke();
+      });
+    }, "free");
   }
   function inputID() {
     const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
@@ -17599,11 +17601,7 @@ std_string_c_str (StdString * self)
                           if (data.overlay === ModOverlay_HUD.OVERLAY_NAME) {
                           }
                           if (data.overlay === NameGenOverlay.OVERLAY_NAME) {
-                            setTimeout(() => {
-                              Il2Cpp.perform(() => {
-                                updateID(data.gradientName);
-                              });
-                            }, 0);
+                            updateID(data.gradientName);
                           }
                         } catch (e) {
                           Logger("[Overlay] Bridge Error: " + e);

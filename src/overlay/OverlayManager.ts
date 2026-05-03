@@ -214,11 +214,7 @@ export class OverlayManager {
                                         }
                                         if ( data.overlay === NameGenOverlay.OVERLAY_NAME ){
                                            // Run this in the background so Java doesn't wait
-                                            setTimeout(() => {
-                                                Il2Cpp.perform(() => {
-                                                    updateID(data.gradientName);
-                                                });
-                                            }, 0); 
+                                           updateID(data.gradientName);
                                         }
 
                                     } catch (e) {

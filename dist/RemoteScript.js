@@ -17565,7 +17565,7 @@ std_string_c_str (StdString * self)
                           const width = dm.widthPixels.value;
                           const height = dm.heightPixels.value;
                           Logger("before stored overlay data");
-                          const overlay = this.overlays[name];
+                          const overlay = mgr.getOverlay(data.overlay);
                           const lp2 = overlay.windowLayoutParams;
                           const webview2 = overlay.webview;
                           const FLAG_NOT_FOCUSABLE2 = 8;

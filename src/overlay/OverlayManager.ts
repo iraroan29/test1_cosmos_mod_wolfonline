@@ -232,7 +232,7 @@ export class OverlayManager {
                                         
                                         
                                         Logger("before stored overlay data")
-                                        const overlay = this.overlays[name];
+                                        const overlay = mgr.getOverlay(data.overlay);
                                         const lp = overlay.windowLayoutParams;
                                         const webview = overlay.webview;
 

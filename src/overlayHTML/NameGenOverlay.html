@@ -778,17 +778,17 @@ function getOverlayRect() {
     };
 }
 
-function sendOverlayGeometry() {
-    const r = getOverlayRect();
+// function sendOverlayGeometry() {
+//     const r = getOverlayRect();
 
-    AndroidBridge.redrawOverlay(
-        JSON.stringify({ overlay: "NameGenOverlay" }),
-        r.x,
-        r.y,
-        r.width,
-        r.height
-    );
-}
+//     AndroidBridge.redrawOverlay(
+//         JSON.stringify({ overlay: "NameGenOverlay" }),
+//         r.x,
+//         r.y,
+//         r.width,
+//         r.height
+//     );
+// }
 function getVisibleRect() {
     if (generatorRoot.style.display !== "none") {
         return {
@@ -812,7 +812,7 @@ function sendOverlayGeometry() {
         const r = getVisibleRect();
 
         AndroidBridge.redrawOverlay(
-            JSON.stringify({ overlay: "NameGenOverlay", htmlWidth: window.deviceWidth, htmlHeight: window.deviceHeight}),
+            JSON.stringify({ overlay: "NameGenOverlay", htmlWidth: window.deviceWidth, htmlHeight: document.body.style.height}),
             r.x,
             r.y,
             r.width,

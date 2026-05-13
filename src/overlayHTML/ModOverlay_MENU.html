@@ -359,6 +359,13 @@ html, body {
 #hud {
   display: none !important;
 }
+
+#menu-button {
+  position: absolute;
+  width: 50vw;  /* 30% of viewport width */
+  height: 50vh; /* 20% of viewport height */
+  padding: 0;  /* Prevents padding from distorting the small size */
+}
 </style>
 </head>
 
@@ -559,7 +566,10 @@ menuBtn.onclick = () => {
 
   // Wait for DOM layout to commit
   requestAnimationFrame(() => {
-    window.reportMenuSize();
+    AndroidBridge.redrawOverlay(
+        JSON.stringify({ overlay: "ModMenuOverlay"}),
+        open
+    );
   });
 };
 

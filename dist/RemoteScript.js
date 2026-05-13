@@ -17471,6 +17471,48 @@ std_string_c_str (StdString * self)
     }
   });
 
+  // src/overlay/ModOverlay_MENU.ts
+  var _ModOverlay_MENU, ModOverlay_MENU;
+  var init_ModOverlay_MENU = __esm({
+    "src/overlay/ModOverlay_MENU.ts"() {
+      init_playerWolfStore();
+      init_OverlayManager();
+      init_SceneOverlayManager();
+      _ModOverlay_MENU = class _ModOverlay_MENU {
+        constructor(url) {
+          (async () => {
+            await OverlayManager.getInstance().createOverlay(_ModOverlay_MENU.OVERLAY_NAME, url, false, 38 /* MENU */);
+            Logger("[ModOverlay MENU] Overlay created, now registering scenes");
+            SceneOverlayManager.getInstance().registerOverlayScenes(
+              _ModOverlay_MENU.OVERLAY_NAME,
+              Object.keys({
+                "WolfOnline_Map_Snow": true,
+                "WolfOnline_Map_Snow_Guardian": true,
+                "WolfOnline_Map_Mountain": true,
+                "WolfOnline_Map_Mountain_Guardian": true,
+                "WolfOnline_Map_Wild": true,
+                "WolfOnline_Map_Wild_Guardian": true,
+                "WolfOnline_Map_Lava": true,
+                "WolfOnline_Map_Fish": true,
+                "WolfOnline_Map_BlackTiger": true,
+                "WolfOnline_Map_Wild_Dog": true,
+                "WolfOnline_Map_Field": true,
+                "WolfOnline_Map_Hellgate_0": true,
+                "WolfOnline_Map_WolfAndDino": true
+              }),
+              () => isPlayerActive()
+            );
+            SceneOverlayManager.getInstance().onSceneChanged(
+              SceneOverlayManager.currentScene
+            );
+          })();
+        }
+      };
+      _ModOverlay_MENU.OVERLAY_NAME = "ModMenuOverlay";
+      ModOverlay_MENU = _ModOverlay_MENU;
+    }
+  });
+
   // src/overlay/OverlayManager.ts
   var OverlayManager;
   var init_OverlayManager = __esm({
@@ -17481,6 +17523,7 @@ std_string_c_str (StdString * self)
       init_NameGenOverlay();
       init_SceneOverlayManager();
       init_inputid();
+      init_ModOverlay_MENU();
       OverlayManager = class _OverlayManager {
         constructor() {
           this.overlays = {};
@@ -17627,6 +17670,35 @@ std_string_c_str (StdString * self)
                               try {
                                 if (contentOpen) {
                                   mgr.updateWindowGeometry(data.overlay, 0, 0, Math.round(width), Math.round(height));
+                                  lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
+                                  webview2.setFocusable(true);
+                                  webview2.setFocusableInTouchMode(true);
+                                } else {
+                                  const targetWidth = Math.round(width * 0.2);
+                                  const targetHeight = Math.round(height * 0.1);
+                                  const xOffset = Math.round(width * 0.155);
+                                  const yOffset = Math.round(Math.min(width, height) * 0.1);
+                                  mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
+                                  lp2.flags.value |= FLAG_NOT_FOCUSABLE2;
+                                  webview2.setFocusable(false);
+                                  webview2.setFocusableInTouchMode(false);
+                                }
+                                const ViewManager2 = frida_java_bridge_default.use("android.view.ViewManager");
+                                ViewManager2.updateViewLayout.overload("android.view.View", "android.view.ViewGroup$LayoutParams").call(overlay.windowManager, overlay.layout, lp2);
+                              } catch (innerError) {
+                                Logger("[Overlay] UI Thread Error: " + innerError);
+                              }
+                            });
+                          }
+                          if (data.overlay === ModOverlay_MENU.OVERLAY_NAME) {
+                            frida_java_bridge_default.scheduleOnMainThread(() => {
+                              try {
+                                if (contentOpen) {
+                                  const targetWidth = Math.round(width * 0.2);
+                                  const targetHeight = Math.round(height * 0.1);
+                                  const xOffset = Math.round(width * 0.155);
+                                  const yOffset = Math.round(Math.min(width, height) * 0.1);
+                                  mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
                                   webview2.setFocusable(true);
                                   webview2.setFocusableInTouchMode(true);
@@ -17948,7 +18020,7 @@ std_string_c_str (StdString * self)
           };
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
             BossRegistry.clearBoss();
-            SharedState2.clearBody();
+            SharedState3.clearBody();
             return this.method("Internal_SceneUnloaded").invoke(scene, mode);
           };
           Logger("[*] SceneOverlayManager - Scene hooks installed");
@@ -17983,12 +18055,12 @@ std_string_c_str (StdString * self)
   function isPlayerActive() {
     return activePlayer !== null;
   }
-  var activePlayer, SharedState2;
+  var activePlayer, SharedState3;
   var init_playerWolfStore = __esm({
     "src/helpers/playerWolfStore.ts"() {
       init_SceneOverlayManager();
       activePlayer = null;
-      SharedState2 = {
+      SharedState3 = {
         spawningClone: false,
         pendingOldBody: null,
         wolfType: "",
@@ -18146,8 +18218,8 @@ std_string_c_str (StdString * self)
     const transform = player.method("get_transform").invoke();
     const playerPosition = transform.method("get_position").invoke();
     const playerRotation = transform.method("get_rotation").invoke();
-    SharedState2.spawningClone = true;
-    PhotonNetwork.method("Instantiate").invoke(Il2Cpp.string(SharedState2.wolfType), playerPosition, playerRotation, 0);
+    SharedState3.spawningClone = true;
+    PhotonNetwork.method("Instantiate").invoke(Il2Cpp.string(SharedState3.wolfType), playerPosition, playerRotation, 0);
   }
   function initRespawnUpdates() {
     configManager.onUpdate("currentTier", (tier) => respawn());
@@ -18180,20 +18252,20 @@ std_string_c_str (StdString * self)
         return this.method("Awake").invoke();
       }
       const go = this.method("get_gameObject").invoke();
-      if (SharedState2.spawningClone) {
+      if (SharedState3.spawningClone) {
         Logger("Destroy Older Body");
-        SharedState2.spawningClone = false;
-        SharedState2.pendingOldBody = activePlayer;
-        SharedState2.setBody(go);
-        if (SharedState2.pendingOldBody) {
-          PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState2.pendingOldBody);
-          SharedState2.pendingOldBody = null;
+        SharedState3.spawningClone = false;
+        SharedState3.pendingOldBody = activePlayer;
+        SharedState3.setBody(go);
+        if (SharedState3.pendingOldBody) {
+          PhotonNetwork.method("Destroy").overload("UnityEngine.GameObject").invoke(SharedState3.pendingOldBody);
+          SharedState3.pendingOldBody = null;
         }
         return this.method("Awake").invoke();
       }
       const pvString = this.field("_PhotonView").value.toString();
-      SharedState2.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
-      SharedState2.setBody(go, true);
+      SharedState3.wolfType = pvString.match(/View \(0\)\d+ on (.*?)\(Clone\)/)[1];
+      SharedState3.setBody(go, true);
       return this.method("Awake").invoke();
     };
     Logger("[+] playerRespawnAwake successfully initialized!");
@@ -18712,7 +18784,6 @@ std_string_c_str (StdString * self)
       init_multi_attack();
       init_OverlayManager();
       init_SceneOverlayManager();
-      init_BossBattleOverlay();
       init_mountainHooks();
       init_masterclient();
       init_dragonHooks();
@@ -18720,6 +18791,7 @@ std_string_c_str (StdString * self)
       init_wildHooks();
       init_inputid();
       init_ModOverlay_HUD();
+      init_ModOverlay_MENU();
       init_NameGenOverlay();
       var Log = null;
       globalThis.Logger = function(message) {
@@ -18774,7 +18846,7 @@ std_string_c_str (StdString * self)
           WildBossHooks();
           new NameGenOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/NameGenOverlay.html");
           new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");
-          new BossBattleOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/BossBattle.html");
+          new ModOverlay_MENU("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_MENU.html");
           Logger("    ------------");
           Logger("\n[+] Successfully Completed All Hooks");
         });

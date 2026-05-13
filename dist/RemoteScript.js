@@ -17694,7 +17694,7 @@ std_string_c_str (StdString * self)
                             frida_java_bridge_default.scheduleOnMainThread(() => {
                               try {
                                 if (contentOpen) {
-                                  const targetWidth = Math.round(Math.min(width, height) * 0.4);
+                                  const targetWidth = Math.round(Math.min(width, height) * 0.6);
                                   const targetHeight = Math.round(height * 0.6);
                                   const xOffset = Math.round(width * 0.1);
                                   const yOffset = Math.round(Math.min(width, height) * 0.6);

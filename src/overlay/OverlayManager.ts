@@ -285,7 +285,7 @@ export class OverlayManager {
                                                 try {
                                                     if (contentOpen) {
                                                         // 1. Let your manager handle geometry (size/pos)const targetWidth = Math.round(width * 0.20);
-                                                        const targetWidth = Math.round(Math.min(width, height) * 0.40);
+                                                        const targetWidth = Math.round(Math.min(width, height) * 0.60);
                                                         const targetHeight = Math.round(height * 0.60);
                                                         const xOffset = Math.round(width * 0.1);
                                                         const yOffset = Math.round(Math.min(width, height) * 0.60);

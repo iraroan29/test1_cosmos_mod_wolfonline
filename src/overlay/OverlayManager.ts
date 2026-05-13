@@ -287,8 +287,8 @@ export class OverlayManager {
                                                         // 1. Let your manager handle geometry (size/pos)const targetWidth = Math.round(width * 0.20);
                                                         const targetWidth = Math.round(width * 0.20);
                                                         const targetHeight = Math.round(height * 0.10);
-                                                        const xOffset = Math.round(width * 0.155);
-                                                        const yOffset = Math.round(Math.min(width, height) * 0.10);
+                                                        const xOffset = Math.round(width * 0.002);
+                                                        const yOffset = Math.round(Math.min(width, height) * 0.60);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)
                                                         mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);

@@ -17696,8 +17696,8 @@ std_string_c_str (StdString * self)
                                 if (contentOpen) {
                                   const targetWidth = Math.round(width * 0.2);
                                   const targetHeight = Math.round(height * 0.1);
-                                  const xOffset = Math.round(width * 0.155);
-                                  const yOffset = Math.round(Math.min(width, height) * 0.1);
+                                  const xOffset = Math.round(width * 2e-3);
+                                  const yOffset = Math.round(Math.min(width, height) * 0.6);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
                                   webview2.setFocusable(true);

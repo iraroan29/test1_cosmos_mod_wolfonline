@@ -483,6 +483,17 @@ window.onload = () => {
     }));
 };
 
+window.setSize = function (width, height) {
+  // DO NOT resize HTML here.
+  // HTML must stay full-screen.
+
+  window.deviceWidth = width;
+  window.deviceHeight = height;
+
+  // After device size is known, measure visible UI
+  requestAnimationFrame(sendOverlayGeometry(false));
+};
+
 function debounce(fn, delay = 150) {
   let timer;
   return function (...args) {

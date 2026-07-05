@@ -467,17 +467,21 @@ window.sendModEvent = function(event, data) {
 //     console.log("[MOD SEND]", event, data);
 //   }
 }
+// window.onload = () => {
+//     AndroidBridge.getInitialData(JSON.stringify({
+//         type: "READY",
+//         overlay: "ModMenuOverlay",
+//         payload: { htmlReady: true }
+//     }));
+// };
 
-window.reportMenuSize = function() {
-  const root = document.getElementById("menu-root");
-  if (!root || !window.AndroidBridge) return;
-
-  const rect = root.getBoundingClientRect();
-//   AndroidBridge.resizeOverlay(
-//     Math.ceil(rect.width),
-//     Math.ceil(rect.height)
-//   );
-}
+window.onload = () => {
+    AndroidBridge.requestDeviceSize(JSON.stringify({
+        type: "READY",
+        overlay: "NameGenOverlay",
+        payload: { htmlReady: true }
+    }));
+};
 
 function debounce(fn, delay = 150) {
   let timer;

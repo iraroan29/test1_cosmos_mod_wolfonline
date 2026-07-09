@@ -237,6 +237,11 @@ export class OverlayManager {
                                         const width = dm.widthPixels.value;
                                         const height = dm.heightPixels.value;
 
+                                        function vmin(percentage: number) : number {
+                                            const smallerDimension = Math.min(width, height);
+                                            return smallerDimension * (percentage / 100);
+                                        }
+
                                         const overlay = mgr.getOverlay(data.overlay);
                                         const lp = overlay.windowLayoutParams;
                                         const webview = overlay.webview;
@@ -287,7 +292,7 @@ export class OverlayManager {
                                                         // 1. Let your manager handle geometry (size/pos)const targetWidth = Math.round(width * 0.20);
                                                         const targetWidth = Math.round(Math.min(width, height) * 0.60);
                                                         const targetHeight = Math.round(height * 0.60);
-                                                        const xOffset = Math.round(width * 0.1);
+                                                        const xOffset = vmin(0.5 + 4 + 20);
                                                         const yOffset = Math.round(Math.min(width, height) * 0.60);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)
@@ -299,10 +304,10 @@ export class OverlayManager {
                                                         webview.setFocusableInTouchMode(true);
                                                     } else {
                                                         // Tiny Button State with Rounded Integers
-                                                        const targetWidth = Math.round(width * 0.10);
-                                                        const targetHeight = Math.round(height * 0.20);
-                                                        const xOffset = Math.round(width * 0.05);
-                                                        const yOffset = Math.round(Math.min(width, height) * 0.50);
+                                                        const targetWidth = vmin(20);
+                                                        const targetHeight = vmin(5);
+                                                        const xOffset = vmin(0.5 + 4 + 20);
+                                                        const yOffset = vmin(60);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)
                                                         mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);

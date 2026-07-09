@@ -17665,6 +17665,10 @@ std_string_c_str (StdString * self)
                       argumentTypes: ["java.lang.String", "boolean"],
                       implementation: function(jsonString, contentOpen) {
                         try {
+                          let vmin = function(percentage) {
+                            const smallerDimension = Math.min(width, height);
+                            return smallerDimension * (percentage / 100);
+                          };
                           const data = JSON.parse(jsonString);
                           const mgr = _OverlayManager.getInstance();
                           const dm = frida_java_bridge_default.use("android.content.res.Resources").getSystem().getDisplayMetrics();
@@ -17705,17 +17709,17 @@ std_string_c_str (StdString * self)
                                 if (contentOpen) {
                                   const targetWidth = Math.round(Math.min(width, height) * 0.6);
                                   const targetHeight = Math.round(height * 0.6);
-                                  const xOffset = Math.round(width * 0.1);
+                                  const xOffset = vmin(0.5 + 4 + 20);
                                   const yOffset = Math.round(Math.min(width, height) * 0.6);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
                                   webview2.setFocusable(true);
                                   webview2.setFocusableInTouchMode(true);
                                 } else {
-                                  const targetWidth = Math.round(width * 0.1);
-                                  const targetHeight = Math.round(height * 0.2);
-                                  const xOffset = Math.round(width * 0.05);
-                                  const yOffset = Math.round(Math.min(width, height) * 0.5);
+                                  const targetWidth = vmin(20);
+                                  const targetHeight = vmin(5);
+                                  const xOffset = vmin(0.5 + 4 + 20);
+                                  const yOffset = vmin(60);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value |= FLAG_NOT_FOCUSABLE2;
                                   webview2.setFocusable(false);

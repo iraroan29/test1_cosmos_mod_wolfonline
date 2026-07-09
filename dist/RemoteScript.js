@@ -17667,10 +17667,10 @@ std_string_c_str (StdString * self)
                         try {
                           let vmin = function(percentage) {
                             const smallerDimension = Math.min(width, height);
-                            return smallerDimension * (percentage / 100);
+                            return Math.round(smallerDimension * (percentage / 100));
                           }, vmax = function(percentage) {
                             const largerDimension = Math.max(width, height);
-                            return largerDimension * (percentage / 100);
+                            return Math.round(largerDimension * (percentage / 100));
                           };
                           const data = JSON.parse(jsonString);
                           const mgr = _OverlayManager.getInstance();
@@ -17712,7 +17712,7 @@ std_string_c_str (StdString * self)
                                 if (contentOpen) {
                                   const targetWidth = vmax(60);
                                   const targetHeight = vmin(60);
-                                  const xOffset = vmin(0.5 + 4);
+                                  const xOffset = vmin(2);
                                   const yOffset = vmin(20);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
@@ -17721,7 +17721,7 @@ std_string_c_str (StdString * self)
                                 } else {
                                   const targetWidth = vmin(20);
                                   const targetHeight = vmin(5);
-                                  const xOffset = vmin(0.5 + 4);
+                                  const xOffset = vmin(2);
                                   const yOffset = vmin(55);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value |= FLAG_NOT_FOCUSABLE2;

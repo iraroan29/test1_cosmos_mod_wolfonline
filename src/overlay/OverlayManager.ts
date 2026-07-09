@@ -239,11 +239,11 @@ export class OverlayManager {
 
                                         function vmin(percentage: number) : number {
                                             const smallerDimension = Math.min(width, height);
-                                            return smallerDimension * (percentage / 100);
+                                            return Math.round(smallerDimension * (percentage / 100));
                                         }
                                         function vmax(percentage: number) : number {
                                             const largerDimension = Math.max(width, height);
-                                            return largerDimension * (percentage / 100);
+                                            return Math.round(largerDimension * (percentage / 100));
                                         }
 
                                         const overlay = mgr.getOverlay(data.overlay);
@@ -296,7 +296,7 @@ export class OverlayManager {
                                                         // 1. Let your manager handle geometry (size/pos)const targetWidth = Math.round(width * 0.20);
                                                         const targetWidth = vmax(60);
                                                         const targetHeight = vmin(60);
-                                                        const xOffset = vmin(0.5 + 4);
+                                                        const xOffset = vmin(2);
                                                         const yOffset = vmin(20);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)
@@ -310,7 +310,7 @@ export class OverlayManager {
                                                         // Tiny Button State with Rounded Integers
                                                         const targetWidth = vmin(20);
                                                         const targetHeight = vmin(5);
-                                                        const xOffset = vmin(0.5 + 4);
+                                                        const xOffset = vmin(2);
                                                         const yOffset = vmin(55);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)

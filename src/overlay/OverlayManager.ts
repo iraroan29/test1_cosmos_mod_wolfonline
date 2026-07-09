@@ -296,7 +296,7 @@ export class OverlayManager {
                                                         // 1. Let your manager handle geometry (size/pos)const targetWidth = Math.round(width * 0.20);
                                                         const targetWidth = vmax(60);
                                                         const targetHeight = vmin(60);
-                                                        const xOffset = vmin(2);
+                                                        const xOffset = vmin(2.5);
                                                         const yOffset = vmin(20);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)
@@ -309,8 +309,8 @@ export class OverlayManager {
                                                     } else {
                                                         // Tiny Button State with Rounded Integers
                                                         const targetWidth = vmin(20);
-                                                        const targetHeight = vmin(5);
-                                                        const xOffset = vmin(2);
+                                                        const targetHeight = vmin(15);
+                                                        const xOffset = vmin(2.5);
                                                         const yOffset = vmin(55);
 
                                                         // 1. Let your manager handle geometry (tiny size/pos)

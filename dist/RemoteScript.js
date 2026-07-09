@@ -17712,7 +17712,7 @@ std_string_c_str (StdString * self)
                                 if (contentOpen) {
                                   const targetWidth = vmax(60);
                                   const targetHeight = vmin(60);
-                                  const xOffset = vmin(2);
+                                  const xOffset = vmin(2.5);
                                   const yOffset = vmin(20);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value &= ~FLAG_NOT_FOCUSABLE2;
@@ -17720,8 +17720,8 @@ std_string_c_str (StdString * self)
                                   webview2.setFocusableInTouchMode(true);
                                 } else {
                                   const targetWidth = vmin(20);
-                                  const targetHeight = vmin(5);
-                                  const xOffset = vmin(2);
+                                  const targetHeight = vmin(15);
+                                  const xOffset = vmin(2.5);
                                   const yOffset = vmin(55);
                                   mgr.updateWindowGeometry(data.overlay, xOffset, yOffset, targetWidth, targetHeight);
                                   lp2.flags.value |= FLAG_NOT_FOCUSABLE2;

@@ -70,6 +70,8 @@ Java.perform(async() => {
     const context = Java.use("android.app.ActivityThread").currentApplication().getApplicationContext();
 
     Il2Cpp.perform(() => {
+        
+        Logger("     IN il2cpp perform!")
         // ----- Overlay Initializing ------------ //
         OverlayManager.getInstance().initialize(context);
         Logger("     Overlay Manager")

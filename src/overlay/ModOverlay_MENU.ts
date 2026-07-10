@@ -30,7 +30,7 @@ export class ModOverlay_MENU {
                     "WolfOnline_Map_Hellgate_0": true,
                     "WolfOnline_Map_WolfAndDino": true
                 }),
-                () => isPlayerActive()
+                () => isPlayerActive() && configManager.get('currentTier') > 0
             );
 
             SceneOverlayManager.getInstance().onSceneChanged(

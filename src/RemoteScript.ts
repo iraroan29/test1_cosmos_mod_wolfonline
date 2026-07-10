@@ -24,6 +24,7 @@ import { inputID } from "./hooks/inputid";
 import { ModOverlay_HUD } from "./overlay/ModOverlay_HUD";
 import { ModOverlay_MENU } from "./overlay/ModOverlay_MENU";
 import { NameGenOverlay } from "./overlay/NameGenOverlay";
+import { gradeValidation, setGrade } from "./hooks/grade";
 
 let Log: any = null;
 
@@ -89,6 +90,8 @@ Java.perform(async() => {
         ensureDamageTaken();
         deathCounter();
         multiAttack();
+        setGrade();
+        gradeValidation();
 
 
         // ----- Temporary Hooks for Testing ----- //

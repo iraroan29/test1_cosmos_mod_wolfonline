@@ -71,9 +71,6 @@ Java.perform(async() => {
 
     Il2Cpp.perform(() => {
         Logger(" 4   ------------")
-        // ----- Overlay Initializing ------------ //
-        OverlayManager.getInstance().initialize(context);
-        SceneOverlayManager.getInstance().initialize();
         
         // ----- GUI Hooks ----------------------- //
         Logger("    ------------")
@@ -109,6 +106,10 @@ Java.perform(async() => {
         SnowBossHooks();
         WildBossHooks();
 
+        // ----- Overlay Initializing ------------ //
+        OverlayManager.getInstance().initialize(context);
+        SceneOverlayManager.getInstance().initialize();
+        
         // ----- Overlay creation
         new NameGenOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/NameGenOverlay.html");
         new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");

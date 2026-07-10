@@ -19442,8 +19442,6 @@ std_string_c_str (StdString * self)
         const context = frida_java_bridge_default.use("android.app.ActivityThread").currentApplication().getApplicationContext();
         Il2Cpp.perform(() => {
           Logger(" 4   ------------");
-          OverlayManager.getInstance().initialize(context);
-          SceneOverlayManager.getInstance().initialize();
           Logger("    ------------");
           Logger("    ------------");
           inputID();
@@ -19465,6 +19463,8 @@ std_string_c_str (StdString * self)
           DragonBossHooks();
           SnowBossHooks();
           WildBossHooks();
+          OverlayManager.getInstance().initialize(context);
+          SceneOverlayManager.getInstance().initialize();
           new NameGenOverlay("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/NameGenOverlay.html");
           new ModOverlay_HUD("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_HUD.html");
           new ModOverlay_MENU("https://raw.githubusercontent.com/iraroan29/test1_cosmos_mod_wolfonline/refs/heads/main/src/overlayHTML/ModOverlay_MENU.html");

@@ -19442,7 +19442,9 @@ std_string_c_str (StdString * self)
         const context = frida_java_bridge_default.use("android.app.ActivityThread").currentApplication().getApplicationContext();
         Il2Cpp.perform(() => {
           OverlayManager.getInstance().initialize(context);
+          Logger("     Overlay Manager");
           SceneOverlayManager.getInstance().initialize();
+          Logger("     Scene Overlay Manager");
           Logger("     Functionality Hooks");
           inputID();
           hudName();

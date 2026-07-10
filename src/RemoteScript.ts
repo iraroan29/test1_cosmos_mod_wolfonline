@@ -72,7 +72,9 @@ Java.perform(async() => {
     Il2Cpp.perform(() => {
         // ----- Overlay Initializing ------------ //
         OverlayManager.getInstance().initialize(context);
+        Logger("     Overlay Manager")
         SceneOverlayManager.getInstance().initialize();
+        Logger("     Scene Overlay Manager")
         
         // ----- Functionality Hooks ------------- //
         Logger("     Functionality Hooks")

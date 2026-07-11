@@ -24,14 +24,12 @@ export class SceneOverlayManager {
         const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
 
         // 2. Safety Check: Ensure ALL required modules are loaded
-        if (!core) {
+        if (!assemblyC || !core) {
             Logger("[!] Unity not ready for SceneOverlayManager");
             return;
         }
 
         const UnityCoreImage = core.image;
-        const AssemblyC = assemblyC.image;
-        const PhotonNetwork = AssemblyC.class("PhotonNetwork");
         const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
 
         // Hook Internal_SceneLoaded

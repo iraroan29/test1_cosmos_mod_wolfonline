@@ -18021,13 +18021,11 @@ std_string_c_str (StdString * self)
           this.initialized = true;
           const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
           const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
-          if (!core) {
+          if (!assemblyC || !core) {
             Logger("[!] Unity not ready for SceneOverlayManager");
             return;
           }
           const UnityCoreImage = core.image;
-          const AssemblyC = assemblyC.image;
-          const PhotonNetwork = AssemblyC.class("PhotonNetwork");
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
             const sceneName = scene.method("get_name").invoke().content;

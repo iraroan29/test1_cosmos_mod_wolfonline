@@ -19404,7 +19404,6 @@ std_string_c_str (StdString * self)
       init_death();
       init_multi_attack();
       init_OverlayManager();
-      init_SceneOverlayManager();
       init_mountainHooks();
       init_masterclient();
       init_dragonHooks();
@@ -19447,7 +19446,6 @@ std_string_c_str (StdString * self)
           Logger("     IN il2cpp perform!");
           OverlayManager.getInstance().initialize(context);
           Logger("     Overlay Manager");
-          SceneOverlayManager.getInstance().initialize();
           Logger("     Scene Overlay Manager");
           Logger("     Functionality Hooks");
           inputID();

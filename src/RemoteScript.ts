@@ -75,7 +75,7 @@ Java.perform(async() => {
         // ----- Overlay Initializing ------------ //
         OverlayManager.getInstance().initialize(context);
         Logger("     Overlay Manager")
-        SceneOverlayManager.getInstance().initialize();
+        // SceneOverlayManager.getInstance().initialize();
         Logger("     Scene Overlay Manager")
         
         // ----- Functionality Hooks ------------- //

@@ -80,7 +80,7 @@ Java.perform(async() => {
         
         // ----- Functionality Hooks ------------- //
         Logger("     Functionality Hooks")
-        // inputID();
+        inputID();
         // hudName();
         // givePoints();
         // playerUpdate();
@@ -89,8 +89,8 @@ Java.perform(async() => {
         // ensureDamageTaken();
         // deathCounter();
         // multiAttack();
-        setGrade();
-        gradeValidation();
+        // setGrade();
+        // gradeValidation();
 
 
         // ----- Temporary Hooks for Testing ----- //

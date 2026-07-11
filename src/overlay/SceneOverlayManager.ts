@@ -13,13 +13,14 @@ export class SceneOverlayManager {
 
     static getInstance(): SceneOverlayManager {
         if (!this.instance) this.instance = new SceneOverlayManager();
+        Logger("Debug 1");
         return this.instance;
     }
 
     initialize() {
         if (this.initialized) return;
         this.initialized = true;
-
+        Logger("Debug 2");
         const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
         const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
 
@@ -29,12 +30,15 @@ export class SceneOverlayManager {
             return;
         }
 
+        Logger("Debug 3");
         const UnityCoreImage = core.image;
         const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
 
         // Hook Internal_SceneLoaded
         SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode){
             const sceneName = (scene as Il2Cpp.Object).method<Il2Cpp.String>("get_name").invoke().content;
+            
+            Logger("Debug 4");
             SceneOverlayManager.currentScene = sceneName;
             SceneOverlayManager.getInstance().onSceneChanged(sceneName);
             // // Master Client?
@@ -44,6 +48,8 @@ export class SceneOverlayManager {
 
         // Hook Internal_SceneUnloaded
         SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode){
+            
+            Logger("Debug 5");
             // Clear boss when leaving ANY scene
             BossRegistry.clearBoss();
             // Clear saved player body

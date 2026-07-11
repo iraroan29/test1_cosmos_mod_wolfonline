@@ -18014,26 +18014,31 @@ std_string_c_str (StdString * self)
         }
         static getInstance() {
           if (!this.instance) this.instance = new _SceneOverlayManager();
+          Logger("Debug 1");
           return this.instance;
         }
         initialize() {
           if (this.initialized) return;
           this.initialized = true;
+          Logger("Debug 2");
           const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
           const core = Il2Cpp.domain.assembly("UnityEngine.CoreModule");
           if (!assemblyC || !core) {
             Logger("[!] Unity not ready for SceneOverlayManager");
             return;
           }
+          Logger("Debug 3");
           const UnityCoreImage = core.image;
           const SceneManager = UnityCoreImage.class("UnityEngine.SceneManagement.SceneManager");
           SceneManager.method("Internal_SceneLoaded").implementation = function(scene, mode) {
             const sceneName = scene.method("get_name").invoke().content;
+            Logger("Debug 4");
             _SceneOverlayManager.currentScene = sceneName;
             _SceneOverlayManager.getInstance().onSceneChanged(sceneName);
             return this.method("Internal_SceneLoaded").invoke(scene, mode);
           };
           SceneManager.method("Internal_SceneUnloaded").implementation = function(scene, mode) {
+            Logger("Debug 5");
             BossRegistry.clearBoss();
             SharedState3.clearBody();
             return this.method("Internal_SceneUnloaded").invoke(scene, mode);

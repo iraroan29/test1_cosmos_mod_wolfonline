@@ -80,7 +80,30 @@ Java.perform(async() => {
         
         // ----- Functionality Hooks ------------- //
         Logger("     Functionality Hooks")
-        inputID();
+        const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+            
+            if (!assemblyC) {
+                // If not found, wait 500ms and try again
+                Logger("[!] Assembly-CSharp not ready for inputID, retrying...");
+                setTimeout(inputID, 500);
+                return;
+            }
+        
+            const AssemblyC = assemblyC.image;
+            const InputID = AssemblyC.class("Input_ID");
+            Logger("before implementation")
+            // 2. Increase character limit
+            InputID.method("Start").implementation = function(){
+                Logger("Inside of start");
+                // Call original method
+                this.method("Start").invoke();
+                // Store this instance of Input_ID
+                // INPUT = this as Il2Cpp.Object;
+        
+                const mInput = this.field("mInput").value as Il2Cpp.Object;
+                mInput.field("characterLimit").value = 1000;
+            }
+        // inputID();
         // hudName();
         // givePoints();
         // playerUpdate();

@@ -18502,7 +18502,21 @@ std_string_c_str (StdString * self)
           Logger("     Overlay Manager");
           Logger("     Scene Overlay Manager");
           Logger("     Functionality Hooks");
-          inputID();
+          const assemblyC = Il2Cpp.domain.assembly("Assembly-CSharp");
+          if (!assemblyC) {
+            Logger("[!] Assembly-CSharp not ready for inputID, retrying...");
+            setTimeout(inputID, 500);
+            return;
+          }
+          const AssemblyC = assemblyC.image;
+          const InputID = AssemblyC.class("Input_ID");
+          Logger("before implementation");
+          InputID.method("Start").implementation = function() {
+            Logger("Inside of start");
+            this.method("Start").invoke();
+            const mInput = this.field("mInput").value;
+            mInput.field("characterLimit").value = 1e3;
+          };
           Logger("     Temp Hooks");
           immortalTesting();
           stealMasterClient();

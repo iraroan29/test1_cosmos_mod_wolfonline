@@ -80,15 +80,15 @@ Java.perform(async() => {
         
         // ----- Functionality Hooks ------------- //
         Logger("     Functionality Hooks")
-        inputID();
-        hudName();
-        givePoints();
-        playerUpdate();
-        playerRespawnAwake();
-        honorAndPointLimiter();
-        ensureDamageTaken();
-        deathCounter();
-        multiAttack();
+        // inputID();
+        // hudName();
+        // givePoints();
+        // playerUpdate();
+        // playerRespawnAwake();
+        // honorAndPointLimiter();
+        // ensureDamageTaken();
+        // deathCounter();
+        // multiAttack();
         setGrade();
         gradeValidation();
 
